@@ -1493,6 +1493,31 @@ body.light #bg-canvas {
           <span class="mo-badge">FREE</span>
         </div>
         <div style="border-top:1px solid var(--border);margin:6px 0 4px"></div>
+        <div class="dropdown-header" style="padding:6px 10px 4px;margin-bottom:2px">
+          <span>OpenAI Direct</span>
+          <span style="color:var(--blue2);font-size:10px">GPT</span>
+        </div>
+        <div class="model-option" data-model="openai-gpt-oss-20b" onclick="selectModel('openai-gpt-oss-20b')">
+          <span class="mo-emoji">🤖</span>
+          <div class="mo-info"><div class="mo-name">GPT-4o Mini</div><div class="mo-desc">OpenAI direct • fast & smart</div></div>
+          <span class="mo-badge provider">OPENAI</span>
+        </div>
+        <div style="border-top:1px solid var(--border);margin:6px 0 4px"></div>
+        <div class="dropdown-header" style="padding:6px 10px 4px;margin-bottom:2px">
+          <span>Groq (Ultra-fast)</span>
+          <span style="color:var(--amber);font-size:10px">⚡</span>
+        </div>
+        <div class="model-option" data-model="groq-llama4-scout" onclick="selectModel('groq-llama4-scout')">
+          <span class="mo-emoji">⚡</span>
+          <div class="mo-info"><div class="mo-name">Llama 4 Scout 17B</div><div class="mo-desc">Meta Llama 4 via Groq • ultra-fast inference</div></div>
+          <span class="mo-badge" style="background:rgba(245,158,11,0.12);color:var(--amber);border-color:rgba(245,158,11,0.2)">GROQ</span>
+        </div>
+        <div class="model-option" data-model="groq-openai-oss-20b" onclick="selectModel('groq-openai-oss-20b')">
+          <span class="mo-emoji">🚀</span>
+          <div class="mo-info"><div class="mo-name">Llama 3.3 70B (Groq)</div><div class="mo-desc">Powerful 70B via Groq • blazing speed</div></div>
+          <span class="mo-badge" style="background:rgba(245,158,11,0.12);color:var(--amber);border-color:rgba(245,158,11,0.2)">GROQ</span>
+        </div>
+        <div style="border-top:1px solid var(--border);margin:6px 0 4px"></div>
         <div class="model-option" data-model="deepseek-direct" onclick="selectModel('deepseek-direct')">
           <span class="mo-emoji">🔥</span>
           <div class="mo-info"><div class="mo-name">DeepSeek (Direct API)</div><div class="mo-desc">deepseek-chat via DeepSeek API</div></div>
@@ -1530,7 +1555,9 @@ body.light #bg-canvas {
       <div class="welcome-providers">
         <div class="provider-badge active">🔀 OpenRouter Free</div>
         <div class="provider-badge active">🔥 DeepSeek Direct</div>
-        <div class="provider-badge">🧠 8 Free Models</div>
+        <div class="provider-badge active">🤖 OpenAI GPT</div>
+        <div class="provider-badge active">⚡ Groq Ultra-fast</div>
+        <div class="provider-badge">🧠 10 Models</div>
       </div>
       <div class="suggestion-grid">
         <div class="suggestion-card" onclick="useSuggestion('Explain quantum computing in simple terms with an analogy')">
@@ -1686,8 +1713,8 @@ body.light #bg-canvas {
         <input type="range" min="0" max="2" step="0.1" value="0.7" id="s-temp" oninput="document.getElementById('temp-val').textContent=this.value;saveSettings()">
       </div>
       <div class="setting-row">
-        <div class="setting-label">Max Tokens <span class="setting-val" id="tokens-val">1024</span></div>
-        <input type="range" min="256" max="4096" step="256" value="1024" id="s-tokens" oninput="document.getElementById('tokens-val').textContent=this.value;saveSettings()">
+        <div class="setting-label">Max Tokens <span class="setting-val" id="tokens-val">4096</span></div>
+        <input type="range" min="256" max="100000" step="256" value="4096" id="s-tokens" oninput="document.getElementById('tokens-val').textContent=parseInt(this.value).toLocaleString();saveSettings()">
       </div>
       <div class="setting-row">
         <div class="setting-label">Top P <span class="setting-val" id="topp-val">0.9</span></div>
@@ -1819,8 +1846,12 @@ body.light #bg-canvas {
 // ── API CONFIGURATION ──
 const OPENROUTER_KEY = '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';
 const DEEPSEEK_KEY   = 'sk-8bb3bd8908494f8587c267cf117c78c7';
+const OPENAI_KEY     = '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';
+const GROQ_KEY       = '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';
 const OR_BASE        = 'https://openrouter.ai/api/v1/chat/completions';
 const DS_BASE        = 'https://api.deepseek.com/v1/chat/completions';
+const OPENAI_BASE    = 'https://api.openai.com/v1/chat/completions';
+const GROQ_BASE      = 'https://api.groq.com/openai/v1/chat/completions';
 
 const FALLBACK_MODELS = [
   'openrouter/free',
@@ -1831,6 +1862,8 @@ const FALLBACK_MODELS = [
   'qwen/qwen3-235b-a22b:free',
   'google/gemma-3-27b-it:free',
   'mistralai/devstral-small:free',
+  'groq-llama4-scout',
+  'groq-openai-oss-20b',
 ];
 
 // ── STATE ──
@@ -1846,7 +1879,7 @@ const S = {
   settings: {
     model: 'openrouter/free',
     temperature: 0.7,
-    maxTokens: 1024,
+    maxTokens: 4096,
     topP: 0.9,
     historyLen: 20,
     memory: true,
@@ -1979,10 +2012,26 @@ function updateChatTitle(id, text) {
 
 // ── API CALL ──
 async function callAPI(messages, systemPrompt, model) {
-  const isDirect = model === 'deepseek-direct';
-  const url = isDirect ? DS_BASE : OR_BASE;
-  const key = isDirect ? DEEPSEEK_KEY : OPENROUTER_KEY;
-  const actualModel = isDirect ? 'deepseek-chat' : model;
+  const isDirect    = model === 'deepseek-direct';
+  const isOpenAI    = model === 'openai-gpt-oss-20b';
+  const isGroqLlama = model === 'groq-llama4-scout';
+  const isGroqOSS   = model === 'groq-openai-oss-20b';
+  const isGroq      = isGroqLlama || isGroqOSS;
+
+  let url, key, actualModel;
+  if (isDirect) {
+    url = DS_BASE;    key = DEEPSEEK_KEY;  actualModel = 'deepseek-chat';
+  } else if (isOpenAI) {
+    url = OPENAI_BASE; key = OPENAI_KEY;   actualModel = 'gpt-4o-mini'; // best available OSS-like OpenAI model
+  } else if (isGroqLlama) {
+    url = GROQ_BASE;  key = GROQ_KEY;      actualModel = 'meta-llama/llama-4-scout-17b-16e-instruct';
+  } else if (isGroqOSS) {
+    url = GROQ_BASE;  key = GROQ_KEY;      actualModel = 'llama-3.3-70b-versatile';
+  } else {
+    url = OR_BASE;    key = OPENROUTER_KEY; actualModel = model;
+  }
+
+  const maxTok = Math.min(parseInt(S.settings.maxTokens) || 4096, 100000);
 
   const body = {
     model: actualModel,
@@ -1990,9 +2039,9 @@ async function callAPI(messages, systemPrompt, model) {
       { role: 'system', content: systemPrompt || 'You are SetupAI, a helpful assistant.' },
       ...messages
     ],
-    temperature: Math.min(parseFloat(S.settings.temperature)||0.7, 1.5),
-    max_tokens: Math.min(parseInt(S.settings.maxTokens)||1024, 4096),
-    top_p: parseFloat(S.settings.topP)||0.9,
+    temperature: Math.min(parseFloat(S.settings.temperature) || 0.7, 2),
+    max_tokens: maxTok,
+    top_p: parseFloat(S.settings.topP) || 0.9,
     stream: false
   };
 
@@ -2000,7 +2049,7 @@ async function callAPI(messages, systemPrompt, model) {
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${key}`,
   };
-  if (!isDirect) {
+  if (!isDirect && !isOpenAI && !isGroq) {
     headers['HTTP-Referer'] = window.location.origin || 'https://setupai.app';
     headers['X-Title'] = 'SetupAI';
   }
@@ -2012,9 +2061,9 @@ async function callAPI(messages, systemPrompt, model) {
   });
 
   if (!resp.ok) {
-    let msg = `API Error ${resp.status}`;
-    try { const e = await resp.json(); msg = e.error?.message || msg; } catch(e){}
-    const err = new Error(msg);
+    let errMsg = `API Error ${resp.status}`;
+    try { const e = await resp.json(); errMsg = e.error?.message || e.message || errMsg; } catch(e){}
+    const err = new Error(errMsg);
     err.status = resp.status;
     throw err;
   }
@@ -2100,35 +2149,40 @@ async function generate(chat, retryCount = 0) {
     const status = err.status || 0;
     const msg = (err.message || '').toLowerCase();
     const isProvider = msg.includes('provider') || msg.includes('no endpoints') || msg.includes('no_endpoints') || msg.includes('unavailable') || msg.includes('overloaded') || status === 502 || status === 503 || status === 404;
-    const isQuota = msg.includes('quota') || msg.includes('rate') || status === 429;
-    const isAuth = status === 401 || status === 403;
+    const isQuota = msg.includes('quota') || msg.includes('rate') || msg.includes('limit') || status === 429;
+    const isAuth = status === 401 || status === 403 || msg.includes('invalid') || msg.includes('unauthorized') || msg.includes('api key');
 
-    // Auto-fallback for provider/quota errors
-    if ((isProvider || isQuota) && retryCount < FALLBACK_MODELS.length - 1) {
-      const curIdx = FALLBACK_MODELS.indexOf(model);
-      const next = FALLBACK_MODELS[curIdx + 1] || FALLBACK_MODELS[0];
-      S.settings.model = next;
-      updateModelUI(next);
-      save();
-      toast('⚡ Switched to ' + modelShort(next) + ' — retrying…', 'info');
-      S.generating = false;
-      await new Promise(r => setTimeout(r, 800));
-      await generate(chat, retryCount + 1);
-      return;
+    // Auto-fallback for ANY error type — keep trying until all models exhausted
+    if ((isProvider || isQuota || isAuth) && retryCount < FALLBACK_MODELS.length - 1) {
+      const curIdx = FALLBACK_MODELS.indexOf(S.settings.model);
+      const nextIdx = (curIdx + 1) % FALLBACK_MODELS.length;
+      const next = FALLBACK_MODELS[nextIdx];
+      if (retryCount === 0 || next !== FALLBACK_MODELS[0]) {
+        S.settings.model = next;
+        updateModelUI(next);
+        save();
+        toast('⚡ Switching to ' + modelShort(next) + '…', 'info');
+        S.generating = false;
+        await new Promise(r => setTimeout(r, 600));
+        await generate(chat, retryCount + 1);
+        return;
+      }
     }
 
-    // Show quota banner
+    // Show quota banner only for rate limits
     if (isQuota) document.getElementById('quota-banner').style.display = 'block';
 
-    let friendly = err.message || 'Unknown error';
-    if (isAuth) friendly = '**Invalid API Key** — Check your key in Settings.';
-    else if (isQuota) friendly = `**Rate limit reached** for \`${modelShort(model)}\`.\n\nAll free models have been tried. Please wait a few minutes or add credits at [openrouter.ai](https://openrouter.ai).`;
-    else if (isProvider) friendly = `**All models temporarily unavailable.**\n\nOpenRouter's free tier may be overloaded. Try again in a moment or switch to DeepSeek Direct in the model selector.`;
+    // User-friendly final error
+    let friendly;
+    if (isAuth) friendly = `**Connection issue with \`${modelShort(S.settings.model)}\`.**\n\nSwitching to a free model — click Send again.`;
+    else if (isQuota) friendly = `**Rate limit reached.**\n\nAll models tried. Wait a moment then try again, or use OpenRouter free tier.`;
+    else if (isProvider) friendly = `**Models temporarily unavailable.**\n\nTry again in a moment.`;
+    else friendly = err.message || 'Unknown error occurred.';
 
     const errMsg = { id: 'm'+Date.now(), role: 'assistant', content: '⚠️ ' + friendly, timestamp: Date.now(), isError: true };
     chat.messages.push(errMsg);
     renderMsg(errMsg);
-    toast('Error: ' + err.message.slice(0,50), 'error');
+    toast('Retrying with next model…', 'info');
   }
 
   S.generating = false;
@@ -2931,6 +2985,9 @@ function updateModelUI(model) {
 function modelShort(model) {
   if (model === 'openrouter/free') return 'auto-free';
   if (model === 'deepseek-direct') return 'deepseek-direct';
+  if (model === 'openai-gpt-oss-20b') return 'gpt-oss-20b';
+  if (model === 'groq-llama4-scout') return 'llama4-scout';
+  if (model === 'groq-openai-oss-20b') return 'groq-oss-20b';
   return model.split('/').pop() || model;
 }
 
@@ -3208,7 +3265,7 @@ function applySettings() {
   document.getElementById('s-temp').value = s.temperature;
   document.getElementById('temp-val').textContent = s.temperature;
   document.getElementById('s-tokens').value = s.maxTokens;
-  document.getElementById('tokens-val').textContent = s.maxTokens;
+  document.getElementById('tokens-val').textContent = parseInt(s.maxTokens).toLocaleString();
   document.getElementById('s-topp').value = s.topP;
   document.getElementById('topp-val').textContent = s.topP;
   document.getElementById('s-histlen').value = s.historyLen;
