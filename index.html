@@ -618,12 +618,13 @@ input, textarea, select { font-family: var(--font); }
 ═══════════════════════════════════════ */
 #input-area {
   border-top: 1px solid var(--border2);
-  background: rgba(12,17,34,0.9);
+  background: rgba(9,14,26,0.95);
   padding: 12px 16px 14px;
   flex-shrink: 0;
   padding-bottom: max(14px, env(safe-area-inset-bottom));
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.2);
 }
 /* Mode toolbar */
 .mode-bar {
@@ -634,29 +635,31 @@ input, textarea, select { font-family: var(--font); }
 }
 .mode-bar::-webkit-scrollbar { display: none; }
 .mode-btn {
-  flex-shrink: 0; padding: 5px 12px; border-radius: 20px;
+  flex-shrink: 0; padding: 6px 14px; border-radius: 20px;
   font-size: 12px; font-weight: 600;
   border: 1px solid var(--border2); color: var(--text3);
-  transition: all 0.2s var(--ease); white-space: nowrap;
+  transition: all 0.2s var(--ease-spring); white-space: nowrap;
   background: var(--surface2);
 }
-.mode-btn:hover { border-color: var(--border3); color: var(--text); background: var(--surface3); }
+.mode-btn:hover { border-color: var(--border3); color: var(--text); background: var(--surface3); transform: translateY(-1px); }
+.mode-btn:active { transform: var(--tap-scale); }
 .mode-btn.active {
   background: rgba(59,130,246,0.15); border-color: rgba(59,130,246,0.4);
-  color: var(--blue2); box-shadow: 0 0 12px rgba(59,130,246,0.15);
+  color: var(--blue2); box-shadow: 0 0 14px rgba(59,130,246,0.15), 0 0 0 1px rgba(59,130,246,0.1);
 }
 
 /* Input box */
 #input-box {
   max-width: 860px; margin: 0 auto;
-  background: var(--surface2); border: 1px solid var(--border2);
+  background: rgba(13,19,34,0.95); border: 1px solid var(--border2);
   border-radius: var(--radius-xl); overflow: hidden;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.25s, box-shadow 0.25s;
   position: relative;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.03);
 }
 #input-box:focus-within {
   border-color: rgba(59,130,246,0.5);
-  box-shadow: 0 0 0 3px rgba(59,130,246,0.08), var(--glow-blue);
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.08), var(--glow-blue), inset 0 1px 0 rgba(255,255,255,0.04);
 }
 #input-box.drag-over {
   border-color: rgba(6,214,240,0.5);
@@ -671,27 +674,28 @@ input, textarea, select { font-family: var(--font); }
   background: var(--surface3); border: 1px solid var(--border2);
   border-radius: var(--radius-sm); padding: 4px 10px;
   font-size: 12px; font-family: var(--mono); color: var(--text2);
-  animation: chip-in 0.2s var(--ease-spring);
+  animation: chip-in 0.25s var(--ease-spring);
 }
-@keyframes chip-in { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+@keyframes chip-in { from { opacity: 0; transform: scale(0.8) translateY(4px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 .chip-del { color: var(--text3); font-size: 14px; padding: 0 2px; transition: color 0.15s; }
 .chip-del:hover { color: var(--red); }
 .img-thumb {
   width: 56px; height: 56px; border-radius: var(--radius-sm);
   object-fit: cover; border: 1px solid var(--border2);
-  cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;
-  animation: chip-in 0.2s var(--ease-spring);
+  cursor: pointer; transition: transform 0.2s var(--ease-spring), box-shadow 0.2s;
+  animation: chip-in 0.25s var(--ease-spring);
 }
-.img-thumb:hover { transform: scale(1.05); box-shadow: var(--shadow); }
+.img-thumb:hover { transform: scale(1.08); box-shadow: var(--shadow); }
 
 /* Textarea */
 #msg-input {
   width: 100%; background: none; border: none; outline: none;
   color: var(--text); font-family: var(--font); font-size: 15px;
   padding: 14px 18px; resize: none; min-height: 52px; max-height: 200px;
-  line-height: 1.6; display: block;
+  line-height: 1.65; display: block; caret-color: var(--blue2);
 }
-#msg-input::placeholder { color: var(--text3); }
+#msg-input::placeholder { color: var(--text4); }
+#msg-input:focus::placeholder { color: var(--text3); }
 
 /* Input footer */
 .input-footer {
@@ -703,36 +707,43 @@ input, textarea, select { font-family: var(--font); }
   width: 32px; height: 32px; border-radius: var(--radius-sm);
   display: flex; align-items: center; justify-content: center;
   color: var(--text3); font-size: 16px;
-  transition: background 0.15s, color 0.15s, transform 0.15s;
+  transition: all 0.18s var(--ease-spring);
 }
-.input-icon-btn:hover { background: var(--surface3); color: var(--text); transform: scale(1.1); }
-.input-icon-btn:active { transform: scale(0.95); }
+.input-icon-btn:hover { background: var(--surface3); color: var(--text); transform: scale(1.12); }
+.input-icon-btn:active { transform: var(--tap-scale); }
 .input-icon-btn.recording { color: var(--red); animation: record-pulse 1s ease-in-out infinite; }
-@keyframes record-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+@keyframes record-pulse { 0%,100% { opacity: 1; box-shadow: 0 0 0 0 rgba(239,68,68,0.4); } 50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(239,68,68,0); } }
 #char-count { font-family: var(--mono); font-size: 11px; color: var(--text3); min-width: 20px; text-align: right; }
 
-/* Send button */
+/* Send button — premium glowing */
 #send-btn {
-  width: 38px; height: 38px; border-radius: 50%;
+  width: 40px; height: 40px; border-radius: 50%;
   background: var(--grad-main);
   display: flex; align-items: center; justify-content: center;
   color: #fff; font-size: 16px;
-  transition: opacity 0.2s, transform 0.2s var(--ease-spring), box-shadow 0.2s;
-  box-shadow: 0 4px 16px rgba(59,130,246,0.35);
+  transition: all 0.25s var(--ease-spring);
+  box-shadow: 0 4px 18px rgba(59,130,246,0.4), 0 0 0 0 rgba(59,130,246,0.3);
+  position: relative; overflow: hidden;
 }
-#send-btn:hover:not(:disabled) { transform: scale(1.1); box-shadow: 0 6px 24px rgba(59,130,246,0.5); }
-#send-btn:active:not(:disabled) { transform: scale(0.95); }
-#send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+#send-btn::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+  opacity: 0; transition: opacity 0.2s;
+}
+#send-btn:hover:not(:disabled) { transform: scale(1.12); box-shadow: 0 8px 28px rgba(59,130,246,0.55), 0 0 0 3px rgba(59,130,246,0.15); }
+#send-btn:hover:not(:disabled)::after { opacity: 1; }
+#send-btn:active:not(:disabled) { transform: var(--tap-scale); }
+#send-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 #stop-btn {
-  display: none; width: 38px; height: 38px; border-radius: 50%;
-  background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4);
+  display: none; width: 40px; height: 40px; border-radius: 50%;
+  background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.4);
   color: var(--red); font-size: 14px;
   align-items: center; justify-content: center;
-  transition: all 0.15s; animation: stop-appear 0.2s var(--ease-spring);
+  transition: all 0.18s; animation: stop-appear 0.25s var(--ease-spring);
 }
-@keyframes stop-appear { from { transform: scale(0); } to { transform: scale(1); } }
+@keyframes stop-appear { from { transform: scale(0) rotate(-90deg); } to { transform: scale(1) rotate(0); } }
 #stop-btn.show { display: flex; }
-#stop-btn:hover { background: rgba(239,68,68,0.25); transform: scale(1.05); }
+#stop-btn:hover { background: rgba(239,68,68,0.22); transform: scale(1.08); }
 
 /* ═══════════════════════════════════════
    SCROLL TO BOTTOM BUTTON
@@ -820,24 +831,41 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
 .stg-select:focus { border-color: var(--blue); }
 .toggle-row {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 11px 14px; background: var(--surface2);
+  padding: 12px 14px; background: var(--surface2);
   border-radius: var(--radius-sm); margin-bottom: 6px;
   border: 1px solid var(--border);
+  transition: border-color 0.2s, background 0.2s;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
-.toggle-label { font-size: 13px; color: var(--text2); }
+.toggle-row:hover { border-color: var(--border2); background: var(--surface3); }
+.toggle-row.toggle-on { border-color: rgba(59,130,246,0.2); }
+.toggle-label-wrap { display: flex; flex-direction: column; gap: 2px; }
+.toggle-label { font-size: 13px; color: var(--text2); font-weight: 500; }
+.toggle-sublabel { font-size: 11px; color: var(--text3); }
+.toggle-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.toggle-state-txt {
+  font-size: 10px; font-family: var(--mono); font-weight: 700;
+  color: var(--text4); letter-spacing: 0.5px;
+  min-width: 20px; text-align: right;
+  transition: color 0.2s;
+}
+.toggle-row.toggle-on .toggle-state-txt { color: var(--blue2); }
 .toggle-switch {
-  width: 44px; height: 24px; background: var(--surface4);
-  border-radius: 12px; position: relative; cursor: pointer;
-  transition: background 0.25s; border: none; flex-shrink: 0;
+  width: 48px; height: 26px; background: var(--surface4);
+  border-radius: 13px; position: relative; cursor: pointer;
+  transition: background 0.3s var(--ease), box-shadow 0.3s; border: none; flex-shrink: 0;
 }
-.toggle-switch.on { background: var(--blue); box-shadow: 0 0 12px rgba(59,130,246,0.3); }
+.toggle-switch.on { background: var(--blue); box-shadow: 0 0 14px rgba(59,130,246,0.35); }
 .toggle-switch::after {
   content: ''; position: absolute; top: 3px; left: 3px;
-  width: 18px; height: 18px; border-radius: 50%; background: #fff;
-  transition: transform 0.25s var(--ease-spring);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  width: 20px; height: 20px; border-radius: 50%; background: #fff;
+  transition: transform 0.3s var(--ease-spring), width 0.15s;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.35);
 }
-.toggle-switch.on::after { transform: translateX(20px); }
+.toggle-switch:active::after { width: 24px; }
+.toggle-switch.on::after { transform: translateX(22px); }
+.toggle-switch.on:active::after { transform: translateX(18px); width: 24px; }
 .stg-textarea {
   width: 100%; background: var(--surface2); border: 1px solid var(--border2);
   color: var(--text); padding: 10px 12px; border-radius: var(--radius-sm);
@@ -936,25 +964,28 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
    TOAST
 ═══════════════════════════════════════ */
 #toast-stack {
-  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+  position: fixed; bottom: 88px; left: 50%; transform: translateX(-50%);
   z-index: 9999; display: flex; flex-direction: column-reverse;
   gap: 8px; align-items: center; pointer-events: none;
 }
+@media(min-width:769px) { #toast-stack { bottom: 28px; } }
 .toast {
-  background: var(--surface); border: 1px solid var(--border2);
+  background: rgba(13,19,34,0.95); border: 1px solid var(--border2);
   padding: 10px 20px; border-radius: 50px; font-size: 13px;
   color: var(--text); white-space: nowrap; pointer-events: auto;
-  box-shadow: var(--shadow);
-  animation: toast-in 0.3s var(--ease-spring);
+  box-shadow: var(--shadow), 0 0 0 1px rgba(255,255,255,0.04);
+  animation: toast-in 0.35s var(--ease-spring);
   display: flex; align-items: center; gap: 8px;
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  font-weight: 500;
 }
 @keyframes toast-in {
-  from { opacity: 0; transform: translateY(12px) scale(0.9); }
+  from { opacity: 0; transform: translateY(16px) scale(0.88); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
-.toast.success { border-color: rgba(16,185,129,0.4); color: var(--green); }
-.toast.error { border-color: rgba(239,68,68,0.4); color: var(--red); }
-.toast.info { border-color: rgba(59,130,246,0.4); color: var(--blue2); }
+.toast.success { border-color: rgba(16,185,129,0.35); color: var(--green); background: rgba(16,185,129,0.08); }
+.toast.error { border-color: rgba(239,68,68,0.35); color: var(--red); background: rgba(239,68,68,0.06); }
+.toast.info { border-color: rgba(59,130,246,0.35); color: var(--blue2); background: rgba(59,130,246,0.08); }
 
 /* ═══════════════════════════════════════
    IMAGE LIGHTBOX
@@ -1019,36 +1050,588 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
 .export-item:hover { background: var(--surface2); color: var(--text); }
 
 /* ═══════════════════════════════════════
-   LIGHT THEME
+   THEME SYSTEM — 10 THEMES
 ═══════════════════════════════════════ */
-body.light {
-  --bg: #f0f4ff;
-  --bg2: #e8eeff;
-  --surface: #ffffff;
-  --surface2: #f5f7ff;
-  --surface3: #eaeeff;
-  --surface4: #d8dfff;
-  --border: rgba(59,130,246,0.1);
-  --border2: rgba(59,130,246,0.15);
-  --border3: rgba(59,130,246,0.25);
-  --text: #0f1729;
-  --text2: #3d5080;
-  --text3: #6b82b0;
-  --text4: #9ab0d0;
-  --grad-glow: linear-gradient(135deg, rgba(59,130,246,0.06), rgba(139,92,246,0.04));
+
+/* ── 1. LIGHT (default light) ── */
+body.theme-light {
+  --bg:#f0f4ff; --bg2:#e8eeff;
+  --surface:#ffffff; --surface2:#f5f7ff; --surface3:#eaeeff; --surface4:#d8dfff;
+  --border:rgba(59,130,246,0.1); --border2:rgba(59,130,246,0.15); --border3:rgba(59,130,246,0.25);
+  --text:#0f1729; --text2:#3d5080; --text3:#6b82b0; --text4:#9ab0d0;
+  --grad-main:linear-gradient(135deg,#3b82f6,#8b5cf6);
+  --grad-glow:linear-gradient(135deg,rgba(59,130,246,0.06),rgba(139,92,246,0.04));
 }
-body.light .msg.ai .msg-bubble { background: #fff; }
-body.light #sidebar,body.light #topbar,body.light #input-area { background: rgba(255,255,255,0.95); }
-body.light .bg-orb { opacity: 0.06; }
-body.light #bg-canvas {
-  background: radial-gradient(ellipse 80% 50% at 20% 10%, rgba(59,130,246,0.05) 0%, transparent 70%),
-              radial-gradient(ellipse 60% 40% at 80% 80%, rgba(139,92,246,0.04) 0%, transparent 70%),
-              var(--bg);
+body.theme-light .msg.ai .msg-bubble { background:#fff; }
+body.theme-light #sidebar,body.theme-light #topbar,body.theme-light #input-area { background:rgba(255,255,255,0.95); }
+body.theme-light .bg-orb { opacity:0.06; }
+
+/* ── 2. CHATGPT (clean white like ChatGPT) ── */
+body.theme-chatgpt {
+  --bg:#ffffff; --bg2:#f9f9f9;
+  --surface:#ffffff; --surface2:#f4f4f4; --surface3:#ececec; --surface4:#e0e0e0;
+  --border:rgba(0,0,0,0.08); --border2:rgba(0,0,0,0.12); --border3:rgba(0,0,0,0.18);
+  --blue:#10a37f; --blue2:#1ab394; --cyan:#10a37f; --purple:#10a37f;
+  --green:#10a37f; --amber:#d97706;
+  --text:#0d0d0d; --text2:#444; --text3:#888; --text4:#bbb;
+  --grad-main:linear-gradient(135deg,#10a37f,#0d7a5f);
+  --grad-glow:linear-gradient(135deg,rgba(16,163,127,0.08),rgba(13,122,95,0.04));
+  --glow-blue:0 0 30px rgba(16,163,127,0.15);
+}
+body.theme-chatgpt .msg.ai .msg-bubble { background:#f4f4f4; border-color:rgba(0,0,0,0.08); }
+body.theme-chatgpt #sidebar,body.theme-chatgpt #topbar,body.theme-chatgpt #input-area { background:rgba(255,255,255,0.98); }
+body.theme-chatgpt .bg-orb { opacity:0.03; }
+body.theme-chatgpt #bg-canvas { background:#fff; }
+body.theme-chatgpt .new-chat-btn { background:linear-gradient(135deg,#10a37f,#0d7a5f); }
+body.theme-chatgpt #send-btn { background:linear-gradient(135deg,#10a37f,#0d7a5f); }
+body.theme-chatgpt .btn-primary { background:linear-gradient(135deg,#10a37f,#0d7a5f); }
+
+/* ── 3. MIDNIGHT BLUE (deep navy) ── */
+body.theme-midnight {
+  --bg:#060d1f; --bg2:#091226;
+  --surface:#0d1930; --surface2:#101f38; --surface3:#152644; --surface4:#1d3055;
+  --border:rgba(100,180,255,0.08); --border2:rgba(100,180,255,0.14); --border3:rgba(100,180,255,0.22);
+  --blue:#4f9eff; --blue2:#74b3ff; --cyan:#00d4ff; --purple:#a78bfa;
+  --text:#e0eeff; --text2:#7faad4; --text3:#3d6a99; --text4:#1d3d5e;
+  --grad-main:linear-gradient(135deg,#4f9eff,#a78bfa);
+  --glow-blue:0 0 40px rgba(79,158,255,0.22);
+}
+
+/* ── 4. FOREST (deep green) ── */
+body.theme-forest {
+  --bg:#050e09; --bg2:#071310;
+  --surface:#0a1a0e; --surface2:#0d2013; --surface3:#122818; --surface4:#18331e;
+  --border:rgba(52,211,153,0.08); --border2:rgba(52,211,153,0.14); --border3:rgba(52,211,153,0.22);
+  --blue:#34d399; --blue2:#6ee7b7; --cyan:#10f0a0; --purple:#a3e635;
+  --green:#34d399; --amber:#fbbf24;
+  --text:#e0f5ec; --text2:#6db890; --text3:#2d6b49; --text4:#163a28;
+  --grad-main:linear-gradient(135deg,#34d399,#059669);
+  --glow-blue:0 0 40px rgba(52,211,153,0.2);
+}
+body.theme-forest .new-chat-btn { box-shadow:0 4px 20px rgba(52,211,153,0.3); }
+body.theme-forest #send-btn { box-shadow:0 4px 16px rgba(52,211,153,0.35); }
+
+/* ── 5. SUNSET (orange/red warm) ── */
+body.theme-sunset {
+  --bg:#0f0805; --bg2:#160c07;
+  --surface:#1e0f09; --surface2:#241208; --surface3:#2e1710; --surface4:#3d1f14;
+  --border:rgba(251,146,60,0.08); --border2:rgba(251,146,60,0.14); --border3:rgba(251,146,60,0.22);
+  --blue:#fb923c; --blue2:#fdba74; --cyan:#f97316; --purple:#f43f5e;
+  --green:#4ade80; --amber:#fbbf24;
+  --text:#fef3e8; --text2:#c2866e; --text3:#7a4030; --text4:#3d1e12;
+  --grad-main:linear-gradient(135deg,#fb923c,#f43f5e);
+  --glow-blue:0 0 40px rgba(251,146,60,0.2);
+}
+body.theme-sunset .new-chat-btn { box-shadow:0 4px 20px rgba(251,146,60,0.3); }
+body.theme-sunset #send-btn { box-shadow:0 4px 16px rgba(251,146,60,0.35); }
+
+/* ── 6. OCEAN (teal/blue sea) ── */
+body.theme-ocean {
+  --bg:#020d12; --bg2:#03111a;
+  --surface:#041720; --surface2:#061e2a; --surface3:#0a2535; --surface4:#0f3046;
+  --border:rgba(6,214,240,0.08); --border2:rgba(6,214,240,0.14); --border3:rgba(6,214,240,0.22);
+  --blue:#06d6f0; --blue2:#67e8f9; --cyan:#00fff5; --purple:#818cf8;
+  --green:#34d399; --amber:#fbbf24;
+  --text:#e0faff; --text2:#5ab8cc; --text3:#1e6d80; --text4:#0b3d4a;
+  --grad-main:linear-gradient(135deg,#06d6f0,#0284c7);
+  --glow-blue:0 0 40px rgba(6,214,240,0.2);
+}
+body.theme-ocean .new-chat-btn { box-shadow:0 4px 20px rgba(6,214,240,0.3); }
+body.theme-ocean #send-btn { box-shadow:0 4px 16px rgba(6,214,240,0.35); }
+
+/* ── 7. ROSE (pink/purple) ── */
+body.theme-rose {
+  --bg:#0d0509; --bg2:#13070e;
+  --surface:#1a0915; --surface2:#200b1a; --surface3:#2a1024; --surface4:#381530;
+  --border:rgba(244,114,182,0.08); --border2:rgba(244,114,182,0.14); --border3:rgba(244,114,182,0.22);
+  --blue:#f472b6; --blue2:#f9a8d4; --cyan:#e879f9; --purple:#c084fc;
+  --green:#4ade80; --amber:#fbbf24;
+  --text:#fce7f3; --text2:#c47d9e; --text3:#7a3060; --text4:#3d1230;
+  --grad-main:linear-gradient(135deg,#f472b6,#c084fc);
+  --glow-blue:0 0 40px rgba(244,114,182,0.2);
+}
+body.theme-rose .new-chat-btn { box-shadow:0 4px 20px rgba(244,114,182,0.3); }
+body.theme-rose #send-btn { box-shadow:0 4px 16px rgba(244,114,182,0.35); }
+
+/* ── 8. MONOKAI (developer dark) ── */
+body.theme-monokai {
+  --bg:#1e1f1c; --bg2:#232420;
+  --surface:#272822; --surface2:#2f3027; --surface3:#3a3b32; --surface4:#46473d;
+  --border:rgba(166,226,46,0.08); --border2:rgba(166,226,46,0.14); --border3:rgba(166,226,46,0.22);
+  --blue:#66d9e8; --blue2:#a6e22e; --cyan:#66d9e8; --purple:#ae81ff;
+  --green:#a6e22e; --amber:#e6db74; --red:#f92672; --pink:#f92672;
+  --text:#f8f8f2; --text2:#908b85; --text3:#5a5751; --text4:#3a3731;
+  --grad-main:linear-gradient(135deg,#a6e22e,#66d9e8);
+  --glow-blue:0 0 40px rgba(166,226,46,0.15);
+  --font:'JetBrains Mono',monospace;
+}
+body.theme-monokai .new-chat-btn { box-shadow:0 4px 20px rgba(166,226,46,0.25); }
+
+/* ── 9. NORD (arctic blue/gray) ── */
+body.theme-nord {
+  --bg:#1a1f2e; --bg2:#1e2537;
+  --surface:#242a38; --surface2:#2a3142; --surface3:#313a4d; --surface4:#3d4760;
+  --border:rgba(136,192,208,0.1); --border2:rgba(136,192,208,0.16); --border3:rgba(136,192,208,0.24);
+  --blue:#88c0d0; --blue2:#8fbcbb; --cyan:#81d4c8; --purple:#b48ead;
+  --green:#a3be8c; --amber:#ebcb8b; --red:#bf616a;
+  --text:#eceff4; --text2:#9aa5be; --text3:#4c566a; --text4:#2e3440;
+  --grad-main:linear-gradient(135deg,#88c0d0,#b48ead);
+  --glow-blue:0 0 40px rgba(136,192,208,0.18);
+}
+
+/* ── 10. CYBERPUNK (neon yellow/pink) ── */
+body.theme-cyberpunk {
+  --bg:#07050f; --bg2:#0a0714;
+  --surface:#100d1e; --surface2:#141126; --surface3:#1a1630; --surface4:#221e3d;
+  --border:rgba(255,238,0,0.08); --border2:rgba(255,238,0,0.14); --border3:rgba(255,238,0,0.22);
+  --blue:#ffee00; --blue2:#fff176; --cyan:#00ffff; --purple:#ff00ff;
+  --green:#39ff14; --amber:#ffee00; --red:#ff0055;
+  --text:#fffde7; --text2:#ccc040; --text3:#7a6c00; --text4:#3d3500;
+  --grad-main:linear-gradient(135deg,#ffee00,#ff00ff);
+  --glow-blue:0 0 40px rgba(255,238,0,0.2);
+}
+body.theme-cyberpunk .new-chat-btn { box-shadow:0 4px 20px rgba(255,238,0,0.3); }
+body.theme-cyberpunk #send-btn { box-shadow:0 4px 16px rgba(255,238,0,0.35); }
+body.theme-cyberpunk .logo-icon { box-shadow:0 0 30px rgba(255,238,0,0.3); }
+
+/* ── Legacy alias: 'light' still works ── */
+body.light { --bg:#f0f4ff; --bg2:#e8eeff; --surface:#ffffff; --surface2:#f5f7ff; --surface3:#eaeeff; --surface4:#d8dfff; --border:rgba(59,130,246,0.1); --border2:rgba(59,130,246,0.15); --border3:rgba(59,130,246,0.25); --text:#0f1729; --text2:#3d5080; --text3:#6b82b0; --text4:#9ab0d0; }
+body.light .msg.ai .msg-bubble { background:#fff; }
+body.light #sidebar,body.light #topbar,body.light #input-area { background:rgba(255,255,255,0.95); }
+body.light .bg-orb { opacity:0.06; }
+
+/* ═══════════════════════════════════════
+   THEME PICKER UI
+═══════════════════════════════════════ */
+.theme-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;
+  margin-bottom: 16px;
+}
+.theme-swatch {
+  border-radius: var(--radius); overflow: hidden; cursor: pointer;
+  border: 2px solid transparent; transition: all 0.2s var(--ease);
+  position: relative; aspect-ratio: 1.6;
+  -webkit-tap-highlight-color: transparent;
+}
+.theme-swatch:hover { transform: scale(1.06); box-shadow: var(--shadow); }
+.theme-swatch.active { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(59,130,246,0.3); }
+.theme-swatch .sw-preview {
+  width: 100%; height: 100%; display: flex; flex-direction: column;
+}
+.sw-bar { height: 30%; }
+.sw-body { flex: 1; display: flex; align-items: center; justify-content: center; }
+.sw-dot { width: 6px; height: 6px; border-radius: 50%; }
+.theme-name {
+  font-size: 10px; font-family: var(--mono); color: var(--text3);
+  text-align: center; margin-top: 4px; font-weight: 600;
+}
+.theme-check {
+  position: absolute; top: 3px; right: 3px;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--blue); display: none;
+  align-items: center; justify-content: center;
+  font-size: 9px; color: #fff; font-weight: 700;
+}
+.theme-swatch.active .theme-check { display: flex; }
+
+/* Accent color pickers */
+.accent-grid {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;
+}
+.accent-dot {
+  width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
+  border: 2px solid transparent; transition: all 0.2s var(--ease-spring);
+  position: relative; flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.accent-dot:hover { transform: scale(1.2); }
+.accent-dot.active { border-color: var(--text); box-shadow: 0 0 0 2px rgba(255,255,255,0.3); transform: scale(1.15); }
+.accent-dot::after {
+  content: '✓'; position: absolute; inset: 0;
+  display: none; align-items: center; justify-content: center;
+  font-size: 12px; color: #fff; font-weight: 800;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+.accent-dot.active::after { display: flex; }
+
+/* Button style picker */
+.btn-style-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  margin-bottom: 12px;
+}
+.btn-style-card {
+  padding: 10px 8px; border-radius: var(--radius-sm); cursor: pointer;
+  border: 2px solid var(--border2); text-align: center; font-size: 11px;
+  font-family: var(--mono); color: var(--text3); transition: all 0.18s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-style-card:hover { border-color: var(--border3); color: var(--text); background: var(--surface3); }
+.btn-style-card.active { border-color: var(--blue); color: var(--blue2); background: rgba(59,130,246,0.08); }
+.btn-style-preview {
+  height: 28px; border-radius: inherit; margin-bottom: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; color: #fff;
+}
+
+/* ── Custom accent overrides ── */
+body[data-accent="green"]  { --blue:#10b981; --blue2:#34d399; --grad-main:linear-gradient(135deg,#10b981,#059669); --glow-blue:0 0 40px rgba(16,185,129,0.2); }
+body[data-accent="amber"]  { --blue:#f59e0b; --blue2:#fbbf24; --grad-main:linear-gradient(135deg,#f59e0b,#d97706); --glow-blue:0 0 40px rgba(245,158,11,0.2); }
+body[data-accent="red"]    { --blue:#ef4444; --blue2:#f87171; --grad-main:linear-gradient(135deg,#ef4444,#dc2626); --glow-blue:0 0 40px rgba(239,68,68,0.2); }
+body[data-accent="pink"]   { --blue:#ec4899; --blue2:#f472b6; --grad-main:linear-gradient(135deg,#ec4899,#db2777); --glow-blue:0 0 40px rgba(236,72,153,0.2); }
+body[data-accent="cyan"]   { --blue:#06d6f0; --blue2:#67e8f9; --grad-main:linear-gradient(135deg,#06d6f0,#0284c7); --glow-blue:0 0 40px rgba(6,214,240,0.2); }
+body[data-accent="purple"] { --blue:#8b5cf6; --blue2:#a78bfa; --grad-main:linear-gradient(135deg,#8b5cf6,#7c3aed); --glow-blue:0 0 40px rgba(139,92,246,0.2); }
+body[data-accent="orange"] { --blue:#f97316; --blue2:#fb923c; --grad-main:linear-gradient(135deg,#f97316,#ea580c); --glow-blue:0 0 40px rgba(249,115,22,0.2); }
+body[data-accent="white"]  { --blue:#e0e0e0; --blue2:#ffffff; --grad-main:linear-gradient(135deg,#e0e0e0,#ffffff); --glow-blue:0 0 40px rgba(255,255,255,0.1); }
+
+/* Button shape styles */
+body[data-btnstyle="rounded"] { --radius-sm:20px; --radius:24px; }
+body[data-btnstyle="sharp"]   { --radius-sm:3px; --radius:4px; --radius-lg:6px; --radius-xl:8px; }
+
+/* ═══════════════════════════════════════
+   AUTO-MODEL TOGGLE STATUS INDICATOR
+═══════════════════════════════════════ */
+#auto-model-status {
+  display: none; align-items: center; gap: 6px;
+  padding: 4px 10px; background: rgba(16,185,129,0.1);
+  border: 1px solid rgba(16,185,129,0.25); border-radius: 20px;
+  font-size: 11px; font-family: var(--mono); color: var(--green);
+  position: relative;
+}
+#auto-model-status.show { display: flex; }
+.ams-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--green);
+  animation: dot-bounce 1.4s ease-in-out infinite;
+}
+#auto-model-status.paused { color: var(--text3); border-color: var(--border2); background: var(--surface2); }
+#auto-model-status.paused .ams-dot { background: var(--text3); animation: none; }
+
+/* ─── FEATURE 1: CHAT FOLDERS ─── */
+.folder-header{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:var(--radius-sm);cursor:pointer;user-select:none;font-size:12px;font-weight:600;color:var(--text2);transition:background .15s;-webkit-tap-highlight-color:transparent}
+.folder-header:hover{background:var(--surface3);color:var(--text)}
+.folder-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.folder-arrow{font-size:8px;margin-left:auto;transition:transform .2s;opacity:.5}
+.folder-header.open .folder-arrow{transform:rotate(90deg)}
+.folder-chats{display:none;padding-left:12px}
+.folder-header.open+.folder-chats{display:block}
+#folder-add-btn{display:flex;align-items:center;gap:5px;padding:5px 8px;color:var(--text4);font-size:11px;cursor:pointer;border-radius:var(--radius-sm);transition:all .15s;width:100%;font-family:var(--mono);background:none;border:none;margin-top:2px}
+#folder-add-btn:hover{color:var(--blue2);background:var(--surface2)}
+
+/* ─── FEATURE 2: IN-CHAT SEARCH ─── */
+#chat-search-bar{display:none;position:sticky;top:0;z-index:200;background:rgba(12,17,34,.96);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--border2);padding:8px 16px;gap:8px;align-items:center}
+#chat-search-bar.show{display:flex}
+#csi-inp{flex:1;background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:7px 12px;border-radius:var(--radius-sm);font-size:13px;outline:none;font-family:var(--font);transition:border-color .15s}
+#csi-inp:focus{border-color:var(--blue)}
+#csi-count{font-size:11px;color:var(--text3);font-family:var(--mono);white-space:nowrap;min-width:44px;text-align:center}
+.csi-nav{padding:5px 9px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text2);font-size:14px;cursor:pointer;transition:all .15s}
+.csi-nav:hover{background:var(--surface3);color:var(--text)}
+mark.sh{background:rgba(245,158,11,.3);color:var(--amber);border-radius:2px;padding:0 2px}
+mark.sh.cur{background:rgba(59,130,246,.4);color:var(--blue2);outline:1px solid var(--blue)}
+
+/* ─── FEATURE 3: PROMPT LIBRARY ─── */
+.pc{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:all .18s var(--ease)}
+.pc:hover{border-color:var(--border3);background:var(--surface3);transform:translateY(-1px)}
+.pc-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;display:flex;align-items:center;justify-content:space-between}
+.pc-body{font-size:11px;color:var(--text3);font-family:var(--mono);line-height:1.5}
+.pc-tag{font-size:10px;padding:2px 7px;border-radius:10px;background:var(--surface4);color:var(--text3);font-family:var(--mono);margin-top:6px;display:inline-block}
+.pc-del{color:var(--text4);font-size:14px;cursor:pointer;background:none;border:none;transition:color .15s;flex-shrink:0}
+.pc-del:hover{color:var(--red)}
+#pl-cats{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.pcat{padding:4px 10px;border-radius:20px;font-size:11px;border:1px solid var(--border2);color:var(--text3);font-family:var(--mono);cursor:pointer;transition:all .15s;background:var(--surface2)}
+.pcat.active{background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.35);color:var(--blue2)}
+
+/* ─── FEATURE 4: SUMMARY BANNER ─── */
+#summary-banner{display:none;max-width:860px;margin:0 auto 16px;padding:0 20px}
+#summary-banner.show{display:block}
+.sum-card{background:linear-gradient(135deg,rgba(59,130,246,.06),rgba(139,92,246,.04));border:1px solid rgba(59,130,246,.2);border-radius:var(--radius-lg);padding:16px 20px;position:relative}
+.sum-hdr{font-size:11px;color:var(--blue2);font-family:var(--mono);font-weight:700;margin-bottom:8px;letter-spacing:.5px;text-transform:uppercase}
+.sum-txt{font-size:13px;color:var(--text2);line-height:1.7}
+.sum-close{position:absolute;top:10px;right:12px;color:var(--text4);font-size:16px;cursor:pointer;background:none;border:none;transition:color .15s}
+.sum-close:hover{color:var(--text)}
+
+/* ─── FEATURE 5: KEYBOARD SHORTCUTS POPUP ─── */
+#kbd-ov{position:fixed;inset:0;z-index:1200;background:rgba(0,0,0,.65);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center}
+#kbd-ov.show{display:flex}
+#kbd-box{background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-xl);padding:28px;max-width:520px;width:92vw;max-height:80vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:modal-in .25s var(--ease-spring)}
+@keyframes modal-in{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+.kbd-title{font-size:18px;font-weight:800;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between}
+.kbd-sec{margin-bottom:18px}
+.kbd-sec-lbl{font-size:10px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;font-family:var(--mono);margin-bottom:8px}
+.kbd-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;color:var(--text2)}
+.kbd-row:last-child{border-bottom:none}
+.kbd-keys{display:flex;gap:4px;align-items:center}
+kbd{background:var(--surface3);border:1px solid var(--border2);border-radius:5px;padding:2px 8px;font-size:11px;font-family:var(--mono);color:var(--text);font-weight:600;box-shadow:0 2px 0 var(--surface4)}
+
+/* ─── FEATURE 6: EDIT & RESEND ─── */
+.msg-edit-box{display:none;width:100%;margin-top:8px}
+.msg-edit-box.show{display:block}
+.msg-edit-ta{width:100%;background:var(--surface3);border:1px solid var(--border2);color:var(--text);padding:10px 12px;border-radius:var(--radius);font-family:var(--font);font-size:14px;resize:vertical;min-height:60px;outline:none;line-height:1.6;transition:border-color .15s}
+.msg-edit-ta:focus{border-color:var(--blue)}
+.edit-btns{display:flex;gap:6px;margin-top:6px}
+.btn-esend{padding:7px 16px;background:var(--grad-main);color:#fff;border:none;border-radius:var(--radius-sm);cursor:pointer;font-size:12px;font-weight:700;font-family:var(--font);transition:opacity .15s}
+.btn-esend:hover{opacity:.88}
+.btn-ecancel{padding:7px 14px;background:var(--surface3);color:var(--text2);border:1px solid var(--border2);border-radius:var(--radius-sm);cursor:pointer;font-size:12px;font-family:var(--font);transition:all .15s}
+.btn-ecancel:hover{background:var(--surface4)}
+
+/* ─── FEATURE 7: FOCUS MODE ─── */
+body.focus-mode #sidebar,body.focus-mode #mobile-toolbar,body.focus-mode .mode-bar,body.focus-mode #quick-bar{display:none!important}
+body.focus-mode #topbar{background:transparent;border-bottom-color:transparent}
+body.focus-mode .msg-bubble{max-width:700px!important}
+body.focus-mode #main{width:100%}
+body.focus-mode #focus-btn{color:var(--blue2)!important}
+#focus-btn{width:34px;height:34px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:16px;transition:background .15s,color .15s}
+#focus-btn:hover{background:var(--surface3);color:var(--text)}
+
+/* ─── FEATURE 8: CONTEXT METER ─── */
+#ctx-meter{display:none;max-width:860px;margin:0 auto;padding:0 20px 10px}
+#ctx-meter.show{display:block}
+.ctx-wrap{display:flex;align-items:center;gap:8px;font-size:10px;font-family:var(--mono);color:var(--text4)}
+.ctx-track{flex:1;height:3px;background:var(--surface4);border-radius:2px;overflow:hidden}
+.ctx-fill{height:100%;background:var(--blue);border-radius:2px;transition:width .5s var(--ease),background .3s}
+.ctx-fill.warn{background:var(--amber)}
+.ctx-fill.danger{background:var(--red);animation:record-pulse 1s ease-in-out infinite}
+.ctx-lbl{min-width:60px;text-align:right}
+
+/* ─── FEATURE 9: BOOKMARKS ─── */
+.bk-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:all .18s}
+.bk-card:hover{border-color:var(--amber);background:var(--surface3)}
+.bk-meta{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.bk-role{font-size:10px;font-family:var(--mono);font-weight:700;padding:2px 7px;border-radius:10px}
+.bk-u{background:rgba(59,130,246,.15);color:var(--blue2)}
+.bk-a{background:rgba(139,92,246,.15);color:var(--purple)}
+.bk-time{font-size:10px;color:var(--text4);font-family:var(--mono);margin-left:auto}
+.bk-prev{font-size:12px;color:var(--text2);line-height:1.5}
+.bk-del{float:right;color:var(--text4);font-size:14px;cursor:pointer;background:none;border:none}
+.bk-del:hover{color:var(--red)}
+.msg.bookmarked .msg-avatar{outline:2px solid var(--amber)!important;outline-offset:2px}
+
+/* ─── FEATURE 10: RESPONSE RATINGS ─── */
+.rating-row{display:flex;align-items:center;gap:6px;margin-top:4px;padding-top:6px}
+.rate-btn{display:flex;align-items:center;gap:4px;padding:4px 10px;border-radius:var(--radius-sm);font-size:12px;border:1px solid var(--border2);color:var(--text3);background:var(--surface2);cursor:pointer;transition:all .18s;-webkit-tap-highlight-color:transparent}
+.rate-btn:hover{border-color:var(--border3);color:var(--text);background:var(--surface3)}
+.rate-btn.up{background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.3);color:var(--green)}
+.rate-btn.dn{background:rgba(239,68,68,.10);border-color:rgba(239,68,68,.25);color:var(--red)}
+.rct{font-family:var(--mono);font-size:10px}
+
+body.fullscreen-mode #sidebar { display: none !important; }
+body.fullscreen-mode #topbar .topbar-menu-btn { display: none; }
+body.fullscreen-mode #main { width: 100vw; }
+#fs-btn {
+  width: 34px; height: 34px; border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text3); font-size: 15px;
+  transition: background 0.15s, color 0.15s;
+}
+#fs-btn:hover { background: var(--surface3); color: var(--text); }
+body.fullscreen-mode #fs-btn { color: var(--blue2); }
+
+/* ═══════════════════════════════════════
+   TAP-TO-TYPE HINT (mobile)
+═══════════════════════════════════════ */
+#tap-hint {
+  display: none; position: fixed;
+  bottom: calc(var(--input-h) + 12px); left: 50%;
+  transform: translateX(-50%);
+  background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.3);
+  color: var(--blue2); font-size: 11px; font-family: var(--mono);
+  padding: 6px 16px; border-radius: 20px; z-index: 300;
+  pointer-events: none; white-space: nowrap;
+  animation: hint-fade 2.5s ease-in-out forwards;
+}
+@keyframes hint-fade {
+  0%   { opacity:0; transform:translateX(-50%) translateY(6px); }
+  15%  { opacity:1; transform:translateX(-50%) translateY(0); }
+  75%  { opacity:1; }
+  100% { opacity:0; }
+}
+@media(max-width:768px) {
+  #tap-hint { display: block; }
+  /* ensure mobile input stays above toolbar */
+  #input-area { padding-bottom: calc(68px + max(6px,env(safe-area-inset-bottom))) !important; }
 }
 
 /* ═══════════════════════════════════════
-   RESPONSIVE
+   QUICK SETTINGS BAR (above input)
 ═══════════════════════════════════════ */
+#quick-bar {
+  max-width: 860px; margin: 0 auto 8px;
+  display: flex; align-items: center; gap: 6px;
+  overflow-x: auto; scrollbar-width: none; padding-bottom: 2px;
+}
+#quick-bar::-webkit-scrollbar { display: none; }
+.qb-chip {
+  display: flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 20px; flex-shrink: 0;
+  font-size: 11px; font-weight: 600; cursor: pointer;
+  border: 1px solid var(--border2); color: var(--text3);
+  background: var(--surface2); transition: all 0.18s var(--ease);
+  font-family: var(--mono); white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+.qb-chip:hover { background: var(--surface3); color: var(--text); border-color: var(--border3); }
+.qb-chip.active {
+  background: rgba(59,130,246,0.12); color: var(--blue2);
+  border-color: rgba(59,130,246,0.35);
+  box-shadow: 0 0 10px rgba(59,130,246,0.12);
+}
+.qb-chip.qb-green.active { background: rgba(16,185,129,0.12); color: var(--green); border-color: rgba(16,185,129,0.3); }
+.qb-chip.qb-amber.active { background: rgba(245,158,11,0.12); color: var(--amber); border-color: rgba(245,158,11,0.3); }
+.qb-chip.qb-purple.active { background: rgba(139,92,246,0.12); color: var(--purple); border-color: rgba(139,92,246,0.3); }
+.qb-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.7; }
+
+/* ═══════════════════════════════════════
+   CHAT AREA CLICK-TO-FOCUS (mobile)
+═══════════════════════════════════════ */
+#chat-area { cursor: default; }
+@media(hover:none) {
+  #chat-area { -webkit-tap-highlight-color: transparent; }
+}
+
+/* ═══════════════════════════════════════
+   WORD / CHAR COUNT BAR
+═══════════════════════════════════════ */
+#input-stats {
+  display: none; align-items: center; gap: 8px;
+  padding: 2px 18px 4px; font-size: 10px;
+  font-family: var(--mono); color: var(--text4);
+}
+#input-stats.show { display: flex; }
+.istat { display: flex; align-items: center; gap: 3px; }
+.istat-val { color: var(--text3); font-weight: 600; }
+
+/* ═══════════════════════════════════════
+   AUTO-COMPLETE SUGGESTION STRIP
+═══════════════════════════════════════ */
+#autocomplete-bar {
+  display: none; overflow-x: auto; scrollbar-width: none;
+  padding: 6px 14px 4px; gap: 6px; flex-wrap: nowrap;
+}
+#autocomplete-bar::-webkit-scrollbar { display: none; }
+#autocomplete-bar.show { display: flex; }
+.ac-chip {
+  flex-shrink: 0; padding: 4px 12px; border-radius: 16px;
+  background: var(--surface3); border: 1px solid var(--border2);
+  font-size: 12px; color: var(--text2); cursor: pointer;
+  transition: all 0.15s; white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+.ac-chip:hover { background: var(--surface4); color: var(--text); border-color: var(--border3); }
+
+/* ═══════════════════════════════════════
+   PINNED MESSAGE BAR
+═══════════════════════════════════════ */
+#pinned-bar {
+  display: none; background: rgba(245,158,11,0.06);
+  border-bottom: 1px solid rgba(245,158,11,0.2);
+  padding: 8px 20px; font-size: 12px; color: var(--amber);
+  align-items: center; gap: 8px; cursor: pointer; flex-shrink: 0;
+  transition: background 0.15s;
+}
+#pinned-bar:hover { background: rgba(245,158,11,0.1); }
+#pinned-bar.show { display: flex; }
+#pinned-bar-text { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color: var(--text2); font-size:12px; }
+
+/* ═══════════════════════════════════════
+   IMPROVED SCROLL FAB
+═══════════════════════════════════════ */
+#scroll-fab {
+  position: fixed; right: 16px;
+  background: var(--surface); border: 1px solid var(--border2);
+  color: var(--text2); width: 38px; height: 38px;
+  border-radius: 50%; font-size: 16px; z-index: 300;
+  box-shadow: var(--shadow); display: none;
+  align-items: center; justify-content: center;
+  transition: opacity 0.2s, transform 0.2s var(--ease-spring);
+  cursor: pointer;
+}
+#scroll-fab.show { display: flex; }
+#scroll-fab:hover { background: var(--surface3); color: var(--text); transform: scale(1.1); }
+
+/* ═══════════════════════════════════════
+   KEYBOARD SHOW PULSE (mobile tap area)
+═══════════════════════════════════════ */
+.kb-pulse {
+  animation: kb-ripple 0.4s var(--ease-out);
+}
+@keyframes kb-ripple {
+  0% { box-shadow: 0 0 0 0 rgba(59,130,246,0.4); }
+  100% { box-shadow: 0 0 0 12px rgba(59,130,246,0); }
+}
+
+/* ── Mobile model bottom sheet ── */
+#model-sheet-overlay {
+  display:none; position:fixed; inset:0; z-index:600;
+  background:rgba(0,0,0,0.6); backdrop-filter:blur(4px);
+  -webkit-backdrop-filter:blur(4px);
+}
+#model-sheet-overlay.show { display:block; }
+#model-sheet {
+  position:fixed; bottom:0; left:0; right:0; z-index:601;
+  background:var(--surface); border-top:1px solid var(--border2);
+  border-radius:var(--radius-xl) var(--radius-xl) 0 0;
+  max-height:82vh; display:flex; flex-direction:column;
+  transform:translateY(100%); transition:transform 0.38s var(--ease);
+  box-shadow:0 -20px 60px rgba(0,0,0,0.5);
+}
+#model-sheet.open { transform:translateY(0); }
+.sheet-handle {
+  width:44px; height:4px; border-radius:2px;
+  background:var(--surface4); margin:12px auto 0;
+  flex-shrink:0;
+}
+.sheet-title {
+  padding:12px 20px 10px; font-size:16px; font-weight:700;
+  display:flex; align-items:center; justify-content:space-between;
+  border-bottom:1px solid var(--border); flex-shrink:0;
+}
+.sheet-close {
+  width:30px; height:30px; border-radius:50%;
+  background:var(--surface2); color:var(--text2);
+  display:flex; align-items:center; justify-content:center;
+  font-size:14px; transition:all 0.15s;
+}
+.sheet-close:hover { background:var(--surface3); color:var(--text); }
+#model-sheet-list {
+  overflow-y:auto; padding:8px; -webkit-overflow-scrolling:touch;
+  padding-bottom:max(16px,env(safe-area-inset-bottom));
+}
+/* Group headers inside sheet */
+.sheet-group-header {
+  padding:8px 10px 4px; font-size:10px; color:var(--text3);
+  font-family:var(--mono); letter-spacing:1.2px; text-transform:uppercase;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.sheet-model-option {
+  padding:13px 14px; border-radius:var(--radius);
+  cursor:pointer; display:flex; align-items:center; gap:12px;
+  transition:background 0.15s; margin-bottom:3px;
+  border:1px solid transparent;
+  -webkit-tap-highlight-color:transparent;
+}
+.sheet-model-option:active { background:var(--surface3); }
+.sheet-model-option.selected {
+  background:rgba(59,130,246,0.1);
+  border-color:rgba(59,130,246,0.2);
+}
+.sheet-model-option.selected .smo-name { color:var(--blue2); }
+.smo-emoji { font-size:20px; flex-shrink:0; width:28px; text-align:center; }
+.smo-info { flex:1; min-width:0; }
+.smo-name { font-size:14px; font-weight:600; color:var(--text); }
+.smo-desc { font-size:12px; color:var(--text3); margin-top:2px; }
+.smo-badge {
+  font-size:10px; padding:3px 8px; border-radius:20px; flex-shrink:0;
+  background:rgba(16,185,129,0.12); color:var(--green);
+  border:1px solid rgba(16,185,129,0.2); font-family:var(--mono); font-weight:700;
+}
+.smo-badge.free { background:rgba(16,185,129,0.12); color:var(--green); border-color:rgba(16,185,129,0.2); }
+.smo-badge.groq { background:rgba(245,158,11,0.12); color:var(--amber); border-color:rgba(245,158,11,0.2); }
+.smo-badge.github { background:rgba(6,214,240,0.12); color:var(--cyan); border-color:rgba(6,214,240,0.2); }
+.smo-badge.direct { background:rgba(139,92,246,0.12); color:var(--purple); border-color:rgba(139,92,246,0.2); }
+.smo-badge.openai { background:rgba(59,130,246,0.12); color:var(--blue2); border-color:rgba(59,130,246,0.2); }
+.smo-badge.auto { background:rgba(16,185,129,0.12); color:var(--green); border-color:rgba(16,185,129,0.2); }
+/* Checkmark on selected */
+.smo-check { width:18px; height:18px; border-radius:50%; background:var(--blue); display:none; align-items:center; justify-content:center; flex-shrink:0; font-size:10px; color:#fff; }
+.sheet-model-option.selected .smo-check { display:flex; }
+
 @media(min-width:1400px) {
   :root { --sidebar-w:320px; }
   .msg-wrapper { max-width:920px; }
@@ -1062,14 +1645,16 @@ body.light #bg-canvas {
   #model-pill { max-width:160px; }
   #model-name-display { max-width:100px; }
 }
+
+/* ── TABLET / SMALL DESKTOP ── */
 @media(max-width:768px) {
   :root { --sidebar-w:288px; --topbar-h:54px; }
   #sidebar {
-    position: fixed; height: 100%;
-    box-shadow: 4px 0 40px rgba(0,0,0,0.5);
-    z-index: 200;
+    position:fixed; height:100%;
+    box-shadow:4px 0 40px rgba(0,0,0,0.5);
+    z-index:200;
   }
-  #sidebar.collapsed { transform: translateX(-100%); }
+  #sidebar.collapsed { transform:translateX(-100%); }
   .msg-wrapper { padding:0 14px; }
   .msg-bubble { font-size:14px; padding:12px 15px; }
   .panel { width:100vw; max-width:100vw; }
@@ -1077,43 +1662,110 @@ body.light #bg-canvas {
   #input-box { border-radius:var(--radius-lg); }
   #msg-input { font-size:16px !important; }
   .suggestion-grid { grid-template-columns:repeat(2,1fr); gap:8px; }
-  .topbar-actions .topbar-icon-btn:nth-child(n+4) { display:none; }
-}
-@media(max-width:480px) {
-  :root { --topbar-h:50px; }
+  /* Hide extra topbar buttons — keep menu, model, theme, send */
+  .tb-hide-mobile { display:none !important; }
+  /* Model dropdown becomes bottom sheet on mobile */
+  #model-dropdown { display:none !important; }
+  /* Always show model pill on mobile */
+  #model-pill {
+    max-width:none !important;
+    flex:1;
+    justify-content:center;
+    padding:6px 10px;
+  }
+  #model-name-display { max-width:120px !important; }
+  /* Topbar compact layout */
+  #topbar { gap:6px; padding:0 10px; }
   #chat-title { font-size:13px; }
-  .topbar-actions { gap:2px; }
-  #model-pill { max-width:130px; }
-  #model-name-display { max-width:80px; }
-  .msg-wrapper { padding:0 10px; }
-  .msg-bubble { font-size:13.5px; padding:11px 13px; }
+  #token-badge { display:none; }
+  /* Mode bar horizontal scroll */
+  .mode-bar { gap:4px; }
+  .mode-btn { padding:5px 9px; font-size:11px; }
+}
+
+/* ── PHONE ── */
+@media(max-width:480px) {
+  :root { --topbar-h:52px; }
+  #topbar { padding:0 8px; gap:4px; }
+  #chat-title { font-size:12px; max-width:80px; }
+  #model-pill { flex:1; min-width:0; max-width:none !important; padding:5px 8px; }
+  #model-name-display { max-width:90px !important; font-size:10.5px; }
+  .pill-arrow { font-size:9px; }
+  .model-pill-dot { width:6px; height:6px; }
+  .topbar-actions { gap:2px; flex-shrink:0; }
+
+  /* Premium mobile message layout */
+  .msg-wrapper { padding:0 8px; }
+  .msg { gap:10px; margin-bottom:20px; }
+  .msg-bubble {
+    font-size:14px; padding:11px 13px;
+    line-height: 1.7;
+  }
+  .msg.user .msg-bubble {
+    border-radius:var(--radius-lg) 4px var(--radius-lg) var(--radius-lg);
+  }
+  .msg.ai .msg-bubble {
+    border-radius:4px var(--radius-lg) var(--radius-lg) var(--radius-lg);
+  }
   .msg-avatar { width:30px; height:30px; font-size:13px; }
+  .msg-name { font-size:12px; }
+  .msg-time { font-size:10px; }
+
+  /* Welcome screen mobile */
   .suggestion-grid { grid-template-columns:1fr 1fr; gap:7px; }
   .sc-desc { display:none; }
   .welcome-title { font-size:24px; }
-  .welcome-sub { font-size:13px; }
-  .welcome-orb { width:70px; height:70px; font-size:28px; }
+  .welcome-sub { font-size:13px; margin-bottom:20px; }
+  .welcome-orb { width:72px; height:72px; font-size:30px; margin-bottom:20px; }
+  .welcome-providers { gap:6px; }
+  .provider-badge { font-size:11px; padding:5px 10px; }
   .new-chat-btn { font-size:12px; padding:9px 12px; }
-  #send-btn,#stop-btn { width:36px; height:36px; }
-  .mode-btn { padding:4px 10px; font-size:11px; }
-  .topbar-actions .topbar-icon-btn:nth-child(n+3) { display:none; }
+
+  /* Input */
+  #send-btn, #stop-btn { width:38px; height:38px; }
+  .mode-btn { padding:5px 9px; font-size:11px; flex-shrink:0; }
+  .input-icon-btn { width:30px; height:30px; font-size:15px; }
+  #char-count { display:none; }
+  #msg-input { font-size:16px !important; padding:12px 14px; }
+
+  /* Hide less important buttons on phone */
+  .tb-hide-phone { display:none !important; }
+  .img-gen-card { max-width:100%; }
+  .img-action-btn { font-size:11px; padding:5px 9px; }
+
+  /* Mobile code blocks — smaller */
+  .msg-bubble pre code { font-size:12px; padding:10px 12px; }
+  .code-block-header { padding:6px 10px; }
+
+  /* Action buttons always visible on touch */
+  .msg-actions { opacity:1 !important; pointer-events:all !important; }
+  .msg-action-btn { padding:6px 10px; font-size:11px; }
 }
+
+/* ── VERY SMALL PHONE ── */
 @media(max-width:360px) {
+  :root { --topbar-h:50px; }
   .suggestion-grid { grid-template-columns:1fr; }
-  #model-pill { display:none; }
+  #chat-title { display:none; }
+  #model-pill { padding:5px 7px; }
+  #model-name-display { max-width:70px !important; font-size:10px; }
+  .topbar-icon-btn { width:32px; height:32px; }
+  .mode-btn { padding:3px 7px; font-size:10.5px; }
 }
+
 @supports(padding-bottom:env(safe-area-inset-bottom)) {
   #input-area { padding-bottom:calc(14px + env(safe-area-inset-bottom)); }
-  #topbar { padding-top:env(safe-area-inset-top); }
+  #topbar { padding-top:calc(0px + env(safe-area-inset-top)); height:calc(var(--topbar-h) + env(safe-area-inset-top)); min-height:calc(var(--topbar-h) + env(safe-area-inset-top)); }
 }
 @media(hover:none) and (pointer:coarse) {
   .chat-item,.tool-btn { padding:12px 11px; }
   .msg-actions { opacity:1 !important; pointer-events:all !important; }
-  .msg-action-btn { padding:6px 11px; }
-  .reaction-btn { padding:5px 10px; }
+  .msg-action-btn { padding:7px 12px; font-size:12px; }
+  .reaction-btn { padding:6px 10px; }
   select,input,textarea { font-size:16px !important; }
-  .mode-btn { padding:6px 14px; }
+  .mode-btn { min-height:36px; }
   .topbar-icon-btn { width:38px; height:38px; }
+  .sheet-model-option { padding:16px 14px; }
 }
 
   /* ═══ IMAGE GENERATION ═══ */
@@ -1300,6 +1952,48 @@ body.light #bg-canvas {
   }
   .gallery-empty-icon { font-size: 48px; margin-bottom: 12px; display: block; }
 
+  /* ═══ MOBILE QUICK TOOLBAR ═══ */
+  #mobile-toolbar {
+    display: none;
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: rgba(12,17,34,0.97); border-top: 1px solid var(--border2);
+    z-index: 150; padding: 8px 16px;
+    padding-bottom: max(8px,env(safe-area-inset-bottom));
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    gap: 0; justify-content: space-around; align-items: center;
+  }
+  @media(max-width:768px) { #mobile-toolbar { display:flex; } }
+  .mtb-btn {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 3px; padding: 6px 10px; border-radius: var(--radius-sm);
+    color: var(--text3); font-size: 10px; font-family: var(--mono);
+    transition: color 0.15s, background 0.15s; cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    flex: 1; max-width: 72px;
+  }
+  .mtb-btn .mtb-icon { font-size: 20px; line-height: 1; }
+  .mtb-btn:active { background: var(--surface3); color: var(--text); }
+  .mtb-btn.mtb-active { color: var(--blue2); }
+
+  /* Offset input area on mobile so toolbar doesn't cover it */
+  @media(max-width:768px) {
+    #scroll-fab {
+      bottom: calc(68px + max(10px,env(safe-area-inset-bottom)) + 140px) !important;
+    }
+    /* Voice indicator offset */
+    #voice-indicator { bottom: calc(68px + 140px + 70px); }
+  }
+
+  /* Network status badge */
+  #net-status {
+    position: fixed; top: calc(var(--topbar-h) + 8px); right: 12px;
+    z-index: 400; display: none;
+    background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4);
+    color: var(--red); font-size: 11px; padding: 4px 10px; border-radius: 20px;
+    font-family: var(--mono); animation: toast-in 0.3s var(--ease-spring);
+  }
+  #net-status.show { display: block; }
+
   /* ═══ ENHANCED ANIMATIONS ═══ */
   @keyframes shimmer {
     0% { background-position: -200% 0; }
@@ -1324,9 +2018,7 @@ body.light #bg-canvas {
     50% { box-shadow: 0 0 40px rgba(139,92,246,0.45), 0 0 80px rgba(59,130,246,0.2); }
   }
   .img-gen-card { animation: scale-in 0.35s var(--ease-spring) both; }
-  .img-gen-result img {
-    animation: scale-in 0.4s var(--ease-spring) both;
-  }
+  .img-gen-result img { animation: scale-in 0.4s var(--ease-spring) both; }
   /* Stagger welcome cards */
   .suggestion-card:nth-child(1) { animation: slide-up 0.4s var(--ease-out) 0.05s both; }
   .suggestion-card:nth-child(2) { animation: slide-up 0.4s var(--ease-out) 0.1s both; }
@@ -1335,14 +2027,10 @@ body.light #bg-canvas {
   .suggestion-card:nth-child(5) { animation: slide-up 0.4s var(--ease-out) 0.25s both; }
   .suggestion-card:nth-child(6) { animation: slide-up 0.4s var(--ease-out) 0.3s both; }
   .suggestion-card:nth-child(7) { animation: slide-up 0.4s var(--ease-out) 0.35s both; }
-  /* Sidebar stagger */
   .chat-item { animation: slide-up 0.3s var(--ease-out) both; }
-  /* Image generating glow */
   .img-gen-loading { animation: glow-pulse 2s ease-in-out infinite; }
-  /* Copy button pop */
   @keyframes pop { 0%,100%{transform:scale(1)} 50%{transform:scale(1.12)} }
   .copy-btn.copied { animation: pop 0.3s var(--ease-spring); }
-  /* New chat button ripple */
   .new-chat-btn.rippling::after {
     content:''; position:absolute; border-radius:50%;
     width:200%; padding-bottom:200%;
@@ -1351,6 +2039,97 @@ body.light #bg-canvas {
     animation: ripple 0.5s ease-out;
   }
   @keyframes ripple { to { transform:translate(-50%,-50%) scale(1); opacity:0; } }
+
+  /* ═══ STREAMING CURSOR ═══ */
+  .stream-cursor {
+    display: inline-block; color: var(--blue2); opacity: 0.8;
+    animation: blink-cursor 0.7s ease-in-out infinite;
+    font-weight: 100; margin-left: 1px;
+  }
+  @keyframes blink-cursor { 0%,100%{opacity:0.8} 50%{opacity:0.1} }
+  .stream-bubble { min-height: 28px; }
+
+  /* ═══ THINKING INDICATOR UPGRADE ═══ */
+  #thinking-indicator {
+    display: none; align-items: center; gap: 10px;
+    padding: 10px 16px; margin: 0 16px 8px;
+    background: rgba(59,130,246,0.06); border: 1px solid rgba(59,130,246,0.12);
+    border-radius: var(--radius); font-size: 12px; color: var(--text3);
+    font-family: var(--mono); animation: slide-up 0.3s var(--ease-out);
+    max-width: 500px;
+  }
+  #thinking-indicator.visible { display: flex; }
+  .think-dots { display: flex; gap: 4px; }
+  .think-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--blue2); animation: think-bounce 1.2s ease-in-out infinite;
+  }
+  .think-dot:nth-child(2) { animation-delay: 0.2s; background: var(--purple); }
+  .think-dot:nth-child(3) { animation-delay: 0.4s; background: var(--cyan); }
+  @keyframes think-bounce { 0%,100%{transform:translateY(0);opacity:0.4} 50%{transform:translateY(-5px);opacity:1} }
+  #thinking-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 400px; flex: 1; }
+
+  /* ═══ PREMIUM MOBILE TOOLBAR ═══ */
+  #mobile-toolbar {
+    display: none;
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: rgba(9,14,26,0.97);
+    border-top: 1px solid rgba(110,150,255,0.12);
+    z-index: 150;
+    padding: 6px 8px;
+    padding-bottom: max(6px,env(safe-area-inset-bottom));
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    gap: 0; justify-content: space-around; align-items: center;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.4), 0 -1px 0 rgba(255,255,255,0.03);
+  }
+  @media(max-width:768px) { #mobile-toolbar { display:flex; } }
+  .mtb-btn {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 4px; padding: 8px 6px; border-radius: var(--radius);
+    color: var(--text3); font-size: 10px; font-family: var(--mono);
+    font-weight: 600; letter-spacing: 0.3px;
+    transition: all 0.2s var(--ease-spring); cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    flex: 1; max-width: 72px; position: relative;
+  }
+  .mtb-btn .mtb-icon { font-size: 22px; line-height: 1; transition: transform 0.2s var(--ease-spring); }
+  .mtb-btn:active { background: rgba(59,130,246,0.12); color: var(--blue2); transform: scale(0.9); }
+  .mtb-btn:active .mtb-icon { transform: scale(0.88); }
+  .mtb-btn.mtb-active { color: var(--blue2); }
+  .mtb-btn.mtb-active .mtb-icon { filter: drop-shadow(0 0 6px var(--blue)); }
+  /* Active indicator dot */
+  .mtb-btn.mtb-active::after {
+    content: ''; position: absolute; bottom: 2px;
+    width: 16px; height: 3px; border-radius: 3px;
+    background: var(--blue2);
+    animation: mtb-dot-in 0.2s var(--ease-spring);
+  }
+  @keyframes mtb-dot-in { from{transform:scaleX(0)} to{transform:scaleX(1)} }
+  /* Premium center send button */
+  .mtb-send-btn {
+    position: relative;
+    color: var(--blue2) !important;
+  }
+  .mtb-send-btn .mtb-icon {
+    font-size: 24px !important;
+    filter: drop-shadow(0 0 8px rgba(59,130,246,0.6));
+  }
+  .mtb-send-btn::before {
+    content: ''; position: absolute;
+    inset: 4px; border-radius: var(--radius);
+    background: rgba(59,130,246,0.1);
+    border: 1px solid rgba(59,130,246,0.2);
+  }
+
+  /* ═══ HAPTIC TAP OVERLAY ═══ */
+  .tap-ripple {
+    position: fixed; pointer-events: none; border-radius: 50%;
+    background: rgba(59,130,246,0.25); transform: scale(0); z-index: 9999;
+    animation: tap-expand 0.4s ease-out forwards;
+  }
+  @keyframes tap-expand {
+    to { transform: scale(8); opacity: 0; }
+  }
   /* Image aspect ratio selector */
   .aspect-btn {
     padding: 5px 10px; border-radius: 6px; font-size: 11px;
@@ -1416,13 +2195,21 @@ body.light #bg-canvas {
     New Conversation
   </button>
 
-  <div class="sidebar-sec">Chats</div>
+  <div class="sidebar-sec" style="display:flex;align-items:center;justify-content:space-between;padding-right:4px">
+    <span>Chats</span>
+    <button onclick="openPanel('prompts')" style="background:none;border:none;color:var(--text4);font-size:11px;cursor:pointer;font-family:var(--mono);padding:2px 6px;border-radius:4px;transition:all .15s" title="Prompt Library" onmouseover="this.style.color='var(--blue2)'" onmouseout="this.style.color='var(--text4)'">📚</button>
+  </div>
+  <div id="folder-list"></div>
+  <button id="folder-add-btn" onclick="addFolder()">＋ Folder</button>
+  <div class="sidebar-sec" style="margin-top:4px">All Chats</div>
   <div id="chat-list"></div>
 
   <div class="sidebar-tools">
     <div class="sidebar-sec" style="margin:0 0 5px">Tools</div>
     <button class="tool-btn" onclick="openPanel('memory')"><span class="tb-icon">🧠</span>Memory Manager</button>
     <button class="tool-btn" onclick="openPanel('search')"><span class="tb-icon">🔍</span>Search History</button>
+    <button class="tool-btn" onclick="openPanel('bookmarks')"><span class="tb-icon">🔖</span>Bookmarks</button>
+    <button class="tool-btn" onclick="openPanel('prompts')"><span class="tb-icon">📚</span>Prompt Library</button>
     <button class="tool-btn" onclick="openPanel('stats')"><span class="tb-icon">📊</span>Usage Stats</button>
     <button class="tool-btn" onclick="openPanel('settings')"><span class="tb-icon">⚙️</span>Settings</button>
     <button class="tool-btn" onclick="openPanel('gallery')"><span class="tb-icon">🖼️</span>Image Gallery</button>
@@ -1518,6 +2305,26 @@ body.light #bg-canvas {
           <span class="mo-badge" style="background:rgba(245,158,11,0.12);color:var(--amber);border-color:rgba(245,158,11,0.2)">GROQ</span>
         </div>
         <div style="border-top:1px solid var(--border);margin:6px 0 4px"></div>
+        <div class="dropdown-header" style="padding:6px 10px 4px;margin-bottom:2px">
+          <span>GitHub Models</span>
+          <span style="color:var(--cyan);font-size:10px">⭐ NEW</span>
+        </div>
+        <div class="model-option" data-model="github-gpt5" onclick="selectModel('github-gpt5')">
+          <span class="mo-emoji">🌟</span>
+          <div class="mo-info"><div class="mo-name">GPT-5</div><div class="mo-desc">OpenAI GPT-5 via GitHub Models API</div></div>
+          <span class="mo-badge" style="background:rgba(6,214,240,0.12);color:var(--cyan);border-color:rgba(6,214,240,0.2)">GPT-5</span>
+        </div>
+        <div class="model-option" data-model="github-deepseek-r1" onclick="selectModel('github-deepseek-r1')">
+          <span class="mo-emoji">🧠</span>
+          <div class="mo-info"><div class="mo-name">DeepSeek R1 (GitHub)</div><div class="mo-desc">DeepSeek R1 reasoning via GitHub Models</div></div>
+          <span class="mo-badge" style="background:rgba(6,214,240,0.12);color:var(--cyan);border-color:rgba(6,214,240,0.2)">GITHUB</span>
+        </div>
+        <div class="model-option" data-model="github-deepseek-v3" onclick="selectModel('github-deepseek-v3')">
+          <span class="mo-emoji">⚡</span>
+          <div class="mo-info"><div class="mo-name">DeepSeek V3 (GitHub)</div><div class="mo-desc">DeepSeek V3-0324 via GitHub Models</div></div>
+          <span class="mo-badge" style="background:rgba(6,214,240,0.12);color:var(--cyan);border-color:rgba(6,214,240,0.2)">GITHUB</span>
+        </div>
+        <div style="border-top:1px solid var(--border);margin:6px 0 4px"></div>
         <div class="model-option" data-model="deepseek-direct" onclick="selectModel('deepseek-direct')">
           <span class="mo-emoji">🔥</span>
           <div class="mo-info"><div class="mo-name">DeepSeek (Direct API)</div><div class="mo-desc">deepseek-chat via DeepSeek API</div></div>
@@ -1527,13 +2334,17 @@ body.light #bg-canvas {
     </div>
 
     <div id="token-badge">0 tokens</div>
+    <div id="auto-model-status" class="show tb-hide-mobile">
+      <div class="ams-dot"></div>
+      <span id="ams-text-top">Auto</span>
+    </div>
 
     <div class="topbar-actions">
-      <button class="topbar-icon-btn" id="memory-btn" onclick="toggleFeature('memory')" title="Memory" data-tip="Memory">🧠</button>
-      <button class="topbar-icon-btn" id="code-btn" onclick="toggleFeature('codeMode')" title="Code Mode" data-tip="Code Mode">💻</button>
-      <button class="topbar-icon-btn" onclick="openPanel('gallery')" title="Image Gallery" data-tip="Gallery">🖼️</button>
+      <button class="topbar-icon-btn tb-hide-mobile" id="memory-btn" onclick="toggleFeature('memory')" title="Memory" data-tip="Memory">🧠</button>
+      <button class="topbar-icon-btn tb-hide-mobile" id="code-btn" onclick="toggleFeature('codeMode')" title="Code Mode" data-tip="Code Mode">💻</button>
+      <button class="topbar-icon-btn tb-hide-phone" onclick="openPanel('gallery')" title="Image Gallery" data-tip="Gallery">🖼️</button>
       <div style="position:relative">
-        <button class="topbar-icon-btn" onclick="toggleExportMenu()" title="Export">📤</button>
+        <button class="topbar-icon-btn tb-hide-phone" onclick="toggleExportMenu()" title="Export">📤</button>
         <div id="export-menu">
           <div class="export-item" onclick="exportChat('markdown')">📝 Markdown</div>
           <div class="export-item" onclick="exportChat('txt')">📄 Plain Text</div>
@@ -1542,12 +2353,32 @@ body.light #bg-canvas {
           <div class="export-item" onclick="copyAllChat()">📋 Copy All</div>
         </div>
       </div>
+      <button id="fs-btn" class="topbar-icon-btn tb-hide-mobile" onclick="toggleFullscreen()" title="Fullscreen">⛶</button>
+      <button id="focus-btn" class="topbar-icon-btn tb-hide-mobile" onclick="toggleFocusMode()" title="Focus Mode (Ctrl+Shift+F)">🎯</button>
+      <button class="topbar-icon-btn tb-hide-mobile" onclick="openChatSearch()" title="Search in chat (Ctrl+F)">🔍</button>
+      <button class="topbar-icon-btn tb-hide-mobile" onclick="summarizeChat()" title="Summarize chat (Ctrl+Shift+S)">✨</button>
+      <button class="topbar-icon-btn tb-hide-mobile" onclick="openKbd()" title="Keyboard shortcuts (Ctrl+/)">⌨️</button>
       <button class="topbar-icon-btn" onclick="toggleTheme()" title="Theme" id="theme-btn">🌙</button>
     </div>
   </div>
 
+  <!-- PINNED MESSAGE BAR -->
+  <div id="pinned-bar" onclick="scrollToPinned()">
+    📌 <strong>Pinned:</strong> <span id="pinned-bar-text">No pinned message</span>
+    <button onclick="event.stopPropagation();clearPinned()" style="margin-left:auto;background:none;border:none;color:var(--text3);font-size:14px;cursor:pointer;padding:0 2px">✕</button>
+  </div>
+
+  <!-- IN-CHAT SEARCH BAR (Feature 2) -->
+  <div id="chat-search-bar">
+    <input id="csi-inp" placeholder="Search in this chat…" oninput="csiQuery(this.value)" onkeydown="csiNav(event)">
+    <span id="csi-count">0/0</span>
+    <button class="csi-nav" onclick="csiStep(-1)" title="Prev">↑</button>
+    <button class="csi-nav" onclick="csiStep(1)" title="Next">↓</button>
+    <button class="csi-nav" onclick="closeChatSearch()" title="Close">✕</button>
+  </div>
+
   <!-- CHAT AREA -->
-  <div id="chat-area">
+  <div id="chat-area" onclick="onChatAreaClick(event)">
     <div id="welcome">
       <div class="welcome-orb">✦</div>
       <div class="welcome-title">Welcome to SetupAI</div>
@@ -1557,7 +2388,9 @@ body.light #bg-canvas {
         <div class="provider-badge active">🔥 DeepSeek Direct</div>
         <div class="provider-badge active">🤖 OpenAI GPT</div>
         <div class="provider-badge active">⚡ Groq Ultra-fast</div>
-        <div class="provider-badge">🧠 10 Models</div>
+        <div class="provider-badge active">⭐ GPT-5 GitHub</div>
+        <div class="provider-badge active">🧠 DeepSeek GitHub</div>
+        <div class="provider-badge">🌐 13 Models</div>
       </div>
       <div class="suggestion-grid">
         <div class="suggestion-card" onclick="useSuggestion('Explain quantum computing in simple terms with an analogy')">
@@ -1600,17 +2433,45 @@ body.light #bg-canvas {
     <div id="messages-container" style="display:none"></div>
   </div>
 
-  <!-- TYPING INDICATOR -->
-  <div id="typing-indicator">
-    <div class="msg-avatar" style="background:var(--grad-main);box-shadow:0 0 16px rgba(59,130,246,0.3);font-size:14px">✦</div>
+  <!-- CONTEXT METER (Feature 8) -->
+  <div id="ctx-meter">
+    <div class="ctx-wrap">
+      <span>Context</span>
+      <div class="ctx-track"><div class="ctx-fill" id="ctx-fill" style="width:0%"></div></div>
+      <span class="ctx-lbl" id="ctx-lbl">0 / 128K</span>
+    </div>
+  </div>
+
+  <!-- SUMMARY BANNER (Feature 4) -->
+  <div id="summary-banner">
+    <div class="sum-card">
+      <div class="sum-hdr">✨ AI Summary</div>
+      <div class="sum-txt" id="sum-txt">Generating…</div>
+      <button class="sum-close" onclick="document.getElementById('summary-banner').classList.remove('show')">✕</button>
+    </div>
+  </div>
+
+  <!-- TYPING INDICATOR — tap to focus input on mobile -->
+  <div id="typing-indicator" onclick="focusInput()">
+    <div class="msg-avatar" style="background:var(--grad-main);box-shadow:0 0 20px rgba(59,130,246,0.4);font-size:14px;animation:avatar-glow 3s ease-in-out infinite">✦</div>
     <div class="typing-bubble">
       <div class="typing-dots">
         <div class="typing-dot"></div>
         <div class="typing-dot"></div>
         <div class="typing-dot"></div>
       </div>
-      <span id="thinking-text">Thinking...</span>
+      <span id="thinking-text" style="font-size:12px;color:var(--text3);font-family:var(--mono)">Thinking...</span>
     </div>
+  </div>
+
+  <!-- THINKING INDICATOR (DeepSeek reasoning) -->
+  <div id="thinking-indicator">
+    <div class="think-dots">
+      <div class="think-dot"></div>
+      <div class="think-dot"></div>
+      <div class="think-dot"></div>
+    </div>
+    <span id="thinking-text-detail" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">Processing...</span>
   </div>
 
   <!-- QUOTA BANNER -->
@@ -1623,6 +2484,16 @@ body.light #bg-canvas {
 
   <!-- INPUT AREA -->
   <div id="input-area">
+    <!-- Quick Settings Bar -->
+    <div id="quick-bar">
+      <span class="qb-chip active" id="qb-memory" onclick="quickToggle('memory','qb-memory')" title="Memory">🧠 Memory</span>
+      <span class="qb-chip active" id="qb-stream" onclick="quickToggle('streaming','qb-stream')" title="Streaming">🌊 Stream</span>
+      <span class="qb-chip qb-amber" id="qb-code" onclick="quickToggle('codeMode','qb-code')" title="Code Mode">💻 Code</span>
+      <span class="qb-chip qb-purple" id="qb-image" onclick="setMode('image')" title="Image Mode">🎨 Image</span>
+      <span class="qb-chip qb-green" id="qb-scroll" onclick="quickToggle('autoScroll','qb-scroll')" title="Auto Scroll">⬇️ Scroll</span>
+      <span class="qb-chip" id="qb-fullscreen" onclick="toggleFullscreen()" title="Fullscreen">⛶ Full</span>
+    </div>
+
     <div class="mode-bar">
       <button class="mode-btn active" id="mode-chat" onclick="setMode('chat')">💬 Chat</button>
       <button class="mode-btn" id="mode-code" onclick="setMode('code')">💻 Code</button>
@@ -1640,6 +2511,7 @@ body.light #bg-canvas {
       <button class="aspect-btn" onclick="setAspect('512x512',this)">1:1</button>
       <button class="aspect-btn" onclick="setAspect('512x768',this)">9:16</button>
       <button class="aspect-btn" onclick="setAspect('1024x512',this)">2:1</button>
+      <button class="aspect-btn" onclick="setAspect('1024x1024',this)">HD 1:1</button>
       <span class="img-opt-label" style="margin-left:4px">Style:</span>
       <span class="img-style-tag active" onclick="toggleStyle('photorealistic',this)">📷 Photo</span>
       <span class="img-style-tag" onclick="toggleStyle('anime',this)">🎌 Anime</span>
@@ -1647,17 +2519,33 @@ body.light #bg-canvas {
       <span class="img-style-tag" onclick="toggleStyle('cinematic',this)">🎬 Cinematic</span>
       <span class="img-style-tag" onclick="toggleStyle('3d render',this)">🧊 3D</span>
       <span class="img-style-tag" onclick="toggleStyle('watercolor',this)">💧 Watercolor</span>
+      <span class="img-style-tag" onclick="toggleStyle('digital art',this)">🖥️ Digital</span>
+      <span class="img-style-tag" onclick="toggleStyle('sketch',this)">✏️ Sketch</span>
+      <span class="img-style-tag" onclick="toggleStyle('neon',this)">💡 Neon</span>
+      <button class="aspect-btn" onclick="enhanceImagePrompt()" style="margin-left:4px;border-color:rgba(139,92,246,0.4);color:var(--purple)">✨ Enhance</button>
     </div>
+
+    <!-- Autocomplete suggestion chips -->
+    <div id="autocomplete-bar"></div>
+
     <div id="input-box"
-      ondragover="e=>e.preventDefault()||document.getElementById('input-box').classList.add('drag-over')"
-      ondragleave="()=>document.getElementById('input-box').classList.remove('drag-over')"
+      ondragover="event.preventDefault();document.getElementById('input-box').classList.add('drag-over')"
+      ondragleave="document.getElementById('input-box').classList.remove('drag-over')"
       ondrop="handleDrop(event)">
       <div id="file-preview"></div>
       <div id="img-preview"></div>
       <textarea id="msg-input" rows="1"
         placeholder="Message SetupAI..."
-        oninput="autoResize(this);updateCharCount()"
-        onkeydown="handleKey(event)"></textarea>
+        oninput="autoResize(this);updateCharCount();updateInputStats();triggerAutocomplete(this.value)"
+        onkeydown="handleKey(event)"
+        onfocus="onInputFocus()"
+        onblur="onInputBlur()"></textarea>
+      <!-- Word/char stats bar -->
+      <div id="input-stats">
+        <span class="istat">Words: <span class="istat-val" id="stat-words">0</span></span>
+        <span class="istat">Chars: <span class="istat-val" id="stat-chars">0</span></span>
+        <span class="istat" id="stat-tokens-wrap">~Tokens: <span class="istat-val" id="stat-tokens">0</span></span>
+      </div>
       <div class="input-footer">
         <div class="input-left">
           <button class="input-icon-btn" onclick="document.getElementById('file-input').click()" title="Attach file">📎</button>
@@ -1685,6 +2573,38 @@ body.light #bg-canvas {
 <!-- SCROLL FAB -->
 <button id="scroll-fab" onclick="scrollToBottom()">↓</button>
 
+<!-- TAP TO TYPE HINT -->
+<div id="tap-hint">👆 Tap anywhere to type</div>
+
+<!-- NETWORK STATUS -->
+<div id="net-status">⚡ Offline</div>
+
+<!-- MOBILE BOTTOM TOOLBAR — Premium 7-button -->
+<div id="mobile-toolbar">
+  <button class="mtb-btn" id="mtb-new" onclick="newChat();mtbActive('mtb-new')" title="New Chat">
+    <span class="mtb-icon">✦</span><span>New</span>
+  </button>
+  <button class="mtb-btn" id="mtb-chats" onclick="toggleSidebar();mtbActive('mtb-chats')" title="Chats">
+    <span class="mtb-icon">💬</span><span>Chats</span>
+  </button>
+  <button class="mtb-btn" id="mtb-model" onclick="toggleModelDropdown();mtbActive('mtb-model')" title="Models">
+    <span class="mtb-icon">🤖</span><span>Models</span>
+  </button>
+  <!-- Center send button — premium style -->
+  <button class="mtb-btn mtb-send-btn" id="mtb-send" onclick="mobileSendOrFocus()" title="Send / Type">
+    <span class="mtb-icon">🚀</span><span>Send</span>
+  </button>
+  <button class="mtb-btn" id="mtb-voice" onclick="toggleVoice();mtbActive('mtb-voice')" title="Voice">
+    <span class="mtb-icon">🎙️</span><span>Voice</span>
+  </button>
+  <button class="mtb-btn" id="mtb-search" onclick="openChatSearch();mtbActive('mtb-search')" title="Search">
+    <span class="mtb-icon">🔍</span><span>Search</span>
+  </button>
+  <button class="mtb-btn" id="mtb-settings" onclick="openPanel('settings');mtbActive('mtb-settings')" title="Settings">
+    <span class="mtb-icon">⚙️</span><span>More</span>
+  </button>
+</div>
+
 <!-- VOICE INDICATOR -->
 <div id="voice-indicator">
   <div class="vdot"></div><div class="vdot" style="animation-delay:.2s"></div><div class="vdot" style="animation-delay:.4s"></div>
@@ -1694,6 +2614,101 @@ body.light #bg-canvas {
 <!-- LIGHTBOX -->
 <div id="lightbox" onclick="this.classList.remove('show')">
   <img id="lightbox-img" src="" alt="">
+</div>
+
+<!-- MOBILE MODEL SELECTOR BOTTOM SHEET -->
+<div id="model-sheet-overlay" onclick="closeModelSheet()"></div>
+<div id="model-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">
+    <span>🤖 Select Model</span>
+    <button class="sheet-close" onclick="closeModelSheet()">✕</button>
+  </div>
+  <div id="model-sheet-list">
+    <!-- Free Models -->
+    <div class="sheet-group-header"><span>OpenRouter Free</span><span style="color:var(--green);font-size:10px">FREE</span></div>
+    <div class="sheet-model-option selected" data-model="openrouter/free" onclick="selectModel('openrouter/free')">
+      <span class="smo-emoji">🔀</span>
+      <div class="smo-info"><div class="smo-name">Auto Free Router</div><div class="smo-desc">Always works — picks best model</div></div>
+      <span class="smo-badge auto">AUTO</span><div class="smo-check">✓</div>
+    </div>
+    <div class="sheet-model-option" data-model="deepseek/deepseek-r1-0528:free" onclick="selectModel('deepseek/deepseek-r1-0528:free')">
+      <span class="smo-emoji">🧠</span>
+      <div class="smo-info"><div class="smo-name">DeepSeek R1 0528</div><div class="smo-desc">Best reasoning — chain of thought</div></div>
+      <span class="smo-badge free">FREE</span><div class="smo-check">✓</div>
+    </div>
+    <div class="sheet-model-option" data-model="deepseek/deepseek-chat-v3-0324:free" onclick="selectModel('deepseek/deepseek-chat-v3-0324:free')">
+      <span class="smo-emoji">⚡</span>
+      <div class="smo-info"><div class="smo-name">DeepSeek V3</div><div class="smo-desc">Fast — general purpose chat</div></div>
+      <span class="smo-badge free">FREE</span><div class="smo-check">✓</div>
+    </div>
+    <div class="sheet-model-option" data-model="meta-llama/llama-4-maverick:free" onclick="selectModel('meta-llama/llama-4-maverick:free')">
+      <span class="smo-emoji">🦙</span>
+      <div class="smo-info"><div class="smo-name">Llama 4 Maverick</div><div class="smo-desc">Meta's latest — multimodal</div></div>
+      <span class="smo-badge free">FREE</span><div class="smo-check">✓</div>
+    </div>
+    <div class="sheet-model-option" data-model="meta-llama/llama-3.3-70b-instruct:free" onclick="selectModel('meta-llama/llama-3.3-70b-instruct:free')">
+      <span class="smo-emoji">💪</span>
+      <div class="smo-info"><div class="smo-name">Llama 3.3 70B</div><div class="smo-desc">Powerful — great at instructions</div></div>
+      <span class="smo-badge free">FREE</span><div class="smo-check">✓</div>
+    </div>
+    <div class="sheet-model-option" data-model="qwen/qwen3-235b-a22b:free" onclick="selectModel('qwen/qwen3-235b-a22b:free')">
+      <span class="smo-emoji">🌟</span>
+      <div class="smo-info"><div class="smo-name">Qwen3 235B</div><div class="smo-desc">Massive model — top quality</div></div>
+      <span class="smo-badge free">FREE</span><div class="smo-check">✓</div>
+    </div>
+    <div class="sheet-model-option" data-model="google/gemma-3-27b-it:free" onclick="selectModel('google/gemma-3-27b-it:free')">
+      <span class="smo-emoji">💡</span>
+      <div class="smo-info"><div class="smo-name">Gemma 3 27B</div><div class="smo-desc">Google's best free model</div></div>
+      <span class="smo-badge free">FREE</span><div class="smo-check">✓</div>
+    </div>
+    <div class="sheet-model-option" data-model="mistralai/devstral-small:free" onclick="selectModel('mistralai/devstral-small:free')">
+      <span class="smo-emoji">🌀</span>
+      <div class="smo-info"><div class="smo-name">Devstral Small</div><div class="smo-desc">Best for code &amp; dev tasks</div></div>
+      <span class="smo-badge free">FREE</span><div class="smo-check">✓</div>
+    </div>
+    <!-- GitHub Models -->
+    <div class="sheet-group-header" style="margin-top:8px"><span>GitHub Models</span><span style="color:var(--cyan);font-size:10px">⭐ NEW</span></div>
+    <div class="sheet-model-option" data-model="github-gpt5" onclick="selectModel('github-gpt5')">
+      <span class="smo-emoji">🌟</span>
+      <div class="smo-info"><div class="smo-name">GPT-5</div><div class="smo-desc">OpenAI GPT-5 via GitHub Models API</div></div>
+      <span class="smo-badge github">GPT-5</span><div class="smo-check">✓</div>
+    </div>
+    <div class="sheet-model-option" data-model="github-deepseek-r1" onclick="selectModel('github-deepseek-r1')">
+      <span class="smo-emoji">🧠</span>
+      <div class="smo-info"><div class="smo-name">DeepSeek R1 (GitHub)</div><div class="smo-desc">DeepSeek reasoning via GitHub API</div></div>
+      <span class="smo-badge github">GITHUB</span><div class="smo-check">✓</div>
+    </div>
+    <div class="sheet-model-option" data-model="github-deepseek-v3" onclick="selectModel('github-deepseek-v3')">
+      <span class="smo-emoji">⚡</span>
+      <div class="smo-info"><div class="smo-name">DeepSeek V3 (GitHub)</div><div class="smo-desc">DeepSeek V3-0324 via GitHub API</div></div>
+      <span class="smo-badge github">GITHUB</span><div class="smo-check">✓</div>
+    </div>
+    <!-- Groq -->
+    <div class="sheet-group-header" style="margin-top:8px"><span>Groq (Ultra-fast)</span><span style="color:var(--amber);font-size:10px">⚡ FAST</span></div>
+    <div class="sheet-model-option" data-model="groq-llama4-scout" onclick="selectModel('groq-llama4-scout')">
+      <span class="smo-emoji">⚡</span>
+      <div class="smo-info"><div class="smo-name">Llama 4 Scout 17B</div><div class="smo-desc">Meta Llama 4 via Groq — ultra-fast</div></div>
+      <span class="smo-badge groq">GROQ</span><div class="smo-check">✓</div>
+    </div>
+    <div class="sheet-model-option" data-model="groq-openai-oss-20b" onclick="selectModel('groq-openai-oss-20b')">
+      <span class="smo-emoji">🚀</span>
+      <div class="smo-info"><div class="smo-name">Llama 3.3 70B (Groq)</div><div class="smo-desc">Powerful 70B via Groq — blazing speed</div></div>
+      <span class="smo-badge groq">GROQ</span><div class="smo-check">✓</div>
+    </div>
+    <!-- Direct APIs -->
+    <div class="sheet-group-header" style="margin-top:8px"><span>Direct APIs</span><span style="color:var(--blue2);font-size:10px">DIRECT</span></div>
+    <div class="sheet-model-option" data-model="openai-gpt-oss-20b" onclick="selectModel('openai-gpt-oss-20b')">
+      <span class="smo-emoji">🤖</span>
+      <div class="smo-info"><div class="smo-name">GPT-4o Mini</div><div class="smo-desc">OpenAI direct — fast &amp; smart</div></div>
+      <span class="smo-badge openai">OPENAI</span><div class="smo-check">✓</div>
+    </div>
+    <div class="sheet-model-option" data-model="deepseek-direct" onclick="selectModel('deepseek-direct')">
+      <span class="smo-emoji">🔥</span>
+      <div class="smo-info"><div class="smo-name">DeepSeek Direct</div><div class="smo-desc">deepseek-chat via DeepSeek API</div></div>
+      <span class="smo-badge direct">DIRECT</span><div class="smo-check">✓</div>
+    </div>
+  </div>
 </div>
 
 <!-- PANEL OVERLAY -->
@@ -1731,23 +2746,181 @@ body.light #bg-canvas {
     </div>
     <div class="panel-section">
       <div class="panel-sec-title">Features</div>
-      <div class="toggle-row"><span class="toggle-label">🧠 Persistent Memory</span><button class="toggle-switch on" id="t-memory" onclick="toggleSetting('memory',this)"></button></div>
-      <div class="toggle-row"><span class="toggle-label">📜 Chat History</span><button class="toggle-switch on" id="t-history" onclick="toggleSetting('chatHistory',this)"></button></div>
-      <div class="toggle-row"><span class="toggle-label">🌊 Streaming Mode</span><button class="toggle-switch on" id="t-streaming" onclick="toggleSetting('streaming',this)"></button></div>
-      <div class="toggle-row"><span class="toggle-label">⌨️ Typing Indicator</span><button class="toggle-switch on" id="t-typing" onclick="toggleSetting('typing',this)"></button></div>
-      <div class="toggle-row"><span class="toggle-label">💾 Auto Save</span><button class="toggle-switch on" id="t-autosave" onclick="toggleSetting('autoSave',this)"></button></div>
-      <div class="toggle-row"><span class="toggle-label">🔔 Sound Effects</span><button class="toggle-switch" id="t-sound" onclick="toggleSetting('sound',this)"></button></div>
+      <div class="toggle-row toggle-on" id="tr-memory" onclick="toggleSetting('memory', document.getElementById('t-memory'), this)">
+        <div class="toggle-label-wrap">
+          <span class="toggle-label">🧠 Persistent Memory</span>
+          <span class="toggle-sublabel">Remember user info across chats</span>
+        </div>
+        <div class="toggle-right">
+          <span class="toggle-state-txt" id="txt-memory">ON</span>
+          <button class="toggle-switch on" id="t-memory"></button>
+        </div>
+      </div>
+      <div class="toggle-row toggle-on" id="tr-chatHistory" onclick="toggleSetting('chatHistory', document.getElementById('t-history'), this)">
+        <div class="toggle-label-wrap">
+          <span class="toggle-label">📜 Chat History</span>
+          <span class="toggle-sublabel">Save conversations locally</span>
+        </div>
+        <div class="toggle-right">
+          <span class="toggle-state-txt" id="txt-chatHistory">ON</span>
+          <button class="toggle-switch on" id="t-history"></button>
+        </div>
+      </div>
+      <div class="toggle-row toggle-on" id="tr-streaming" onclick="toggleSetting('streaming', document.getElementById('t-streaming'), this)">
+        <div class="toggle-label-wrap">
+          <span class="toggle-label">🌊 Streaming Mode</span>
+          <span class="toggle-sublabel">Show response word by word</span>
+        </div>
+        <div class="toggle-right">
+          <span class="toggle-state-txt" id="txt-streaming">ON</span>
+          <button class="toggle-switch on" id="t-streaming"></button>
+        </div>
+      </div>
+      <div class="toggle-row toggle-on" id="tr-typing" onclick="toggleSetting('typing', document.getElementById('t-typing'), this)">
+        <div class="toggle-label-wrap">
+          <span class="toggle-label">⌨️ Typing Indicator</span>
+          <span class="toggle-sublabel">Show animated dots while thinking</span>
+        </div>
+        <div class="toggle-right">
+          <span class="toggle-state-txt" id="txt-typing">ON</span>
+          <button class="toggle-switch on" id="t-typing"></button>
+        </div>
+      </div>
+      <div class="toggle-row toggle-on" id="tr-autoSave" onclick="toggleSetting('autoSave', document.getElementById('t-autosave'), this)">
+        <div class="toggle-label-wrap">
+          <span class="toggle-label">💾 Auto Save</span>
+          <span class="toggle-sublabel">Automatically save all chats</span>
+        </div>
+        <div class="toggle-right">
+          <span class="toggle-state-txt" id="txt-autoSave">ON</span>
+          <button class="toggle-switch on" id="t-autosave"></button>
+        </div>
+      </div>
+      <div class="toggle-row toggle-on" id="tr-autoScroll" onclick="toggleSetting('autoScroll', document.getElementById('t-autoscroll'), this)">
+        <div class="toggle-label-wrap">
+          <span class="toggle-label">⬇️ Auto Scroll</span>
+          <span class="toggle-sublabel">Scroll to bottom on new messages</span>
+        </div>
+        <div class="toggle-right">
+          <span class="toggle-state-txt" id="txt-autoScroll">ON</span>
+          <button class="toggle-switch on" id="t-autoscroll"></button>
+        </div>
+      </div>
+      <div class="toggle-row toggle-on" id="tr-autoKeyboard" onclick="toggleSetting('autoKeyboard', document.getElementById('t-autokeyboard'), this)">
+        <div class="toggle-label-wrap">
+          <span class="toggle-label">📱 Tap-to-Type</span>
+          <span class="toggle-sublabel">Tap chat area to open keyboard</span>
+        </div>
+        <div class="toggle-right">
+          <span class="toggle-state-txt" id="txt-autoKeyboard">ON</span>
+          <button class="toggle-switch on" id="t-autokeyboard"></button>
+        </div>
+      </div>
+      <div class="toggle-row" id="tr-sound" onclick="toggleSetting('sound', document.getElementById('t-sound'), this)">
+        <div class="toggle-label-wrap">
+          <span class="toggle-label">🔔 Sound Effects</span>
+          <span class="toggle-sublabel">Play beep on message sent</span>
+        </div>
+        <div class="toggle-right">
+          <span class="toggle-state-txt" id="txt-sound">OFF</span>
+          <button class="toggle-switch" id="t-sound"></button>
+        </div>
+      </div>
+      <div class="toggle-row" id="tr-wordCount" onclick="toggleSetting('wordCount', document.getElementById('t-wordcount'), this)">
+        <div class="toggle-label-wrap">
+          <span class="toggle-label">📊 Word Counter</span>
+          <span class="toggle-sublabel">Show word/char count while typing</span>
+        </div>
+        <div class="toggle-right">
+          <span class="toggle-state-txt" id="txt-wordCount">OFF</span>
+          <button class="toggle-switch" id="t-wordcount"></button>
+        </div>
+      </div>
+      <div class="toggle-row" id="tr-quickSuggestions" onclick="toggleSetting('quickSuggestions', document.getElementById('t-quicksugg'), this)">
+        <div class="toggle-label-wrap">
+          <span class="toggle-label">💡 Quick Suggestions</span>
+          <span class="toggle-sublabel">Show prompt chips above input</span>
+        </div>
+        <div class="toggle-right">
+          <span class="toggle-state-txt" id="txt-quickSuggestions">OFF</span>
+          <button class="toggle-switch" id="t-quicksugg"></button>
+        </div>
+      </div>
+      <div class="toggle-row" id="tr-compactMode" onclick="toggleSetting('compactMode', document.getElementById('t-compact'), this)">
+        <div class="toggle-label-wrap">
+          <span class="toggle-label">🗜️ Compact Mode</span>
+          <span class="toggle-sublabel">Smaller messages, denser layout</span>
+        </div>
+        <div class="toggle-right">
+          <span class="toggle-state-txt" id="txt-compactMode">OFF</span>
+          <button class="toggle-switch" id="t-compact"></button>
+        </div>
+      </div>
     </div>
     <div class="panel-section">
-      <div class="panel-sec-title">Appearance</div>
+      <div class="panel-sec-title">🎨 Themes</div>
+      <div class="theme-grid" id="theme-grid">
+        <!-- built by JS -->
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-sec-title">🎯 Accent Color</div>
+      <div class="accent-grid" id="accent-grid">
+        <!-- built by JS -->
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-sec-title">🔘 Button Style</div>
+      <div class="btn-style-grid" id="btn-style-grid">
+        <div class="btn-style-card active" data-style="default" onclick="setBtnStyle('default',this)">
+          <div class="btn-style-preview" style="background:linear-gradient(135deg,#3b82f6,#8b5cf6);border-radius:8px">Aa</div>
+          Default
+        </div>
+        <div class="btn-style-card" data-style="rounded" onclick="setBtnStyle('rounded',this)">
+          <div class="btn-style-preview" style="background:linear-gradient(135deg,#3b82f6,#8b5cf6);border-radius:20px">Aa</div>
+          Rounded
+        </div>
+        <div class="btn-style-card" data-style="sharp" onclick="setBtnStyle('sharp',this)">
+          <div class="btn-style-preview" style="background:linear-gradient(135deg,#3b82f6,#8b5cf6);border-radius:2px">Aa</div>
+          Sharp
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-sec-title">📝 Font Size</div>
       <div class="setting-row">
-        <div class="setting-label">Font Size</div>
+        <div class="setting-label">Message Text Size</div>
         <select class="stg-select" id="s-fontsize" onchange="changeFontSize(this.value)">
           <option value="13px">Small</option>
           <option value="14.5px" selected>Medium</option>
           <option value="16px">Large</option>
           <option value="18px">Extra Large</option>
         </select>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-sec-title">🤖 Auto Model</div>
+      <div class="toggle-row toggle-on" id="tr-autoModel" onclick="toggleSetting('autoModel', document.getElementById('t-automodel'), this)">
+        <div class="toggle-label-wrap">
+          <span class="toggle-label">🔄 Auto Model Switching</span>
+          <span class="toggle-sublabel">Auto-switch to next model on failure</span>
+        </div>
+        <div class="toggle-right">
+          <span class="toggle-state-txt" id="txt-autoModel">ON</span>
+          <button class="toggle-switch on" id="t-automodel"></button>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--text3);padding:8px 0 4px;font-family:var(--mono)">
+        When ON: if a model fails, SetupAI automatically tries the next available model.<br>
+        When OFF: errors are shown immediately without retrying.
+      </div>
+      <div id="auto-model-status" class="show" style="margin-top:8px">
+        <div class="ams-dot"></div>
+        <span id="ams-text">Auto-switch enabled — 13 models ready</span>
       </div>
     </div>
   </div>
@@ -1792,6 +2965,76 @@ body.light #bg-canvas {
     <button class="panel-close" onclick="closePanel()">✕</button>
   </div>
   <div class="panel-body" id="stats-content"></div>
+</div>
+
+<!-- KBD SHORTCUTS POPUP (Feature 5) -->
+<div id="kbd-ov" onclick="if(event.target===this)closeKbd()">
+  <div id="kbd-box">
+    <div class="kbd-title">
+      <span>⌨️ Keyboard Shortcuts</span>
+      <button onclick="closeKbd()" style="background:none;border:none;color:var(--text3);font-size:22px;cursor:pointer;line-height:1">✕</button>
+    </div>
+    <div class="kbd-sec">
+      <div class="kbd-sec-lbl">Chat</div>
+      <div class="kbd-row"><span>Send message</span><div class="kbd-keys"><kbd>Enter</kbd></div></div>
+      <div class="kbd-row"><span>New line</span><div class="kbd-keys"><kbd>Shift</kbd>+<kbd>Enter</kbd></div></div>
+      <div class="kbd-row"><span>New chat</span><div class="kbd-keys"><kbd>Ctrl</kbd>+<kbd>N</kbd></div></div>
+      <div class="kbd-row"><span>Focus input</span><div class="kbd-keys"><kbd>Ctrl</kbd>+<kbd>K</kbd></div></div>
+      <div class="kbd-row"><span>Search in chat</span><div class="kbd-keys"><kbd>Ctrl</kbd>+<kbd>F</kbd></div></div>
+      <div class="kbd-row"><span>Stop generation</span><div class="kbd-keys"><kbd>Escape</kbd></div></div>
+    </div>
+    <div class="kbd-sec">
+      <div class="kbd-sec-lbl">Interface</div>
+      <div class="kbd-row"><span>Toggle sidebar</span><div class="kbd-keys"><kbd>Ctrl</kbd>+<kbd>B</kbd></div></div>
+      <div class="kbd-row"><span>Focus mode</span><div class="kbd-keys"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd></div></div>
+      <div class="kbd-row"><span>Settings</span><div class="kbd-keys"><kbd>Ctrl</kbd>+<kbd>,</kbd></div></div>
+      <div class="kbd-row"><span>Shortcuts popup</span><div class="kbd-keys"><kbd>Ctrl</kbd>+<kbd>/</kbd></div></div>
+      <div class="kbd-row"><span>Summarize chat</span><div class="kbd-keys"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd></div></div>
+      <div class="kbd-row"><span>Switch theme</span><div class="kbd-keys"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>T</kbd></div></div>
+    </div>
+    <div class="kbd-sec">
+      <div class="kbd-sec-lbl">Actions</div>
+      <div class="kbd-row"><span>Model picker</span><div class="kbd-keys"><kbd>Ctrl</kbd>+<kbd>M</kbd></div></div>
+      <div class="kbd-row"><span>Prompt library</span><div class="kbd-keys"><kbd>Ctrl</kbd>+<kbd>P</kbd></div></div>
+      <div class="kbd-row"><span>Bookmarks</span><div class="kbd-keys"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- BOOKMARKS PANEL (Feature 9) -->
+<div class="panel" id="panel-bookmarks">
+  <div class="panel-header">
+    <div class="panel-title">🔖 Bookmarks</div>
+    <button class="panel-close" onclick="closePanel()">✕</button>
+  </div>
+  <div class="panel-body">
+    <p style="font-size:12px;color:var(--text3);margin-bottom:14px">Bookmark important messages — click <strong>🔖</strong> on any AI response.</p>
+    <div id="bk-list"></div>
+  </div>
+</div>
+
+<!-- PROMPT LIBRARY PANEL (Feature 3) -->
+<div class="panel" id="panel-prompts">
+  <div class="panel-header">
+    <div class="panel-title">📚 Prompt Library</div>
+    <button class="panel-close" onclick="closePanel()">✕</button>
+  </div>
+  <div class="panel-body">
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <input type="text" id="pl-title" placeholder="Prompt title" style="flex:1;background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:8px 12px;border-radius:var(--radius-sm);font-family:var(--font);font-size:13px;outline:none;min-width:0">
+      <select id="pl-cat" style="background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:8px;border-radius:var(--radius-sm);font-family:var(--font);font-size:12px;outline:none;-webkit-appearance:none;cursor:pointer">
+        <option value="general">General</option>
+        <option value="code">Code</option>
+        <option value="writing">Writing</option>
+        <option value="analysis">Analysis</option>
+        <option value="image">Image</option>
+      </select>
+    </div>
+    <textarea id="pl-body" placeholder="Write your prompt here…" style="width:100%;background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:10px 12px;border-radius:var(--radius-sm);font-family:var(--mono);font-size:12px;resize:vertical;min-height:80px;outline:none;line-height:1.5;margin-bottom:8px;display:block;transition:border-color .15s" onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor=''"></textarea>
+    <button class="btn-primary btn-small" onclick="savePrompt()" style="width:100%;margin-bottom:16px">💾 Save Prompt</button>
+    <div id="pl-cats"></div>
+    <div id="pl-list"></div>
+  </div>
 </div>
 
 <!-- MODAL -->
@@ -1848,13 +3091,21 @@ const OPENROUTER_KEY = 'sk-or-v1-ba921a61f9a0234b1ac53cdeeb121e37c603cf38bb649ab
 const DEEPSEEK_KEY   = 'sk-8bb3bd8908494f8587c267cf117c78c7';
 const OPENAI_KEY     = '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';
 const GROQ_KEY       = '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';
+// GitHub Models API — GPT-5 (Azure OpenAI)
+const GITHUB_KEY     = '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';
+// GitHub Models API — DeepSeek (two keys, first preferred)
+const GITHUB_DS_KEY  = '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';
+const GITHUB_DS_KEY2 = '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';
 const OR_BASE        = 'https://openrouter.ai/api/v1/chat/completions';
 const DS_BASE        = 'https://api.deepseek.com/v1/chat/completions';
 const OPENAI_BASE    = 'https://api.openai.com/v1/chat/completions';
 const GROQ_BASE      = 'https://api.groq.com/openai/v1/chat/completions';
+const GITHUB_BASE    = 'https://models.inference.ai.azure.com/chat/completions';
 
 const FALLBACK_MODELS = [
   'openrouter/free',
+  'github-gpt5',
+  'github-deepseek-r1',
   'deepseek/deepseek-r1-0528:free',
   'deepseek/deepseek-chat-v3-0324:free',
   'meta-llama/llama-4-maverick:free',
@@ -1864,6 +3115,7 @@ const FALLBACK_MODELS = [
   'mistralai/devstral-small:free',
   'groq-llama4-scout',
   'groq-openai-oss-20b',
+  'deepseek-direct',
 ];
 
 // ── STATE ──
@@ -1875,7 +3127,14 @@ const S = {
   files: [],
   images: [],
   mode: 'chat',
+  theme: 'dark',
+  accent: 'default',
+  btnStyle: 'default',
   features: { memory: true, codeMode: false },
+  folders: [],
+  bookmarks: new Set(),
+  ratings: {},
+  prompts: [],
   settings: {
     model: 'openrouter/free',
     temperature: 0.7,
@@ -1887,7 +3146,13 @@ const S = {
     streaming: true,
     typing: true,
     autoSave: true,
+    autoScroll: true,
+    autoKeyboard: true,
+    autoModel: true,
     sound: false,
+    wordCount: false,
+    quickSuggestions: false,
+    compactMode: false,
     systemPrompt: document.getElementById('s-system').value
   },
   memory: {},
@@ -1906,7 +3171,12 @@ function save() {
     localStorage.setItem('setupai', JSON.stringify({
       chats: S.chats, memory: S.memory,
       totalTokens: S.totalTokens, totalMsgs: S.totalMsgs,
-      theme: S.theme, settings: S.settings, pinned: [...S.pinned]
+      theme: S.theme, accent: S.accent||'default', btnStyle: S.btnStyle||'default',
+      settings: S.settings, pinned: [...S.pinned],
+      folders: S.folders,
+      bookmarks: [...S.bookmarks],
+      ratings: S.ratings,
+      prompts: S.prompts
     }));
   } catch(e) { console.warn('Save failed', e); }
 }
@@ -1919,11 +3189,22 @@ function load() {
     if (d.totalTokens) S.totalTokens = d.totalTokens;
     if (d.totalMsgs) S.totalMsgs = d.totalMsgs;
     if (d.theme) S.theme = d.theme;
+    if (d.accent) S.accent = d.accent;
+    if (d.btnStyle) S.btnStyle = d.btnStyle;
     if (d.settings) Object.assign(S.settings, d.settings);
     if (d.pinned) S.pinned = new Set(d.pinned);
+    if (d.folders) S.folders = d.folders;
+    if (d.bookmarks) S.bookmarks = new Set(d.bookmarks);
+    if (d.ratings) S.ratings = d.ratings;
+    if (d.prompts) S.prompts = d.prompts;
   } catch(e) {}
   applySettings();
-  if (S.theme === 'light') document.body.classList.add('light');
+  // Apply saved theme
+  applyTheme(S.theme || 'dark');
+  // Apply accent
+  if (S.accent && S.accent !== 'default') document.body.setAttribute('data-accent', S.accent);
+  // Apply button style
+  if (S.btnStyle && S.btnStyle !== 'default') document.body.setAttribute('data-btnstyle', S.btnStyle);
   renderChatList();
 
   const ids = Object.keys(S.chats);
@@ -1977,6 +3258,7 @@ function loadChat(id) {
   renderChatList();
   updateTokenBadge();
   closeSidebarMobile();
+  updateCtxMeter();
 }
 
 function deleteChat(id, e) {
@@ -2011,68 +3293,162 @@ function updateChatTitle(id, text) {
 }
 
 // ── API CALL ──
-async function callAPI(messages, systemPrompt, model) {
+// ─────────────────────────────────────────────────────────────
+//  STREAMING API ENGINE — real token-by-token SSE for all providers
+// ─────────────────────────────────────────────────────────────
+async function callAPIStream(messages, systemPrompt, model, onChunk, signal) {
   const isDirect    = model === 'deepseek-direct';
   const isOpenAI    = model === 'openai-gpt-oss-20b';
   const isGroqLlama = model === 'groq-llama4-scout';
   const isGroqOSS   = model === 'groq-openai-oss-20b';
   const isGroq      = isGroqLlama || isGroqOSS;
+  const isGitHubGPT5= model === 'github-gpt5';
+  const isGitHubDSR1= model === 'github-deepseek-r1';
+  const isGitHubDSV3= model === 'github-deepseek-v3';
+  const isGitHub    = isGitHubGPT5 || isGitHubDSR1 || isGitHubDSV3;
 
   let url, key, actualModel;
-  if (isDirect) {
-    url = DS_BASE;    key = DEEPSEEK_KEY;  actualModel = 'deepseek-chat';
-  } else if (isOpenAI) {
-    url = OPENAI_BASE; key = OPENAI_KEY;   actualModel = 'gpt-4o-mini'; // best available OSS-like OpenAI model
-  } else if (isGroqLlama) {
-    url = GROQ_BASE;  key = GROQ_KEY;      actualModel = 'meta-llama/llama-4-scout-17b-16e-instruct';
-  } else if (isGroqOSS) {
-    url = GROQ_BASE;  key = GROQ_KEY;      actualModel = 'llama-3.3-70b-versatile';
-  } else {
-    url = OR_BASE;    key = OPENROUTER_KEY; actualModel = model;
-  }
+  if (isDirect)       { url=DS_BASE;     key=DEEPSEEK_KEY;  actualModel='deepseek-chat'; }
+  else if (isOpenAI)  { url=OPENAI_BASE; key=OPENAI_KEY;    actualModel='gpt-4o-mini'; }
+  else if (isGroqLlama){ url=GROQ_BASE;  key=GROQ_KEY;      actualModel='meta-llama/llama-4-scout-17b-16e-instruct'; }
+  else if (isGroqOSS) { url=GROQ_BASE;   key=GROQ_KEY;      actualModel='llama-3.3-70b-versatile'; }
+  else if (isGitHubGPT5){url=GITHUB_BASE;key=GITHUB_KEY;    actualModel='gpt-5'; }
+  else if (isGitHubDSR1){url=GITHUB_BASE;key=GITHUB_DS_KEY; actualModel='DeepSeek-R1'; }
+  else if (isGitHubDSV3){url=GITHUB_BASE;key=GITHUB_DS_KEY; actualModel='DeepSeek-V3-0324'; }
+  else                { url=OR_BASE;     key=OPENROUTER_KEY; actualModel=model; }
 
-  const maxTok = Math.min(parseInt(S.settings.maxTokens) || 4096, 100000);
-
+  const maxTok = Math.min(parseInt(S.settings.maxTokens)||4096, 100000);
   const body = {
     model: actualModel,
-    messages: [
-      { role: 'system', content: systemPrompt || 'You are SetupAI, a helpful assistant.' },
-      ...messages
-    ],
-    temperature: Math.min(parseFloat(S.settings.temperature) || 0.7, 2),
+    messages: [{ role:'system', content: systemPrompt||'You are SetupAI.' }, ...messages],
+    temperature: Math.min(parseFloat(S.settings.temperature)||0.7, 2),
     max_tokens: maxTok,
-    top_p: parseFloat(S.settings.topP) || 0.9,
-    stream: false
+    top_p: parseFloat(S.settings.topP)||0.9,
+    stream: true
   };
 
-  const headers = {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${key}`,
-  };
-  if (!isDirect && !isOpenAI && !isGroq) {
-    headers['HTTP-Referer'] = window.location.origin || 'https://setupai.app';
+  const headers = { 'Content-Type':'application/json', 'Authorization':`Bearer ${key}` };
+  if (!isDirect && !isOpenAI && !isGroq && !isGitHub) {
+    headers['HTTP-Referer'] = window.location.origin||'https://setupai.app';
     headers['X-Title'] = 'SetupAI';
   }
 
-  const resp = await fetch(url, {
-    method: 'POST', headers,
-    body: JSON.stringify(body),
-    signal: S.abort.signal
-  });
-
-  if (!resp.ok) {
-    let errMsg = `API Error ${resp.status}`;
-    try { const e = await resp.json(); errMsg = e.error?.message || e.message || errMsg; } catch(e){}
-    const err = new Error(errMsg);
-    err.status = resp.status;
-    throw err;
+  // Try primary key, fallback for GitHub DeepSeek
+  let resp;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const h = (attempt===1 && (isGitHubDSR1||isGitHubDSV3))
+      ? {...headers, 'Authorization':`Bearer ${GITHUB_DS_KEY2}`} : headers;
+    try {
+      resp = await fetch(url, { method:'POST', headers:h, body:JSON.stringify(body), signal });
+      if (resp.ok) break;
+      if (attempt===0 && (isGitHubDSR1||isGitHubDSV3) && (resp.status===401||resp.status===403||resp.status===429)) continue;
+      let errMsg = `API Error ${resp.status}`;
+      try { const e=await resp.json(); errMsg=e.error?.message||e.message||errMsg; } catch(e){}
+      const err = new Error(errMsg); err.status=resp.status; throw err;
+    } catch(fe) {
+      if (fe.name==='AbortError') throw fe;
+      if (attempt===0 && (isGitHubDSR1||isGitHubDSV3)) continue;
+      throw fe;
+    }
+  }
+  if (!resp || !resp.ok) {
+    let errMsg = `API Error ${resp?.status||0}`;
+    try { const e=await resp.json(); errMsg=e.error?.message||e.message||errMsg; } catch(e){}
+    const err=new Error(errMsg); err.status=resp?.status||0; throw err;
   }
 
-  const data = await resp.json();
-  return {
-    text: data.choices?.[0]?.message?.content || 'No response received.',
-    tokens: data.usage?.total_tokens || 0
+  // Read SSE stream
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let fullText = '';
+  let totalTokens = 0;
+  let buf = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    const lines = buf.split('\n');
+    buf = lines.pop(); // keep incomplete line
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || !trimmed.startsWith('data:')) continue;
+      const dataStr = trimmed.slice(5).trim();
+      if (dataStr === '[DONE]') { totalTokens = Math.ceil(fullText.length/4); break; }
+      try {
+        const obj = JSON.parse(dataStr);
+        const delta = obj.choices?.[0]?.delta?.content || '';
+        // Handle DeepSeek reasoning tokens (show in thinking indicator)
+        const reasoning = obj.choices?.[0]?.delta?.reasoning_content || '';
+        if (reasoning) setThinking('🧠 ' + reasoning.slice(-80));
+        if (delta) {
+          fullText += delta;
+          onChunk(fullText);
+        }
+        if (obj.usage?.total_tokens) totalTokens = obj.usage.total_tokens;
+      } catch(e) {}
+    }
+  }
+  if (!totalTokens) totalTokens = Math.ceil(fullText.length/4);
+  return { text: fullText || 'No response received.', tokens: totalTokens };
+}
+
+async function callAPI(messages, systemPrompt, model) {
+  // Non-streaming fallback (used when streaming disabled)
+  const isDirect    = model === 'deepseek-direct';
+  const isOpenAI    = model === 'openai-gpt-oss-20b';
+  const isGroqLlama = model === 'groq-llama4-scout';
+  const isGroqOSS   = model === 'groq-openai-oss-20b';
+  const isGroq      = isGroqLlama || isGroqOSS;
+  const isGitHubGPT5= model === 'github-gpt5';
+  const isGitHubDSR1= model === 'github-deepseek-r1';
+  const isGitHubDSV3= model === 'github-deepseek-v3';
+  const isGitHub    = isGitHubGPT5 || isGitHubDSR1 || isGitHubDSV3;
+
+  let url, key, actualModel;
+  if (isDirect)       { url=DS_BASE;     key=DEEPSEEK_KEY;  actualModel='deepseek-chat'; }
+  else if (isOpenAI)  { url=OPENAI_BASE; key=OPENAI_KEY;    actualModel='gpt-4o-mini'; }
+  else if (isGroqLlama){ url=GROQ_BASE;  key=GROQ_KEY;      actualModel='meta-llama/llama-4-scout-17b-16e-instruct'; }
+  else if (isGroqOSS) { url=GROQ_BASE;   key=GROQ_KEY;      actualModel='llama-3.3-70b-versatile'; }
+  else if (isGitHubGPT5){url=GITHUB_BASE;key=GITHUB_KEY;    actualModel='gpt-5'; }
+  else if (isGitHubDSR1){url=GITHUB_BASE;key=GITHUB_DS_KEY; actualModel='DeepSeek-R1'; }
+  else if (isGitHubDSV3){url=GITHUB_BASE;key=GITHUB_DS_KEY; actualModel='DeepSeek-V3-0324'; }
+  else                { url=OR_BASE;     key=OPENROUTER_KEY; actualModel=model; }
+
+  const maxTok = Math.min(parseInt(S.settings.maxTokens)||4096,100000);
+  const body = {
+    model: actualModel,
+    messages:[{role:'system',content:systemPrompt||'You are SetupAI.'},...messages],
+    temperature:Math.min(parseFloat(S.settings.temperature)||0.7,2),
+    max_tokens:maxTok, top_p:parseFloat(S.settings.topP)||0.9, stream:false
   };
+  const headers = {'Content-Type':'application/json','Authorization':`Bearer ${key}`};
+  if (!isDirect&&!isOpenAI&&!isGroq&&!isGitHub) {
+    headers['HTTP-Referer']=window.location.origin||'https://setupai.app';
+    headers['X-Title']='SetupAI';
+  }
+
+  let resp;
+  try {
+    resp = await fetch(url,{method:'POST',headers,body:JSON.stringify(body),signal:S.abort.signal});
+  } catch(fe) {
+    if ((isGitHubDSR1||isGitHubDSV3)) {
+      const bh={...headers,'Authorization':`Bearer ${GITHUB_DS_KEY2}`};
+      resp = await fetch(url,{method:'POST',headers:bh,body:JSON.stringify(body),signal:S.abort.signal});
+    } else throw fe;
+  }
+  if (!resp.ok) {
+    if ((isGitHubDSR1||isGitHubDSV3)&&(resp.status===401||resp.status===403||resp.status===429)) {
+      const bh={...headers,'Authorization':`Bearer ${GITHUB_DS_KEY2}`};
+      const r2=await fetch(url,{method:'POST',headers:bh,body:JSON.stringify(body),signal:S.abort.signal});
+      if (r2.ok) { const d=await r2.json(); return {text:d.choices?.[0]?.message?.content||'No response.',tokens:d.usage?.total_tokens||0}; }
+    }
+    let errMsg=`API Error ${resp.status}`;
+    try{const e=await resp.json();errMsg=e.error?.message||e.message||errMsg;}catch(e){}
+    const err=new Error(errMsg); err.status=resp.status; throw err;
+  }
+  const data=await resp.json();
+  return {text:data.choices?.[0]?.message?.content||'No response received.',tokens:data.usage?.total_tokens||0};
 }
 
 // ── SEND MESSAGE ──
@@ -2098,6 +3474,8 @@ async function sendMessage() {
   clearInput();
   S.totalMsgs++;
   scrollToBottom();
+  SFX.play('send');
+  if (navigator.vibrate) navigator.vibrate(10);
 
   // Route to image generation if in image mode OR prompt starts with image keywords
   const imgTriggers = /^(draw|create|generate|make|design|paint|sketch|render|imagine)\s+(an?\s+)?(image|picture|photo|illustration|art|artwork|portrait|scene|landscape)/i;
@@ -2121,72 +3499,152 @@ async function generate(chat, retryCount = 0) {
 
   try {
     setThinking('Thinking...');
-    setProgress(50);
-    const { text, tokens } = await callAPI(history, sysPrompt, model);
-    setProgress(90);
-    S.totalTokens += tokens;
-    updateTokenBadge(tokens);
-    hideTyping();
+    setProgress(40);
 
-    const aiMsg = { id: 'm'+Date.now(), role: 'assistant', content: text, timestamp: Date.now(), tokens };
-    chat.messages.push(aiMsg);
-    S.totalMsgs++;
+    if (S.settings.streaming) {
+      // ── REAL STREAMING PATH ──
+      hideTyping();
+      const aiMsg = { id:'m'+Date.now(), role:'assistant', content:'', timestamp:Date.now(), tokens:0 };
+      chat.messages.push(aiMsg);
+      S.totalMsgs++;
 
-    if (S.settings.streaming) await renderMsgStream(aiMsg);
-    else renderMsg(aiMsg);
+      // Insert streaming bubble immediately
+      const streamEl = insertStreamBubble(aiMsg);
+      const bubble = document.getElementById('bubble-' + aiMsg.id);
+      scrollToBottom();
 
-    if (S.settings.memory && S.features.memory) extractMemory(text, history[history.length-1]?.content || '');
+      let lastRender = 0;
+      const { text, tokens } = await callAPIStream(history, sysPrompt, model,
+        (fullText) => {
+          aiMsg.content = fullText;
+          const now = Date.now();
+          if (now - lastRender > 16) { // ~60fps cap
+            bubble.innerHTML = formatMsg(fullText + '▌');
+            lastRender = now;
+            if (S.settings.autoScroll) scrollToBottom();
+          }
+        },
+        S.abort.signal
+      );
+
+      // Final render without cursor
+      aiMsg.content = text;
+      aiMsg.tokens = tokens;
+      bubble.innerHTML = formatMsg(text);
+      addCodeCopyBtns(streamEl);
+      // Update token badge in meta
+      const metaEl = streamEl.querySelector('.msg-meta');
+      if (metaEl && tokens) {
+        const tokSpan = metaEl.querySelector('.msg-tokens');
+        if (tokSpan) tokSpan.textContent = tokens + ' tok';
+        else metaEl.insertAdjacentHTML('beforeend',`<span class="msg-tokens">${tokens} tok</span>`);
+      }
+      setProgress(95);
+      S.totalTokens += tokens;
+      updateTokenBadge(tokens);
+
+    } else {
+      // ── NON-STREAMING PATH ──
+      const { text, tokens } = await callAPI(history, sysPrompt, model);
+      setProgress(90);
+      S.totalTokens += tokens;
+      updateTokenBadge(tokens);
+      hideTyping();
+      const aiMsg = { id:'m'+Date.now(), role:'assistant', content:text, timestamp:Date.now(), tokens };
+      chat.messages.push(aiMsg);
+      S.totalMsgs++;
+      renderMsg(aiMsg);
+    }
+
+    if (S.settings.memory && S.features.memory) {
+      const last = history[history.length-1]?.content || '';
+      extractMemory(chat.messages[chat.messages.length-1].content, last);
+    }
     save();
     scrollToBottom();
     setProgress(100);
-    if (S.settings.sound) playBeep(520);
+    SFX.play('receive');
 
   } catch(err) {
     hideTyping();
     setProgress(0);
-    if (err.name === 'AbortError') return;
+    if (err.name === 'AbortError') { S.generating=false; setSendState(false); return; }
 
     const status = err.status || 0;
     const msg = (err.message || '').toLowerCase();
-    const isProvider = msg.includes('provider') || msg.includes('no endpoints') || msg.includes('no_endpoints') || msg.includes('unavailable') || msg.includes('overloaded') || status === 502 || status === 503 || status === 404;
-    const isQuota = msg.includes('quota') || msg.includes('rate') || msg.includes('limit') || status === 429;
-    const isAuth = status === 401 || status === 403 || msg.includes('invalid') || msg.includes('unauthorized') || msg.includes('api key');
+    const isProvider = msg.includes('provider')||msg.includes('no endpoints')||msg.includes('unavailable')||msg.includes('overloaded')||status===502||status===503||status===404;
+    const isQuota = msg.includes('quota')||msg.includes('rate')||msg.includes('limit')||status===429;
+    const isAuth = status===401||status===403||msg.includes('invalid')||msg.includes('unauthorized')||msg.includes('api key');
 
-    // Auto-fallback for ANY error type — keep trying until all models exhausted
-    if ((isProvider || isQuota || isAuth) && retryCount < FALLBACK_MODELS.length - 1) {
+    if (S.settings.autoModel!==false && (isProvider||isQuota||isAuth) && retryCount < FALLBACK_MODELS.length-1) {
       const curIdx = FALLBACK_MODELS.indexOf(S.settings.model);
-      const nextIdx = (curIdx + 1) % FALLBACK_MODELS.length;
+      const nextIdx = (curIdx+1) % FALLBACK_MODELS.length;
       const next = FALLBACK_MODELS[nextIdx];
-      if (retryCount === 0 || next !== FALLBACK_MODELS[0]) {
+      if (retryCount===0 || next!==FALLBACK_MODELS[0]) {
         S.settings.model = next;
         updateModelUI(next);
         save();
-        toast('⚡ Switching to ' + modelShort(next) + '…', 'info');
+        toast('⚡ Switching to '+modelShort(next)+'…','info');
         S.generating = false;
-        await new Promise(r => setTimeout(r, 600));
-        await generate(chat, retryCount + 1);
+        await new Promise(r=>setTimeout(r,600));
+        await generate(chat, retryCount+1);
         return;
       }
     }
-
-    // Show quota banner only for rate limits
-    if (isQuota) document.getElementById('quota-banner').style.display = 'block';
-
-    // User-friendly final error
+    SFX.play('error');
+    if (isQuota) document.getElementById('quota-banner').style.display='block';
     let friendly;
-    if (isAuth) friendly = `**Connection issue with \`${modelShort(S.settings.model)}\`.**\n\nSwitching to a free model — click Send again.`;
-    else if (isQuota) friendly = `**Rate limit reached.**\n\nAll models tried. Wait a moment then try again, or use OpenRouter free tier.`;
-    else if (isProvider) friendly = `**Models temporarily unavailable.**\n\nTry again in a moment.`;
+    if (isAuth) friendly=`**Connection issue with \`${modelShort(S.settings.model)}\`.**\n\nSwitching to a free model — click Send again.`;
+    else if (isQuota) friendly=`**Rate limit reached.**\n\nAll models tried. Wait a moment or use OpenRouter free tier.`;
+    else if (isProvider) friendly=`**Models temporarily unavailable.**\n\nTry again in a moment.`;
     else friendly = err.message || 'Unknown error occurred.';
-
-    const errMsg = { id: 'm'+Date.now(), role: 'assistant', content: '⚠️ ' + friendly, timestamp: Date.now(), isError: true };
+    const errMsg = {id:'m'+Date.now(),role:'assistant',content:'⚠️ '+friendly,timestamp:Date.now(),isError:true};
     chat.messages.push(errMsg);
     renderMsg(errMsg);
-    toast('Retrying with next model…', 'info');
   }
 
   S.generating = false;
   setSendState(false);
+  updateCtxMeter();
+}
+
+// Insert a streaming bubble placeholder
+function insertStreamBubble(msg) {
+  const c = document.getElementById('messages-container');
+  const w = document.createElement('div');
+  w.className = 'msg-wrapper';
+  const el = document.createElement('div');
+  el.className = 'msg ai';
+  el.id = 'msg-' + msg.id;
+  const time = new Date(msg.timestamp).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  el.innerHTML = `
+    <div class="msg-avatar">✦</div>
+    <div class="msg-body">
+      <div class="msg-meta">
+        <span class="msg-name">SetupAI</span>
+        <span class="msg-time">${time}</span>
+        <span class="msg-tokens stream-tok" style="display:none"></span>
+      </div>
+      <div class="msg-bubble stream-bubble" id="bubble-${msg.id}"><span class="stream-cursor">▌</span></div>
+      <div class="msg-actions">
+        <button class="msg-action-btn" onclick="copyMsg('${msg.id}')">📋 Copy</button>
+        <button class="msg-action-btn" onclick="pinMsg('${msg.id}')">📌 Pin</button>
+        <button class="msg-action-btn" onclick="bookmarkMsg('${msg.id}')">🔖 Bookmark</button>
+        <button class="msg-action-btn" onclick="retryMsg('${msg.id}')">🔄 Retry</button>
+        <button class="msg-action-btn" onclick="speakMsg('${msg.id}')">🔊 Read</button>
+        <button class="msg-action-btn" onclick="deleteMsg('${msg.id}')" style="color:var(--red)">🗑️</button>
+      </div>
+      <div class="rating-row" id="rr-${msg.id}">
+        <button class="rating-btn up" onclick="rateMsg('${msg.id}',1)" title="Helpful">👍 <span class="rating-count" id="ru-${msg.id}">0</span></button>
+        <button class="rating-btn down" onclick="rateMsg('${msg.id}',-1)" title="Not helpful">👎 <span class="rating-count" id="rd-${msg.id}">0</span></button>
+      </div>
+      <div class="reaction-row">
+        ${['👍','❤️','🤯','😂','⭐'].map(function(e,i){return '<button class="reaction-btn" id="rb-'+msg.id+'-'+i+'" onclick="react(\''+msg.id+'\','+i+')">'+e+' <span class="reaction-count">0</span></button>';}).join('')}
+      </div>
+    </div>`;
+  w.appendChild(el);
+  c.appendChild(w);
+  return el;
 }
 
 function buildHistory(chat) {
@@ -2232,6 +3690,9 @@ function renderMsg(msg, animate = true) {
   const time = new Date(msg.timestamp).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
   const isPinned = S.pinned.has(msg.id);
 
+  const isBookmarked = S.bookmarks && S.bookmarks.has(msg.id);
+  const rating = (S.ratings && S.ratings[msg.id]) || 0;
+
   el.innerHTML = `
     <div class="msg-avatar">${msg.role==='user'?'👤':'✦'}</div>
     <div class="msg-body">
@@ -2239,23 +3700,26 @@ function renderMsg(msg, animate = true) {
         <span class="msg-name">${msg.role==='user'?'You':'SetupAI'}</span>
         <span class="msg-time">${time}</span>
         ${msg.tokens?`<span class="msg-tokens">${msg.tokens} tok</span>`:''}
-        ${isPinned?`<span style="font-size:10px;color:var(--amber);font-family:var(--mono)">📌 pinned</span>`:''}
+        ${isPinned?`<span style="font-size:10px;color:var(--amber);font-family:var(--mono)">📌</span>`:''}
+        ${isBookmarked?`<span style="font-size:10px;color:var(--amber);font-family:var(--mono)">🔖</span>`:''}
         ${msg.mode&&msg.mode!=='chat'?`<span style="font-size:10px;color:var(--cyan);font-family:var(--mono)">${msg.mode.toUpperCase()}</span>`:''}
       </div>
       <div class="msg-bubble" id="bubble-${msg.id}">${formatMsg(msg.content)}</div>
       <div class="msg-actions" id="actions-${msg.id}">
         <button class="msg-action-btn" onclick="copyMsg('${msg.id}')">📋 Copy</button>
         <button class="msg-action-btn" onclick="pinMsg('${msg.id}')">${isPinned?'📍 Unpin':'📌 Pin'}</button>
+        <button class="msg-action-btn" onclick="bookmarkMsg('${msg.id}')">${isBookmarked?'🔖 Remove':'🔖 Bookmark'}</button>
+        ${msg.role==='user'?`<button class="msg-action-btn" onclick="editMsg('${msg.id}')">✏️ Edit</button>`:''}
         ${msg.role==='assistant'?`<button class="msg-action-btn" onclick="retryMsg('${msg.id}')">🔄 Retry</button>`:''}
         ${msg.role==='assistant'?`<button class="msg-action-btn" onclick="speakMsg('${msg.id}')">🔊 Read</button>`:''}
         ${msg.role==='assistant'?`<button class="msg-action-btn" onclick="saveSnippet('${msg.id}')">💾 Save</button>`:''}
         ${msg.role==='assistant'?`<button class="msg-action-btn" onclick="viewFullscreen('${msg.id}')">⛶ Full</button>`:''}
         <button class="msg-action-btn" onclick="deleteMsg('${msg.id}')" style="color:var(--red)">🗑️</button>
       </div>
+      ${msg.role==='user'?`<div class="msg-edit-box" id="edit-${msg.id}"><textarea class="msg-edit-ta" id="edta-${msg.id}"></textarea><div class="edit-btns"><button class="btn-esend" onclick="submitEdit('${msg.id}')">↑ Send</button><button class="btn-ecancel" onclick="cancelEdit('${msg.id}')">Cancel</button></div></div>`:''}
+      ${msg.role==='assistant'?`<div class="rating-row"><button class="rate-btn${rating===1?' up':''}" onclick="rateMsg('${msg.id}',1)">👍 <span class="rct">${msg.ratingUp||0}</span></button><button class="rate-btn${rating===-1?' dn':''}" onclick="rateMsg('${msg.id}',-1)">👎 <span class="rct">${msg.ratingDown||0}</span></button></div>`:''}
       <div class="reaction-row">
-        ${['👍','❤️','🤯','😂','⭐'].map((e,i)=>
-          `<button class="reaction-btn" id="rb-${msg.id}-${i}" onclick="react('${msg.id}',${i})">${e} <span class="reaction-count">0</span></button>`
-        ).join('')}
+        ${['👍','❤️','🤯','😂','⭐'].map(function(e,i){return '<button class="reaction-btn" id="rb-'+msg.id+'-'+i+'" onclick="react(\''+msg.id+'\','+i+')">'+e+' <span class="reaction-count">0</span></button>';}).join('')}
       </div>
     </div>`;
   w.appendChild(el);
@@ -2290,9 +3754,7 @@ async function renderMsgStream(msg) {
         <button class="msg-action-btn" onclick="deleteMsg('${msg.id}')" style="color:var(--red)">🗑️</button>
       </div>
       <div class="reaction-row">
-        ${['👍','❤️','🤯','😂','⭐'].map((e,i)=>
-          `<button class="reaction-btn" id="rb-${msg.id}-${i}" onclick="react('${msg.id}',${i})">${e} <span class="reaction-count">0</span></button>`
-        ).join('')}
+        ${['👍','❤️','🤯','😂','⭐'].map(function(e,i){return '<button class="reaction-btn" id="rb-'+msg.id+'-'+i+'" onclick="react(\''+msg.id+'\','+i+')">'+e+' <span class="reaction-count">0</span></button>';}).join('')}
       </div>
     </div>`;
   w.appendChild(el); c.appendChild(w);
@@ -2417,7 +3879,10 @@ function copyMsg(id) {
   const chat = S.chats[S.currentId];
   const msg = chat?.messages.find(m => m.id === id);
   if (!msg) return;
-  navigator.clipboard.writeText(msg.content).then(() => toast('📋 Copied!', 'success'));
+  navigator.clipboard.writeText(msg.content).then(() => {
+    toast('📋 Copied!', 'success');
+    SFX.play('copy');
+  });
 }
 
 function pinMsg(id) {
@@ -2539,6 +4004,10 @@ function setMode(mode) {
   // Show/hide image options bar
   const bar = document.getElementById('img-options-bar');
   if (bar) bar.classList.toggle('show', mode === 'image');
+  // Highlight mobile toolbar image button
+  document.querySelectorAll('.mtb-btn').forEach((b,i) => {
+    b.classList.toggle('mtb-active', i===3 && mode==='image');
+  });
   if (mode === 'image') toast('🎨 Image mode active — describe what you want!', 'info');
 }
 
@@ -2759,26 +4228,31 @@ async function generateImage(prompt, chat) {
 
   // Try providers in order
   const seed = Math.floor(Math.random() * 99999);
+  const baseParams = `width=${w_px}&height=${h_px}&seed=${seed}&nologo=true`;
 
   try {
     // Provider 1: Pollinations with flux model
-    document.getElementById('img-model-label-' + imgMsgId) && (document.getElementById('img-model-label-' + imgMsgId).textContent = 'flux model');
-    const url1 = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?width=${w_px}&height=${h_px}&seed=${seed}&nologo=true&enhance=true&model=flux`;
-    await loadImageWithTimeout(url1, 50000);
+    const lbl1 = document.getElementById('img-model-label-' + imgMsgId);
+    if (lbl1) lbl1.textContent = 'flux model';
+    const url1 = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?${baseParams}&enhance=true&model=flux`;
+    await loadImageWithTimeout(url1, 55000);
     finalUrl = url1; success = true;
   } catch(e1) {
     try {
-      // Provider 2: Pollinations default model
-      const el2 = document.getElementById('img-model-label-' + imgMsgId);
-      if (el2) el2.textContent = 'default model';
-      const url2 = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?width=${w_px}&height=${h_px}&seed=${seed}&nologo=true`;
-      await loadImageWithTimeout(url2, 50000);
+      // Provider 2: Pollinations turbo model
+      const lbl2 = document.getElementById('img-model-label-' + imgMsgId);
+      if (lbl2) lbl2.textContent = 'turbo model';
+      const url2 = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?${baseParams}&model=turbo`;
+      await loadImageWithTimeout(url2, 55000);
       finalUrl = url2; success = true;
     } catch(e2) {
-      // Provider 3: Simplified prompt
       try {
-        const url3 = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt.slice(0,200))}?width=512&height=512&seed=${seed}&nologo=true`;
-        await loadImageWithTimeout(url3, 40000);
+        // Provider 3: Simplified prompt, default model
+        const lbl3 = document.getElementById('img-model-label-' + imgMsgId);
+        if (lbl3) lbl3.textContent = 'default model';
+        const shortPrompt = prompt.slice(0, 200);
+        const url3 = `https://image.pollinations.ai/prompt/${encodeURIComponent(shortPrompt)}?width=512&height=512&seed=${seed}&nologo=true`;
+        await loadImageWithTimeout(url3, 45000);
         finalUrl = url3; success = true;
       } catch(e3) {
         success = false;
@@ -2815,8 +4289,8 @@ function loadImageWithTimeout(url, timeout) {
     const t = setTimeout(() => { img.src = ''; reject(new Error('Timeout after ' + timeout + 'ms')); }, timeout);
     img.onload = () => { clearTimeout(t); resolve(img); };
     img.onerror = (e) => { clearTimeout(t); reject(new Error('Image load failed')); };
-    img.crossOrigin = 'anonymous';
-    img.src = url;
+    // Do NOT set crossOrigin — it breaks Pollinations URLs with CORS preflight errors
+    img.src = url + (url.includes('?') ? '&' : '?') + '_t=' + Date.now();
   });
 }
 
@@ -2895,24 +4369,71 @@ async function regenImage(msgId, prompt) {
         <div class="img-gen-spinner-text">Generating new variation…</div>
       </div>
     </div>`;
+  const seed = Math.floor(Math.random() * 999999);
+  const builtPrompt = buildImagePrompt(prompt);
+
+  // Try flux first, then turbo
+  let varUrl = null;
   try {
-    const seed = Math.floor(Math.random() * 999999);
-    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(buildImagePrompt(prompt))}?width=${w}&height=${h}&seed=${seed}&nologo=true&enhance=true&model=flux`;
-    await loadImageWithTimeout(url, 50000);
-    showImageResult(msgId, url, prompt, w, h);
-    IMG.gallery.unshift({ url, prompt, ts: Date.now(), w, h });
+    const tryUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(builtPrompt)}?width=${w}&height=${h}&seed=${seed}&nologo=true&enhance=true&model=flux`;
+    await loadImageWithTimeout(tryUrl, 55000);
+    varUrl = tryUrl;
+  } catch(e1) {
+    try {
+      const tryUrl2 = `https://image.pollinations.ai/prompt/${encodeURIComponent(builtPrompt)}?width=${w}&height=${h}&seed=${seed}&nologo=true&model=turbo`;
+      await loadImageWithTimeout(tryUrl2, 50000);
+      varUrl = tryUrl2;
+    } catch(e2) { varUrl = null; }
+  }
+
+  if (varUrl) {
+    showImageResult(msgId, varUrl, prompt, w, h);
+    IMG.gallery.unshift({ url: varUrl, prompt, ts: Date.now(), w, h });
     try { localStorage.setItem('setupai_gallery', JSON.stringify(IMG.gallery.slice(0,50))); } catch(e){}
     toast('✨ New variation ready!', 'success');
-  } catch(e) {
+  } else {
     showImageError(msgId, prompt);
     toast('Generation failed — try again', 'error');
   }
 }
 
+async function enhanceImagePrompt() {
+  const input = document.getElementById('msg-input');
+  const text = input.value.trim();
+  if (!text) { toast('Type a prompt first, then click Enhance!', 'info'); return; }
+  toast('✨ Enhancing prompt with AI…', 'info');
+  try {
+    const ctrl = new AbortController();
+    const resp = await fetch(OR_BASE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${OPENROUTER_KEY}`, 'HTTP-Referer': window.location.origin||'https://setupai.app', 'X-Title': 'SetupAI' },
+      body: JSON.stringify({
+        model: 'openrouter/free',
+        messages: [{ role: 'user', content: `Rewrite this image generation prompt to be more detailed, vivid, and evocative for an AI image generator. Keep it under 300 characters. Only output the improved prompt, nothing else.\n\nOriginal: "${text}"` }],
+        max_tokens: 200, temperature: 0.8, stream: false
+      }),
+      signal: ctrl.signal
+    });
+    if (resp.ok) {
+      const data = await resp.json();
+      const enhanced = data.choices?.[0]?.message?.content?.trim();
+      if (enhanced) {
+        input.value = enhanced;
+        autoResize(input); updateCharCount(); updateSendBtn();
+        toast('✨ Prompt enhanced!', 'success');
+        return;
+      }
+    }
+  } catch(e) {}
+  toast('Could not enhance prompt — try again', 'error');
+}
+
 function downloadGenImage(url) {
+  // Create a clean download URL without cache-bust params
+  const cleanUrl = url.split('?_t=')[0];
   const a = document.createElement('a');
-  a.href = url; a.download = 'setupai-' + Date.now() + '.jpg';
-  a.target = '_blank'; a.click();
+  a.href = cleanUrl; a.download = 'setupai-' + Date.now() + '.jpg';
+  a.target = '_blank'; document.body.appendChild(a); a.click(); a.remove();
   toast('⬇️ Downloading image…', 'info');
 }
 function copyImageUrlFn(url) {
@@ -2966,29 +4487,72 @@ function setSendState(generating) {
 
 // ── MODEL SELECTOR ──
 function toggleModelDropdown() {
-  const dd = document.getElementById('model-dropdown');
-  dd.classList.toggle('open');
+  const isMobile = window.innerWidth <= 768;
+  if (isMobile) {
+    openModelSheet();
+  } else {
+    const dd = document.getElementById('model-dropdown');
+    dd.classList.toggle('open');
+  }
+}
+function openModelSheet() {
+  document.getElementById('model-sheet').classList.add('open');
+  document.getElementById('model-sheet-overlay').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeModelSheet() {
+  document.getElementById('model-sheet').classList.remove('open');
+  document.getElementById('model-sheet-overlay').classList.remove('show');
+  document.body.style.overflow = '';
 }
 function selectModel(model) {
   S.settings.model = model;
   updateModelUI(model);
   save();
+  // Close both desktop dropdown and mobile sheet
   document.getElementById('model-dropdown').classList.remove('open');
-  toast('✅ Model: ' + modelShort(model), 'success');
+  closeModelSheet();
+  toast('✅ ' + modelShort(model), 'success');
 }
 function updateModelUI(model) {
   document.getElementById('model-name-display').textContent = modelShort(model);
+  // Desktop dropdown
   document.querySelectorAll('.model-option').forEach(el => {
     el.classList.toggle('selected', el.dataset.model === model);
   });
+  // Mobile sheet
+  document.querySelectorAll('.sheet-model-option').forEach(el => {
+    el.classList.toggle('selected', el.dataset.model === model);
+  });
+  // Update pill dot color based on provider
+  const dot = document.querySelector('.model-pill-dot');
+  if (dot) {
+    if (model.startsWith('github-'))        { dot.style.background='var(--cyan)';   dot.style.boxShadow='0 0 6px var(--cyan)'; }
+    else if (model.startsWith('groq-'))     { dot.style.background='var(--amber)';  dot.style.boxShadow='0 0 6px var(--amber)'; }
+    else if (model==='openai-gpt-oss-20b')  { dot.style.background='var(--blue2)';  dot.style.boxShadow='0 0 6px var(--blue2)'; }
+    else if (model==='deepseek-direct')     { dot.style.background='var(--purple)'; dot.style.boxShadow='0 0 6px var(--purple)'; }
+    else                                    { dot.style.background='var(--green)';  dot.style.boxShadow='0 0 6px var(--green)'; }
+  }
 }
 function modelShort(model) {
-  if (model === 'openrouter/free') return 'auto-free';
-  if (model === 'deepseek-direct') return 'deepseek-direct';
-  if (model === 'openai-gpt-oss-20b') return 'gpt-oss-20b';
-  if (model === 'groq-llama4-scout') return 'llama4-scout';
-  if (model === 'groq-openai-oss-20b') return 'groq-oss-20b';
-  return model.split('/').pop() || model;
+  const map = {
+    'openrouter/free':                   'auto-free',
+    'deepseek/deepseek-r1-0528:free':    'DS-R1-0528',
+    'deepseek/deepseek-chat-v3-0324:free':'DS-V3',
+    'meta-llama/llama-4-maverick:free':  'Llama4-Maverick',
+    'meta-llama/llama-3.3-70b-instruct:free':'Llama3.3-70B',
+    'qwen/qwen3-235b-a22b:free':         'Qwen3-235B',
+    'google/gemma-3-27b-it:free':        'Gemma3-27B',
+    'mistralai/devstral-small:free':     'Devstral',
+    'openai-gpt-oss-20b':                'GPT-4o-Mini',
+    'groq-llama4-scout':                 'Llama4-Scout⚡',
+    'groq-openai-oss-20b':               'Llama3.3⚡',
+    'github-gpt5':                       'GPT-5⭐',
+    'github-deepseek-r1':                'DS-R1(GH)',
+    'github-deepseek-v3':                'DS-V3(GH)',
+    'deepseek-direct':                   'DS-Direct',
+  };
+  return map[model] || (model.split('/').pop() || model).slice(0,16);
 }
 
 // ── FEATURES ──
@@ -3272,12 +4836,125 @@ function applySettings() {
   document.getElementById('histlen-val').textContent = s.historyLen;
   document.getElementById('s-system').value = s.systemPrompt;
   updateModelUI(s.model);
-  [['memory','t-memory'],['chatHistory','t-history'],['streaming','t-streaming'],
-   ['typing','t-typing'],['autoSave','t-autosave'],['sound','t-sound']].forEach(([k,id]) => {
-    const btn = document.getElementById(id);
-    if (btn) btn.className = 'toggle-switch' + (s[k]?' on':'');
+  // Apply all toggle states
+  const toggleMap = {
+    memory:           ['t-memory','txt-memory','tr-memory'],
+    chatHistory:      ['t-history','txt-chatHistory','tr-chatHistory'],
+    streaming:        ['t-streaming','txt-streaming','tr-streaming'],
+    typing:           ['t-typing','txt-typing','tr-typing'],
+    autoSave:         ['t-autosave','txt-autoSave','tr-autoSave'],
+    autoScroll:       ['t-autoscroll','txt-autoScroll','tr-autoScroll'],
+    autoKeyboard:     ['t-autokeyboard','txt-autoKeyboard','tr-autoKeyboard'],
+    autoModel:        ['t-automodel','txt-autoModel','tr-autoModel'],
+    sound:            ['t-sound','txt-sound','tr-sound'],
+    wordCount:        ['t-wordcount','txt-wordCount','tr-wordCount'],
+    quickSuggestions: ['t-quicksugg','txt-quickSuggestions','tr-quickSuggestions'],
+    compactMode:      ['t-compact','txt-compactMode','tr-compactMode'],
+  };
+  Object.entries(toggleMap).forEach(([key,[swId,txtId,rowId]]) => {
+    const val = s[key];
+    const sw = document.getElementById(swId);
+    const txt = document.getElementById(txtId);
+    const row = document.getElementById(rowId);
+    if (sw) sw.className = 'toggle-switch' + (val ? ' on' : '');
+    if (txt) { txt.textContent = val ? 'ON' : 'OFF'; }
+    if (row) row.classList.toggle('toggle-on', !!val);
+  });
+  // Apply side effects
+  applyCompactMode(s.compactMode);
+  syncQuickBar();
+}
+
+function toggleSetting(key, btn, row) {
+  // If btn is a toggle-switch button, toggle it
+  if (!btn) return;
+  S.settings[key] = !S.settings[key];
+  const val = S.settings[key];
+  btn.classList.toggle('on', val);
+  // Update ON/OFF text label
+  const txtId = 'txt-' + key;
+  const txtEl = document.getElementById(txtId);
+  if (txtEl) txtEl.textContent = val ? 'ON' : 'OFF';
+  // Update row highlight
+  if (row) row.classList.toggle('toggle-on', val);
+  // Apply side effects for specific settings
+  if (key === 'compactMode') applyCompactMode(val);
+  if (key === 'wordCount') document.getElementById('input-stats')?.classList.toggle('show', val);
+  if (key === 'autoScroll') syncQuickBar();
+  if (key === 'streaming') syncQuickBar();
+  if (key === 'memory') syncQuickBar();
+  if (key === 'autoModel') updateAutoModelStatus();
+  // Toast feedback
+  const labels = {
+    memory:'Memory', chatHistory:'Chat History', streaming:'Streaming',
+    typing:'Typing Indicator', autoSave:'Auto Save', autoScroll:'Auto Scroll',
+    autoKeyboard:'Tap-to-Type', sound:'Sound', wordCount:'Word Counter',
+    quickSuggestions:'Quick Suggestions', compactMode:'Compact Mode'
+  };
+  toast((labels[key]||key) + (val ? ' ON ✓' : ' OFF'), val ? 'success' : 'info');
+  save();
+}
+
+function syncBtnStylePicker() {
+  const cur = S.btnStyle || 'default';
+  document.querySelectorAll('.btn-style-card').forEach(c => {
+    c.classList.toggle('active', c.dataset.style === cur);
   });
 }
+
+function applyCompactMode(on) {
+  document.body.classList.toggle('compact-mode', !!on);
+  if (on) {
+    if (!document.getElementById('compact-style')) {
+      const s = document.createElement('style');
+      s.id = 'compact-style';
+      s.textContent = `.msg-bubble{padding:8px 12px!important;font-size:13px!important}.msg-wrapper{margin-bottom:8px!important}.msg-avatar{width:28px!important;height:28px!important;font-size:12px!important}`;
+      document.head.appendChild(s);
+    }
+  } else {
+    document.getElementById('compact-style')?.remove();
+  }
+}
+
+function syncQuickBar() {
+  const s = S.settings;
+  document.getElementById('qb-memory')?.classList.toggle('active', !!s.memory);
+  document.getElementById('qb-stream')?.classList.toggle('active', !!s.streaming);
+  document.getElementById('qb-scroll')?.classList.toggle('active', !!s.autoScroll);
+  document.getElementById('qb-code')?.classList.toggle('active', !!(S.features?.codeMode));
+}
+
+function quickToggle(key, chipId) {
+  // For features vs settings
+  if (key === 'codeMode') {
+    S.features.codeMode = !S.features.codeMode;
+    document.getElementById(chipId)?.classList.toggle('active', S.features.codeMode);
+    const btn = document.getElementById('code-btn');
+    if (btn) btn.classList.toggle('active', S.features.codeMode);
+    toast('Code Mode ' + (S.features.codeMode ? 'ON ✓' : 'OFF'), S.features.codeMode ? 'success' : 'info');
+    save(); return;
+  }
+  S.settings[key] = !S.settings[key];
+  const val = S.settings[key];
+  document.getElementById(chipId)?.classList.toggle('active', val);
+  // Sync settings panel toggle
+  const swMap = { memory:'t-memory', streaming:'t-streaming', autoScroll:'t-autoscroll' };
+  const txtMap = { memory:'txt-memory', streaming:'txt-streaming', autoScroll:'txt-autoScroll' };
+  const rowMap = { memory:'tr-memory', streaming:'tr-streaming', autoScroll:'tr-autoScroll' };
+  const sw = document.getElementById(swMap[key]);
+  const txt = document.getElementById(txtMap[key]);
+  const row = document.getElementById(rowMap[key]);
+  if (sw) sw.classList.toggle('on', val);
+  if (txt) txt.textContent = val ? 'ON' : 'OFF';
+  if (row) row.classList.toggle('toggle-on', val);
+  toast(key + (val ? ' ON ✓' : ' OFF'), val ? 'success' : 'info');
+  save();
+}
+function changeFontSize(size) {
+  document.querySelectorAll('.msg-bubble').forEach(b => b.style.fontSize = size);
+  save();
+}
+
 function saveSettings() {
   S.settings.temperature = parseFloat(document.getElementById('s-temp').value);
   S.settings.maxTokens = parseInt(document.getElementById('s-tokens').value);
@@ -3286,22 +4963,249 @@ function saveSettings() {
   S.settings.systemPrompt = document.getElementById('s-system').value;
   save();
 }
-function toggleSetting(key, btn) {
-  S.settings[key] = !S.settings[key];
-  btn.classList.toggle('on', S.settings[key]);
-  save();
-}
-function changeFontSize(size) {
-  document.querySelectorAll('.msg-bubble').forEach(b => b.style.fontSize = size);
-  save();
+
+// ── FULLSCREEN ──
+function toggleFullscreen() {
+  const on = document.body.classList.toggle('fullscreen-mode');
+  const btn = document.getElementById('fs-btn');
+  const qb = document.getElementById('qb-fullscreen');
+  if (btn) btn.textContent = on ? '⊡' : '⛶';
+  if (qb) { qb.classList.toggle('active', on); qb.textContent = on ? '⊡ Exit' : '⛶ Full'; }
+  toast(on ? '⛶ Fullscreen ON' : '⊡ Exited Fullscreen', 'info');
 }
 
-// ── THEME ──
+// ── KEYBOARD / FOCUS HELPERS ──
+function focusInput(selectAll) {
+  const inp = document.getElementById('msg-input');
+  if (!inp) return;
+  inp.focus();
+  if (selectAll) { inp.select(); }
+  else {
+    const len = inp.value.length;
+    inp.setSelectionRange(len, len);
+  }
+  // Pulse ring on input box
+  const box = document.getElementById('input-box');
+  if (box) { box.classList.add('kb-pulse'); setTimeout(() => box.classList.remove('kb-pulse'), 450); }
+}
+
+function onChatAreaClick(e) {
+  if (S.generating) return;
+  if (e.target.closest('button,a,.msg-action-btn,.reaction-btn,.model-option,.chat-item,.img-action-btn,.ci-del,.chip-del')) return;
+  if (S.settings.autoKeyboard !== false) {
+    setTimeout(() => focusInput(), 80);
+  }
+}
+
+function onInputFocus() {
+  if (S.settings.quickSuggestions) {
+    triggerAutocomplete(document.getElementById('msg-input')?.value || '');
+  }
+  if (S.settings.wordCount) {
+    document.getElementById('input-stats')?.classList.add('show');
+  }
+}
+function onInputBlur() {
+  setTimeout(() => {
+    document.getElementById('autocomplete-bar')?.classList.remove('show');
+    if (!document.getElementById('msg-input')?.value) {
+      document.getElementById('input-stats')?.classList.remove('show');
+    }
+  }, 220);
+}
+
+// ── INPUT STATS ──
+function updateInputStats() {
+  if (!S.settings.wordCount) return;
+  const val = document.getElementById('msg-input')?.value || '';
+  const words = val.trim() ? val.trim().split(/\s+/).length : 0;
+  const chars = val.length;
+  const tokens = Math.ceil(chars / 4);
+  const sw = document.getElementById('stat-words');
+  const sc = document.getElementById('stat-chars');
+  const st = document.getElementById('stat-tokens');
+  if (sw) sw.textContent = words;
+  if (sc) sc.textContent = chars;
+  if (st) st.textContent = tokens;
+  const stats = document.getElementById('input-stats');
+  if (stats) stats.classList.toggle('show', chars > 0);
+}
+
+// ── AUTOCOMPLETE / QUICK SUGGESTIONS ──
+const QUICK_PROMPTS = {
+  chat:      ['Explain this simply', 'Give me examples', 'What are the pros and cons?', 'Summarize in 3 bullet points'],
+  code:      ['Write a function for…', 'Fix this bug:', 'Add error handling to this', 'Optimize this code'],
+  analyze:   ['Analyze the key trends', 'What patterns do you see?', 'Compare and contrast', 'Break this down step by step'],
+  create:    ['Write a blog post about…', 'Create a template for…', 'Draft a professional email about…', 'Write a short story where…'],
+  explain:   ['Explain like I\'m 5', 'Give a technical deep-dive', 'What\'s the history of…', 'How does this actually work?'],
+  translate: ['Translate to Spanish:', 'Translate to French:', 'Translate to Japanese:', 'Translate to Arabic:'],
+  summarize: ['Summarize in 1 sentence', 'Key takeaways only', 'TL;DR:', 'Bullet point summary of'],
+  image:     ['Photorealistic portrait of', 'Futuristic city at night with neon', 'Watercolor landscape of', 'Abstract neon digital art'],
+};
+function triggerAutocomplete(val) {
+  if (!S.settings.quickSuggestions) return;
+  const bar = document.getElementById('autocomplete-bar');
+  if (!bar) return;
+  const prompts = QUICK_PROMPTS[S.mode] || QUICK_PROMPTS.chat;
+  const filtered = val.length > 1
+    ? prompts.filter(p => p.toLowerCase().includes(val.toLowerCase().slice(0, 18)))
+    : prompts;
+  if (!filtered.length) { bar.innerHTML = ''; bar.classList.remove('show'); return; }
+  bar.innerHTML = filtered.map(p =>
+    `<span class="ac-chip" onclick="insertChip('${p.replace(/'/g, "\\'")}')">${p}</span>`
+  ).join('');
+  bar.classList.toggle('show', filtered.length > 0);
+}
+function insertChip(text) {
+  const inp = document.getElementById('msg-input');
+  if (!inp) return;
+  inp.value = text + ' ';
+  autoResize(inp); updateCharCount(); updateInputStats(); updateSendBtn();
+  focusInput();
+  document.getElementById('autocomplete-bar')?.classList.remove('show');
+}
+
+// ── PINNED MESSAGE BAR ──
+let pinnedMsgId = null;
+function pinMessage(msgId, content) {
+  pinnedMsgId = msgId;
+  const bar = document.getElementById('pinned-bar');
+  const txt = document.getElementById('pinned-bar-text');
+  if (txt) txt.textContent = content.slice(0, 100) + (content.length > 100 ? '…' : '');
+  if (bar) bar.classList.add('show');
+  toast('📌 Message pinned', 'success');
+}
+function clearPinned() {
+  pinnedMsgId = null;
+  document.getElementById('pinned-bar')?.classList.remove('show');
+  toast('📌 Unpinned', 'info');
+}
+function scrollToPinned() {
+  if (!pinnedMsgId) return;
+  const el = document.getElementById('msg-' + pinnedMsgId);
+  if (el) { el.scrollIntoView({ behavior:'smooth', block:'center' }); }
+}
+
+// ── THEME SYSTEM ──
+const THEMES = [
+  { id:'dark',      name:'Dark',       bar:'#080c18', body:'#05070f', dot:'#3b82f6' },
+  { id:'light',     name:'Light',      bar:'#e8eeff', body:'#f0f4ff', dot:'#3b82f6' },
+  { id:'chatgpt',   name:'ChatGPT',    bar:'#f4f4f4', body:'#ffffff', dot:'#10a37f' },
+  { id:'midnight',  name:'Midnight',   bar:'#091226', body:'#060d1f', dot:'#4f9eff' },
+  { id:'forest',    name:'Forest',     bar:'#071310', body:'#050e09', dot:'#34d399' },
+  { id:'sunset',    name:'Sunset',     bar:'#160c07', body:'#0f0805', dot:'#fb923c' },
+  { id:'ocean',     name:'Ocean',      bar:'#03111a', body:'#020d12', dot:'#06d6f0' },
+  { id:'rose',      name:'Rose',       bar:'#13070e', body:'#0d0509', dot:'#f472b6' },
+  { id:'monokai',   name:'Monokai',    bar:'#272822', body:'#1e1f1c', dot:'#a6e22e' },
+  { id:'nord',      name:'Nord',       bar:'#1e2537', body:'#1a1f2e', dot:'#88c0d0' },
+  { id:'cyberpunk', name:'Cyber',      bar:'#0a0714', body:'#07050f', dot:'#ffee00' },
+];
+
+const ACCENTS = [
+  { id:'default', color:'#3b82f6', label:'Blue' },
+  { id:'purple',  color:'#8b5cf6', label:'Purple' },
+  { id:'cyan',    color:'#06d6f0', label:'Cyan' },
+  { id:'green',   color:'#10b981', label:'Green' },
+  { id:'amber',   color:'#f59e0b', label:'Amber' },
+  { id:'orange',  color:'#f97316', label:'Orange' },
+  { id:'red',     color:'#ef4444', label:'Red' },
+  { id:'pink',    color:'#ec4899', label:'Pink' },
+  { id:'white',   color:'#e0e0e0', label:'White' },
+];
+
+function renderThemePicker() {
+  const grid = document.getElementById('theme-grid');
+  if (!grid) return;
+  grid.innerHTML = THEMES.map(t => `
+    <div onclick="applyTheme('${t.id}')" class="theme-swatch${S.theme===t.id?' active':''}" title="${t.name}">
+      <div class="sw-preview">
+        <div class="sw-bar" style="background:${t.bar}"></div>
+        <div class="sw-body" style="background:${t.body}">
+          <div class="sw-dot" style="background:${t.dot}"></div>
+        </div>
+      </div>
+      <div class="theme-check">✓</div>
+      <div class="theme-name">${t.name}</div>
+    </div>
+  `).join('');
+}
+
+function renderAccentPicker() {
+  const grid = document.getElementById('accent-grid');
+  if (!grid) return;
+  grid.innerHTML = ACCENTS.map(a => `
+    <div class="accent-dot${S.accent===a.id?' active':''}"
+         style="background:${a.color}"
+         onclick="setAccent('${a.id}')"
+         title="${a.label}"></div>
+  `).join('');
+}
+
+function applyTheme(themeId) {
+  // Remove all theme classes
+  THEMES.forEach(t => document.body.classList.remove('theme-'+t.id));
+  document.body.classList.remove('light'); // legacy
+  S.theme = themeId;
+  if (themeId === 'dark') {
+    // dark is default — no class needed
+  } else if (themeId === 'light') {
+    document.body.classList.add('light');
+    document.body.classList.add('theme-light');
+  } else {
+    document.body.classList.add('theme-'+themeId);
+  }
+  // Update theme-btn icon
+  const btn = document.getElementById('theme-btn');
+  if (btn) {
+    const icons = { dark:'🌙', light:'☀️', chatgpt:'🤖', midnight:'🌌', forest:'🌲', sunset:'🌅', ocean:'🌊', rose:'🌸', monokai:'👨‍💻', nord:'❄️', cyberpunk:'⚡' };
+    btn.textContent = icons[themeId] || '🎨';
+  }
+  renderThemePicker();
+  save();
+  toast('🎨 ' + (THEMES.find(t=>t.id===themeId)?.name||themeId) + ' theme', 'success');
+}
+
 function toggleTheme() {
-  S.theme = S.theme === 'dark' ? 'light' : 'dark';
-  document.body.classList.toggle('light', S.theme === 'light');
-  document.getElementById('theme-btn').textContent = S.theme === 'dark' ? '🌙' : '☀️';
-  save(); toast(S.theme === 'light' ? '☀️ Light mode' : '🌙 Dark mode');
+  // Cycle through popular themes or just toggle dark/light
+  const cycle = ['dark','light','chatgpt','midnight','ocean'];
+  const cur = cycle.indexOf(S.theme);
+  applyTheme(cycle[(cur+1) % cycle.length]);
+}
+
+function setAccent(accentId) {
+  S.accent = accentId;
+  document.body.removeAttribute('data-accent');
+  if (accentId !== 'default') document.body.setAttribute('data-accent', accentId);
+  renderAccentPicker();
+  save();
+  toast('🎯 ' + (ACCENTS.find(a=>a.id===accentId)?.label||accentId) + ' accent', 'success');
+}
+
+function setBtnStyle(style, el) {
+  document.querySelectorAll('.btn-style-card').forEach(c => c.classList.remove('active'));
+  if (el) el.classList.add('active');
+  S.btnStyle = style;
+  document.body.removeAttribute('data-btnstyle');
+  if (style !== 'default') document.body.setAttribute('data-btnstyle', style);
+  save();
+  toast('🔘 Button style: ' + style, 'info');
+}
+
+// ── AUTO MODEL TOGGLE ──
+function updateAutoModelStatus() {
+  const on = S.settings.autoModel !== false;
+  // Topbar status badge
+  const statuses = document.querySelectorAll('#auto-model-status');
+  statuses.forEach(el => {
+    el.classList.toggle('show', true);
+    el.classList.toggle('paused', !on);
+  });
+  document.querySelectorAll('#ams-text,#ams-text-top').forEach(el => {
+    if (!el) return;
+    el.textContent = on
+      ? (el.id==='ams-text-top' ? 'Auto' : `Auto-switch enabled — ${FALLBACK_MODELS.length} models ready`)
+      : (el.id==='ams-text-top' ? 'Manual' : 'Auto-switch disabled — manual model only');
+  });
 }
 
 // ── SIDEBAR ──
@@ -3326,7 +5230,10 @@ function openPanel(name) {
   if (name==='memory') renderMemory();
   if (name==='stats') renderStats();
   if (name==='gallery') renderGallery();
+  if (name==='settings') { renderThemePicker(); renderAccentPicker(); updateAutoModelStatus(); syncBtnStylePicker(); }
   if (name==='search') setTimeout(()=>document.getElementById('search-input').focus(),300);
+  if (name==='bookmarks') renderBookmarks();
+  if (name==='prompts') renderPromptLib();
 }
 function closePanel() {
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('open'));
@@ -3368,12 +5275,61 @@ function hideWelcome() {
 }
 function showTyping() {
   if (!S.settings.typing) return;
-  document.getElementById('typing-indicator').classList.add('show');
+  const ti = document.getElementById('typing-indicator');
+  if (ti) ti.classList.add('show');
+  const think = document.getElementById('thinking-indicator');
+  if (think) think.classList.add('visible');
   scrollToBottom();
 }
-function hideTyping() { document.getElementById('typing-indicator').classList.remove('show'); }
-function setThinking(t) { document.getElementById('thinking-text').textContent = t; }
+function hideTyping() {
+  const ti = document.getElementById('typing-indicator');
+  if (ti) ti.classList.remove('show');
+  const think = document.getElementById('thinking-indicator');
+  if (think) think.classList.remove('visible');
+}
+function setThinking(t) {
+  const el = document.getElementById('thinking-text');
+  if (el) el.textContent = t;
+  const think = document.getElementById('thinking-indicator');
+  if (think) think.classList.add('visible');
+}
+
+// Mobile toolbar active state
+function mtbActive(btnId) {
+  document.querySelectorAll('.mtb-btn').forEach(b => b.classList.remove('mtb-active'));
+  const btn = document.getElementById(btnId);
+  if (btn) {
+    btn.classList.add('mtb-active');
+    setTimeout(() => btn.classList.remove('mtb-active'), 1200);
+  }
+  // Haptic feedback simulation
+  if (navigator.vibrate) navigator.vibrate(8);
+}
+
+// Mobile send: if input has text send, else focus input
+function mobileSendOrFocus() {
+  mtbActive('mtb-send');
+  const input = document.getElementById('msg-input');
+  const text = input ? input.value.trim() : '';
+  if (text && !S.generating) {
+    sendMessage();
+  } else {
+    focusInput();
+    SFX.play('ping');
+  }
+}
+
+// Visual tap ripple for mobile
+function addTapRipple(e) {
+  const r = document.createElement('div');
+  r.className = 'tap-ripple';
+  const size = 24;
+  r.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX-size/2}px;top:${e.clientY-size/2}px`;
+  document.body.appendChild(r);
+  setTimeout(() => r.remove(), 500);
+}
 function scrollToBottom(instant=false) {
+  if (S.settings.autoScroll === false && !instant) return;
   const a = document.getElementById('chat-area');
   if (instant) { a.scrollTop = a.scrollHeight; return; }
   a.scrollTo({top:a.scrollHeight,behavior:'smooth'});
@@ -3390,26 +5346,111 @@ function showLightbox(src) {
   document.getElementById('lightbox-img').src = src;
   document.getElementById('lightbox').classList.add('show');
 }
-function playBeep(freq=440) {
-  if (!S.settings.sound) return;
-  try {
-    const ctx = new AudioContext();
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.connect(g); g.connect(ctx.destination);
-    o.frequency.value = freq; g.gain.value = 0.08;
-    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.12);
-    o.start(); o.stop(ctx.currentTime+0.12);
-  } catch(e){}
-}
+// ── PREMIUM SOUND ENGINE ──
+const SFX = (() => {
+  let _ctx = null;
+  function ctx() {
+    if (!_ctx) { try { _ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){} }
+    return _ctx;
+  }
+  function play(type) {
+    if (!S.settings.sound) return;
+    const c = ctx(); if (!c) return;
+    try {
+      if (c.state === 'suspended') c.resume();
+      const t = c.currentTime;
+      if (type === 'send') {
+        // Soft whoosh + tick
+        const o = c.createOscillator(), g = c.createGain();
+        o.connect(g); g.connect(c.destination);
+        o.type = 'sine'; o.frequency.setValueAtTime(600, t);
+        o.frequency.exponentialRampToValueAtTime(900, t+0.08);
+        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.06, t+0.02);
+        g.gain.exponentialRampToValueAtTime(0.001, t+0.15);
+        o.start(t); o.stop(t+0.15);
+      } else if (type === 'receive') {
+        // Two-tone chime
+        [520, 720].forEach((freq, i) => {
+          const o = c.createOscillator(), g = c.createGain();
+          o.connect(g); g.connect(c.destination);
+          o.type = 'sine'; o.frequency.value = freq;
+          g.gain.setValueAtTime(0, t+i*0.08);
+          g.gain.linearRampToValueAtTime(0.05, t+i*0.08+0.02);
+          g.gain.exponentialRampToValueAtTime(0.001, t+i*0.08+0.25);
+          o.start(t+i*0.08); o.stop(t+i*0.08+0.25);
+        });
+      } else if (type === 'copy') {
+        // Quick click
+        const o = c.createOscillator(), g = c.createGain();
+        o.connect(g); g.connect(c.destination);
+        o.type = 'square'; o.frequency.value = 1200;
+        g.gain.setValueAtTime(0.04, t); g.gain.exponentialRampToValueAtTime(0.001, t+0.06);
+        o.start(t); o.stop(t+0.06);
+      } else if (type === 'error') {
+        // Low buzz
+        [200, 180].forEach((freq, i) => {
+          const o = c.createOscillator(), g = c.createGain();
+          o.connect(g); g.connect(c.destination);
+          o.type = 'sawtooth'; o.frequency.value = freq;
+          g.gain.setValueAtTime(0, t+i*0.1);
+          g.gain.linearRampToValueAtTime(0.04, t+i*0.1+0.02);
+          g.gain.exponentialRampToValueAtTime(0.001, t+i*0.1+0.12);
+          o.start(t+i*0.1); o.stop(t+i*0.1+0.12);
+        });
+      } else if (type === 'ping') {
+        // Notification ping
+        const o = c.createOscillator(), g = c.createGain();
+        o.connect(g); g.connect(c.destination);
+        o.type = 'sine'; o.frequency.setValueAtTime(880, t);
+        o.frequency.exponentialRampToValueAtTime(660, t+0.3);
+        g.gain.setValueAtTime(0.07, t); g.gain.exponentialRampToValueAtTime(0.001, t+0.35);
+        o.start(t); o.stop(t+0.35);
+      } else if (type === 'delete') {
+        // Soft thud
+        const o = c.createOscillator(), g = c.createGain();
+        o.connect(g); g.connect(c.destination);
+        o.type = 'sine'; o.frequency.setValueAtTime(180, t);
+        o.frequency.exponentialRampToValueAtTime(60, t+0.1);
+        g.gain.setValueAtTime(0.06, t); g.gain.exponentialRampToValueAtTime(0.001, t+0.1);
+        o.start(t); o.stop(t+0.1);
+      } else if (type === 'success') {
+        // Victory trio
+        [440, 554, 659].forEach((freq, i) => {
+          const o = c.createOscillator(), g = c.createGain();
+          o.connect(g); g.connect(c.destination);
+          o.type = 'sine'; o.frequency.value = freq;
+          g.gain.setValueAtTime(0, t+i*0.09);
+          g.gain.linearRampToValueAtTime(0.045, t+i*0.09+0.02);
+          g.gain.exponentialRampToValueAtTime(0.001, t+i*0.09+0.22);
+          o.start(t+i*0.09); o.stop(t+i*0.09+0.22);
+        });
+      }
+    } catch(e) {}
+  }
+  return { play };
+})();
+function playBeep(freq=440) { SFX.play('receive'); }
 
 // ── TOAST ──
-function toast(msg, type='') {
+function toast(msg, type='', duration=2800) {
   const el = document.createElement('div');
   el.className = 'toast' + (type?' '+type:'');
   el.textContent = msg;
   document.getElementById('toast-stack').appendChild(el);
-  setTimeout(()=>{ el.style.opacity='0'; el.style.transform='translateY(8px)'; el.style.transition='all .3s'; setTimeout(()=>el.remove(),300); }, 2800);
+  // Sound cues
+  if (type==='success') SFX.play('ping');
+  else if (type==='error') SFX.play('error');
+  // Haptic on mobile
+  if (navigator.vibrate) {
+    if (type==='error') navigator.vibrate([20,10,20]);
+    else if (type==='success') navigator.vibrate(12);
+    else navigator.vibrate(6);
+  }
+  setTimeout(()=>{
+    el.style.opacity='0'; el.style.transform='translateY(10px) scale(0.92)';
+    el.style.transition='all .3s var(--ease)';
+    setTimeout(()=>el.remove(),300);
+  }, duration);
 }
 
 // ── UTILITIES ──
@@ -3418,15 +5459,318 @@ function esc(s) {
 }
 function sleep(ms) { return new Promise(r=>setTimeout(r,ms)); }
 
-// ── KEYBOARD SHORTCUTS ──
-document.addEventListener('keydown', e => {
-  if ((e.ctrlKey||e.metaKey)&&e.key==='k') { e.preventDefault(); openPanel('search'); }
-  if ((e.ctrlKey||e.metaKey)&&e.key==='n') { e.preventDefault(); newChat(); }
-  if ((e.ctrlKey||e.metaKey)&&e.key===',') { e.preventDefault(); openPanel('settings'); }
-  if (e.key==='Escape') {
-    closePanel(); closeModal();
-    document.getElementById('export-menu').classList.remove('open');
-    document.getElementById('model-dropdown').classList.remove('open');
+// ════════════════════════════════════════════════
+//  10 NEW FEATURES
+// ════════════════════════════════════════════════
+
+// ── 1. CHAT FOLDERS ──
+const FOLDER_COLORS = ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#06d6f0','#f97316'];
+function addFolder() {
+  const name = prompt('Folder name:');
+  if (!name || !name.trim()) return;
+  S.folders.push({ id: 'f'+Date.now(), name: name.trim(), color: FOLDER_COLORS[S.folders.length % FOLDER_COLORS.length], chatIds: [] });
+  save(); renderFolders(); toast('📁 Folder: '+name.trim(), 'success');
+}
+function deleteFolder(fid) {
+  S.folders = S.folders.filter(function(f){return f.id!==fid;});
+  save(); renderFolders();
+}
+function renderFolders() {
+  var el = document.getElementById('folder-list');
+  if (!el) return;
+  if (!S.folders || !S.folders.length) { el.innerHTML=''; return; }
+  el.innerHTML = S.folders.map(function(f) {
+    var chats = (f.chatIds||[]).map(function(cid){return S.chats[cid];}).filter(Boolean);
+    return '<div class="folder-section">'
+      +'<div class="folder-header" onclick="this.classList.toggle(\'open\')">'
+      +'<div class="folder-dot" style="background:'+f.color+'"></div>'
+      +'<span>'+f.name+'</span>'
+      +'<button onclick="event.stopPropagation();deleteFolder(\''+f.id+'\')" style="background:none;border:none;color:var(--text4);cursor:pointer;font-size:12px;padding:0 3px;margin-left:4px" title="Delete">✕</button>'
+      +'<span class="folder-arrow">▶</span></div>'
+      +'<div class="folder-chats">'
+      +(chats.length ? chats.map(function(c){return '<div class="chat-item" onclick="loadChat(\''+c.id+'\');closeSidebarMobile()" style="padding-left:8px"><div class="ci-title">'+(c.title||'New Chat')+'</div></div>';}).join('') : '<div style="padding:6px 8px;font-size:11px;color:var(--text4);font-family:var(--mono)">Empty</div>')
+      +'</div></div>';
+  }).join('');
+}
+
+// ── 2. IN-CHAT SEARCH ──
+var _csMatches=[], _csIdx=0, _csOrig={};
+function openChatSearch() {
+  var bar = document.getElementById('chat-search-bar');
+  if (!bar) return;
+  bar.classList.add('show');
+  setTimeout(function(){var i=document.getElementById('csi-inp');if(i)i.focus();}, 80);
+}
+function closeChatSearch() {
+  var bar = document.getElementById('chat-search-bar');
+  if (bar) bar.classList.remove('show');
+  clearChatSearch();
+  var i = document.getElementById('csi-inp'); if (i) i.value='';
+}
+function clearChatSearch() {
+  Object.keys(_csOrig).forEach(function(id){
+    var b=document.getElementById('bubble-'+id); if(b) b.innerHTML=_csOrig[id];
+  });
+  _csOrig={}; _csMatches=[]; _csIdx=0;
+  var c=document.getElementById('csi-count'); if(c) c.textContent='0/0';
+}
+function csiQuery(q) {
+  clearChatSearch();
+  if (!q || !q.trim()) return;
+  var bubbles = document.querySelectorAll('[id^="bubble-"]');
+  var all = [];
+  var esc2 = function(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');};
+  bubbles.forEach(function(b) {
+    var mid = b.id.replace('bubble-','');
+    _csOrig[mid] = b.innerHTML;
+    var re = new RegExp(esc2(q),'gi');
+    var text = b.textContent;
+    var m, cnt=0;
+    while((m=re.exec(text))!==null){all.push({mid:mid,idx:cnt});cnt++;}
+    if (cnt) b.innerHTML = b.innerHTML.replace(new RegExp(esc2(q),'gi'), function(match){return '<mark class="sh">'+match+'</mark>';});
+  });
+  _csMatches=all;
+  if (all.length){_csIdx=0; csiHighlight();}
+  var c=document.getElementById('csi-count');
+  if (c) c.textContent=(all.length?'1/'+all.length:'0/0');
+}
+function csiHighlight() {
+  document.querySelectorAll('mark.sh.cur').forEach(function(m){m.classList.remove('cur');});
+  var match=_csMatches[_csIdx]; if(!match) return;
+  var b=document.getElementById('bubble-'+match.mid); if(!b) return;
+  var marks=b.querySelectorAll('mark.sh');
+  var t=marks[match.idx];
+  if (t){t.classList.add('cur'); t.scrollIntoView({behavior:'smooth',block:'center'});}
+  var c=document.getElementById('csi-count');
+  if (c) c.textContent=(_csIdx+1)+'/'+_csMatches.length;
+}
+function csiStep(dir) {
+  if(!_csMatches.length) return;
+  _csIdx=(_csIdx+dir+_csMatches.length)%_csMatches.length;
+  csiHighlight();
+}
+function csiNav(e) {
+  if(e.key==='Enter') csiStep(e.shiftKey?-1:1);
+  if(e.key==='Escape') closeChatSearch();
+}
+
+// ── 3. PROMPT LIBRARY ──
+var _plCat='all';
+var DEFAULT_PROMPTS = [
+  {id:'dp1',title:'Explain Simply',body:'Explain [topic] in simple terms for a complete beginner.',cat:'general'},
+  {id:'dp2',title:'Code Review',body:'Review this code for bugs, performance, and best practices:\n\n```\n[paste code]\n```',cat:'code'},
+  {id:'dp3',title:'Blog Post',body:'Write a compelling blog post about [topic]. Include intro, 3 key points, and a conclusion.',cat:'writing'},
+  {id:'dp4',title:'SWOT Analysis',body:'Perform a detailed SWOT analysis for [company/idea]. Be specific and actionable.',cat:'analysis'},
+  {id:'dp5',title:'Photorealistic Image',body:'Ultra-realistic photo of [subject], professional lighting, sharp focus, 8K, commercial quality.',cat:'image'},
+  {id:'dp6',title:'Fix My Code',body:'Fix this code and explain what was wrong:\n\n```\n[paste code]\n```',cat:'code'},
+  {id:'dp7',title:'Summarize Article',body:'Summarize this article in 5 bullet points, then give your analysis:\n\n[paste article]',cat:'general'},
+  {id:'dp8',title:'Email Draft',body:'Write a professional email to [recipient] about [topic]. Tone: [formal/friendly]. Length: [short/medium].',cat:'writing'}
+];
+function savePrompt() {
+  var title=document.getElementById('pl-title')?.value?.trim();
+  var body=document.getElementById('pl-body')?.value?.trim();
+  var cat=document.getElementById('pl-cat')?.value||'general';
+  if(!title||!body){toast('Enter title and prompt','error');return;}
+  S.prompts.push({id:'p'+Date.now(),title:title,body:body,cat:cat});
+  save(); renderPromptLib();
+  document.getElementById('pl-title').value='';
+  document.getElementById('pl-body').value='';
+  toast('📚 Prompt saved!','success');
+}
+function deletePrompt(id) {
+  S.prompts=S.prompts.filter(function(p){return p.id!==id;});
+  save(); renderPromptLib();
+}
+function usePrompt(body) {
+  var inp=document.getElementById('msg-input'); if(!inp) return;
+  inp.value=body; autoResize(inp); updateCharCount(); updateSendBtn();
+  closePanel(); setTimeout(function(){focusInput();},100);
+  toast('📚 Prompt loaded!','success');
+}
+function renderPromptLib() {
+  var cats=['all','general','code','writing','analysis','image'];
+  var catEl=document.getElementById('pl-cats');
+  if(catEl) catEl.innerHTML=cats.map(function(c){
+    return '<span class="pcat'+(_plCat===c?' active':'')+'" onclick="setPlCat(\''+c+'\')">'+c.charAt(0).toUpperCase()+c.slice(1)+'</span>';
+  }).join('');
+  var all=[].concat(DEFAULT_PROMPTS, S.prompts||[]);
+  var filtered=_plCat==='all'?all:all.filter(function(p){return p.cat===_plCat;});
+  var el=document.getElementById('pl-list'); if(!el) return;
+  if(!filtered.length){el.innerHTML='<p style="color:var(--text3);font-size:13px;text-align:center;padding:20px">No prompts in this category</p>';return;}
+  el.innerHTML=filtered.map(function(p){
+    var isCustom=!p.id.startsWith('dp');
+    var preview=p.body.length>100?p.body.slice(0,100)+'…':p.body;
+    return '<div class="pc" onclick="usePrompt('+JSON.stringify(p.body)+')">'
+      +'<div class="pc-title"><span>'+p.title+'</span>'+(isCustom?'<button class="pc-del" onclick="event.stopPropagation();deletePrompt(\''+p.id+'\')">🗑️</button>':'')+'</div>'
+      +'<div class="pc-body">'+preview+'</div>'
+      +'<span class="pc-tag">'+p.cat+'</span>'
+      +'</div>';
+  }).join('');
+}
+function setPlCat(cat){_plCat=cat;renderPromptLib();}
+
+// ── 4. CHAT SUMMARY ──
+async function summarizeChat() {
+  var chat=S.chats[S.currentId];
+  if(!chat||!chat.messages||!chat.messages.length){toast('No messages to summarize','info');return;}
+  var msgs=chat.messages.filter(function(m){return !m.isError&&m.content;}).slice(-20);
+  if(msgs.length<2){toast('Need more messages','info');return;}
+  toast('✨ Summarizing chat…','info');
+  var history=msgs.map(function(m){return (m.role==='user'?'User':'AI')+': '+m.content.slice(0,300);}).join('\n');
+  try{
+    var result=await callAPI([{role:'user',content:'Summarize this conversation in 3-5 bullet points. Be concise:\n\n'+history}],'You create concise summaries.',S.settings.model);
+    var banner=document.getElementById('summary-banner');
+    var txt=document.getElementById('sum-txt');
+    if(txt) txt.innerHTML=formatMsg(result);
+    if(banner) banner.classList.add('show');
+    banner?.scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(e){toast('Summary failed: '+e.message,'error');}
+}
+
+// ── 5. KEYBOARD SHORTCUTS POPUP ──
+function openKbd(){document.getElementById('kbd-ov')?.classList.add('show');}
+function closeKbd(){document.getElementById('kbd-ov')?.classList.remove('show');}
+
+// ── 6. EDIT & RESEND USER MESSAGES ──
+function editMsg(id) {
+  var box=document.getElementById('edit-'+id); if(!box) return;
+  var isOpen=box.classList.toggle('show');
+  if(isOpen){
+    var ta=document.getElementById('edta-'+id);
+    var chat=S.chats[S.currentId];
+    var msg=chat?.messages.find(function(m){return m.id===id;});
+    if(ta&&msg){ta.value=msg.content; ta.focus(); ta.setSelectionRange(ta.value.length,ta.value.length);}
+  }
+}
+function cancelEdit(id){document.getElementById('edit-'+id)?.classList.remove('show');}
+async function submitEdit(id) {
+  var ta=document.getElementById('edta-'+id); if(!ta||!ta.value.trim()) return;
+  var chat=S.chats[S.currentId]; if(!chat) return;
+  var idx=chat.messages.findIndex(function(m){return m.id===id;}); if(idx<0) return;
+  chat.messages[idx].content=ta.value.trim();
+  chat.messages.splice(idx+1);
+  var container=document.getElementById('messages-container');
+  var found=false;
+  Array.from(container.querySelectorAll('.msg-wrapper')).forEach(function(w){
+    if(found) w.remove();
+    if(w.querySelector('#msg-'+id)) found=true;
+  });
+  var bubble=document.getElementById('bubble-'+id);
+  if(bubble) bubble.innerHTML=formatMsg(chat.messages[idx].content);
+  cancelEdit(id); save();
+  await generate(chat);
+  toast('✏️ Edited and resent','success');
+}
+
+// ── 7. FOCUS MODE ──
+function toggleFocusMode() {
+  var on=document.body.classList.toggle('focus-mode');
+  var btn=document.getElementById('focus-btn');
+  if(btn) btn.title=on?'Exit Focus Mode (Ctrl+Shift+F)':'Focus Mode (Ctrl+Shift+F)';
+  toast(on?'🎯 Focus Mode — distraction free':'🎯 Focus Mode off','info');
+}
+
+// ── 8. CONTEXT WINDOW METER ──
+var MODEL_CTX = {
+  'openrouter/free':128000,'github-gpt5':128000,'github-deepseek-r1':65536,
+  'github-deepseek-v3':65536,'deepseek/deepseek-r1-0528:free':65536,
+  'deepseek/deepseek-chat-v3-0324:free':65536,'meta-llama/llama-4-maverick:free':524288,
+  'meta-llama/llama-3.3-70b-instruct:free':131072,'qwen/qwen3-235b-a22b:free':131072,
+  'google/gemma-3-27b-it:free':131072,'mistralai/devstral-small:free':131072,
+  'groq-llama4-scout':131072,'groq-openai-oss-20b':131072,
+  'openai-gpt-oss-20b':128000,'deepseek-direct':65536
+};
+function updateCtxMeter() {
+  var chat=S.chats[S.currentId];
+  var meter=document.getElementById('ctx-meter');
+  if(!chat||!chat.messages||!chat.messages.length){if(meter)meter.classList.remove('show');return;}
+  var chars=chat.messages.reduce(function(a,m){return a+(m.content?m.content.length:0);},0);
+  var est=Math.ceil(chars/4);
+  var max=MODEL_CTX[S.settings.model]||128000;
+  var pct=Math.min(100,(est/max)*100);
+  var fill=document.getElementById('ctx-fill');
+  var lbl=document.getElementById('ctx-lbl');
+  if(fill){fill.style.width=pct+'%';fill.className='ctx-fill'+(pct>85?' danger':pct>65?' warn':'');}
+  if(lbl) lbl.textContent='~'+est.toLocaleString()+' / '+(max/1000).toFixed(0)+'K';
+  if(meter) meter.classList.toggle('show',pct>5);
+  if(pct>90) toast('⚠️ Context window almost full!','error');
+}
+
+// ── 9. BOOKMARKS ──
+function bookmarkMsg(id) {
+  if(!S.bookmarks) S.bookmarks=new Set();
+  var had=S.bookmarks.has(id);
+  if(had){S.bookmarks.delete(id);toast('Bookmark removed','info');}
+  else{S.bookmarks.add(id);toast('🔖 Bookmarked!','success');}
+  save(); reRenderMsg(id);
+}
+function renderBookmarks() {
+  var el=document.getElementById('bk-list'); if(!el) return;
+  if(!S.bookmarks||!S.bookmarks.size){
+    el.innerHTML='<div style="text-align:center;padding:30px;color:var(--text3);font-size:13px">No bookmarks yet.<br><span style="font-size:11px;font-family:var(--mono)">Click 🔖 on any message.</span></div>';
+    return;
+  }
+  var items=[];
+  Object.values(S.chats).forEach(function(chat){
+    (chat.messages||[]).forEach(function(m){
+      if(S.bookmarks.has(m.id)) items.push({msg:m,chat:chat});
+    });
+  });
+  items.sort(function(a,b){return b.msg.timestamp-a.msg.timestamp;});
+  el.innerHTML=items.map(function(x){
+    var m=x.msg, c=x.chat;
+    var time=new Date(m.timestamp).toLocaleDateString([],{month:'short',day:'numeric'});
+    var preview=m.content.length>120?m.content.slice(0,120)+'…':m.content;
+    return '<div class="bk-card" onclick="loadChat(\''+c.id+'\');closePanel();setTimeout(function(){var e=document.getElementById(\'msg-'+m.id+'\');if(e)e.scrollIntoView({behavior:\'smooth\',block:\'center\'});},400)">'
+      +'<div class="bk-meta"><span class="bk-role '+(m.role==='user'?'bk-u':'bk-a')+'">'+(m.role==='user'?'You':'AI')+'</span>'
+      +'<span style="font-size:11px;color:var(--text3);font-family:var(--mono)">'+(c.title||'Chat')+'</span>'
+      +'<span class="bk-time">'+time+'</span>'
+      +'<button class="bk-del" onclick="event.stopPropagation();bookmarkMsg(\''+m.id+'\');renderBookmarks()">✕</button></div>'
+      +'<div class="bk-prev">'+preview+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+// ── 10. RESPONSE RATINGS ──
+function rateMsg(id, val) {
+  if(!S.ratings) S.ratings={};
+  var cur=S.ratings[id]||0;
+  S.ratings[id]=(cur===val?0:val);
+  var chat=S.chats[S.currentId];
+  var msg=chat?.messages.find(function(m){return m.id===id;});
+  if(msg){
+    if(val===1){msg.ratingUp=(msg.ratingUp||0)+(cur===1?-1:1);if(cur===-1)msg.ratingDown=Math.max(0,(msg.ratingDown||0)-1);}
+    else{msg.ratingDown=(msg.ratingDown||0)+(cur===-1?-1:1);if(cur===1)msg.ratingUp=Math.max(0,(msg.ratingUp||0)-1);}
+  }
+  save(); reRenderMsg(id);
+  if(S.ratings[id]!==0) toast(val===1?'👍 Helpful!':'👎 Thanks for the feedback',val===1?'success':'info');
+}
+
+// ── GLOBAL KEYBOARD SHORTCUTS (replaces old simple version) ──
+document.addEventListener('keydown', function(e) {
+  var tag=document.activeElement?.tagName;
+  var inInput=tag==='INPUT'||tag==='TEXTAREA';
+  if(e.key==='Escape'){
+    if(document.getElementById('kbd-ov')?.classList.contains('show')){closeKbd();return;}
+    if(document.getElementById('chat-search-bar')?.classList.contains('show')){closeChatSearch();return;}
+    closePanel();closeModal();closeModelSheet();
+    document.getElementById('export-menu')?.classList.remove('open');
+    document.getElementById('model-dropdown')?.classList.remove('open');
+    return;
+  }
+  if(e.ctrlKey||e.metaKey){
+    if(e.key==='/'){ e.preventDefault(); document.getElementById('kbd-ov')?.classList.contains('show')?closeKbd():openKbd(); }
+    if(e.key==='k'&&!inInput){ e.preventDefault(); focusInput(); }
+    if(e.key==='n'&&!inInput){ e.preventDefault(); newChat(); }
+    if(e.key==='b'){ e.preventDefault(); toggleSidebar(); }
+    if(e.key==='m'&&!inInput){ e.preventDefault(); toggleModelDropdown(); }
+    if(e.key==='p'&&!inInput){ e.preventDefault(); openPanel('prompts'); }
+    if(e.key===','){ e.preventDefault(); openPanel('settings'); }
+    if(e.key==='f'&&!inInput){ e.preventDefault(); openChatSearch(); }
+    if(e.shiftKey&&e.key==='F'){ e.preventDefault(); toggleFocusMode(); }
+    if(e.shiftKey&&e.key==='S'){ e.preventDefault(); summarizeChat(); }
+    if(e.shiftKey&&e.key==='T'){ e.preventDefault(); toggleTheme(); }
+    if(e.shiftKey&&e.key==='B'){ e.preventDefault(); openPanel('bookmarks'); }
   }
 });
 
@@ -3442,6 +5786,21 @@ document.addEventListener('click', e => {
   if (!e.target.closest('[onclick*="toggleExportMenu"]')&&!e.target.closest('#export-menu'))
     document.getElementById('export-menu').classList.remove('open');
 });
+
+// ── SWIPE DOWN TO CLOSE MODEL SHEET ──
+;(function(){
+  let sheetStartY = 0, sheetDragging = false;
+  const sheet = document.getElementById('model-sheet');
+  if (!sheet) return;
+  sheet.addEventListener('touchstart', e => {
+    sheetStartY = e.touches[0].clientY; sheetDragging = true;
+  }, {passive:true});
+  sheet.addEventListener('touchend', e => {
+    if (!sheetDragging) return; sheetDragging = false;
+    const dy = e.changedTouches[0].clientY - sheetStartY;
+    if (dy > 80) closeModelSheet();
+  }, {passive:true});
+})();
 
 // ── SWIPE GESTURES (MOBILE) ──
 ;(function(){
@@ -3466,17 +5825,15 @@ setMode('chat');
 // Start collapsed on mobile
 if (window.innerWidth <= 768) {
   document.getElementById('sidebar').classList.add('collapsed');
+  const hint = document.getElementById('tap-hint');
+  if (hint) { hint.style.display = 'block'; setTimeout(() => hint.style.display = 'none', 3000); }
 } else {
   document.getElementById('msg-input').focus();
 }
 
-// Handle window resize
-window.addEventListener('resize', () => {
-  if (window.innerWidth > 768) {
-    document.getElementById('sidebar').classList.remove('collapsed');
-    document.getElementById('sidebar-overlay').classList.remove('show');
-  }
-});
+syncQuickBar();
+updateAutoModelStatus();
+renderFolders();
 
 // Load gallery from storage
 try {
@@ -3490,8 +5847,93 @@ document.querySelector('.new-chat-btn')?.addEventListener('click', function() {
   setTimeout(() => this.classList.remove('rippling'), 600);
 });
 
-console.log('%c SetupAI ✦', 'font-size:20px;font-weight:800;background:linear-gradient(90deg,#3b82f6,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent');
-console.log('%c OpenRouter + DeepSeek | Image Gen | All bugs fixed | Mobile ready', 'color:#60a5fa');
+// ── NETWORK STATUS ──
+function updateNetStatus() {
+  const el = document.getElementById('net-status');
+  if (navigator.onLine) { el.classList.remove('show'); }
+  else { el.textContent = '⚡ Offline — API calls will fail'; el.classList.add('show'); }
+}
+window.addEventListener('online', updateNetStatus);
+window.addEventListener('offline', updateNetStatus);
+updateNetStatus();
+
+// ── CLOSE MODEL SHEET ON RESIZE TO DESKTOP ──
+window.addEventListener('resize', () => {
+  if (window.innerWidth > 768) {
+    closeModelSheet();
+    document.getElementById('sidebar').classList.remove('collapsed');
+    document.getElementById('sidebar-overlay').classList.remove('show');
+  }
+});
+
+// ── MOBILE SWIPE GESTURE — swipe right to open sidebar ──
+(function() {
+  let startX=0, startY=0, startTime=0;
+  const THRESHOLD=60, MAX_Y=40, MAX_TIME=400;
+  document.addEventListener('touchstart', e => {
+    const t = e.touches[0];
+    startX=t.clientX; startY=t.clientY; startTime=Date.now();
+  }, {passive:true});
+  document.addEventListener('touchend', e => {
+    const t = e.changedTouches[0];
+    const dx=t.clientX-startX, dy=Math.abs(t.clientY-startY), dt=Date.now()-startTime;
+    const sidebar = document.getElementById('sidebar');
+    if (dt<MAX_TIME && Math.abs(dy)<MAX_Y) {
+      if (dx>THRESHOLD && startX<30 && sidebar.classList.contains('collapsed')) {
+        // Swipe right from edge — open sidebar
+        sidebar.classList.remove('collapsed');
+        document.getElementById('sidebar-overlay')?.classList.add('show');
+        SFX.play('ping');
+      } else if (dx<-THRESHOLD && !sidebar.classList.contains('collapsed') && window.innerWidth<=768) {
+        // Swipe left — close sidebar
+        sidebar.classList.add('collapsed');
+        document.getElementById('sidebar-overlay')?.classList.remove('show');
+      }
+    }
+  }, {passive:true});
+})();
+
+// ── TAP RIPPLE ON MOBILE TOUCH ──
+if ('ontouchstart' in window) {
+  document.addEventListener('touchstart', e => {
+    const target = e.target;
+    if (target.closest('button,.chat-item,.mtb-btn,.mode-btn,.tool-btn,.sheet-model-option')) {
+      const t = e.touches[0];
+      addTapRipple({clientX:t.clientX, clientY:t.clientY});
+    }
+  }, {passive:true});
+}
+
+// ── PWA INSTALL PROMPT ──
+let deferredInstall = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstall = e;
+  // Show install button in sidebar after 5s if on mobile
+  if (window.innerWidth <= 768) {
+    setTimeout(() => {
+      const existing = document.getElementById('pwa-install-btn');
+      if (!existing && deferredInstall) {
+        const btn = document.createElement('button');
+        btn.id = 'pwa-install-btn';
+        btn.className = 'tool-btn';
+        btn.style.cssText = 'border:1px solid rgba(59,130,246,0.3);color:var(--blue2);';
+        btn.innerHTML = '<span>📲</span><span>Install App</span>';
+        btn.onclick = () => {
+          deferredInstall.prompt();
+          deferredInstall.userChoice.then(r => {
+            if (r.outcome==='accepted') { btn.remove(); toast('App installed! 🎉','success'); }
+            deferredInstall=null;
+          });
+        };
+        document.getElementById('sidebar-tools')?.prepend(btn);
+      }
+    }, 5000);
+  }
+});
+
+console.log('%c SetupAI ✦', 'font-size:22px;font-weight:800;background:linear-gradient(90deg,#3b82f6,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;padding:4px');
+console.log('%c Real Streaming SSE · DeepSeek R1/V3 · All 15 Models · Premium UI · Mobile PWA', 'color:#60a5fa;font-size:13px');
 </script>
 </body>
 </html>
