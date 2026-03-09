@@ -4471,6 +4471,12 @@ async function generate(chat, retryCount = 0) {
     const isQuota = msg.includes('quota')||msg.includes('rate')||msg.includes('limit')||status===429;
     const isAuth = status===401||status===403||msg.includes('invalid')||msg.includes('unauthorized')||msg.includes('api key');
 
+    // Build a human-readable reason for toasts
+    let switchReason = '';
+    if (isAuth)     switchReason = `🔑 Bad API key for ${modelShort(model)} (${status||'401'}) — trying next model`;
+    else if (isQuota) switchReason = `⏳ Rate limit on ${modelShort(model)} (${status||'429'}) — trying next model`;
+    else if (isProvider) switchReason = `🔌 ${modelShort(model)} unavailable (${status||'err'}) — trying next model`;
+
     if (S.settings.autoModel!==false && (isProvider||isQuota||isAuth) && retryCount < FALLBACK_MODELS.length-1) {
       const curIdx = FALLBACK_MODELS.indexOf(S.settings.model);
       const nextIdx = (curIdx+1) % FALLBACK_MODELS.length;
@@ -4479,7 +4485,7 @@ async function generate(chat, retryCount = 0) {
         S.settings.model = next;
         updateModelUI(next);
         save();
-        toast('⚡ Switching to '+modelShort(next)+'…','info');
+        if (switchReason) toast(switchReason, 'info');
         S.generating = false;
         await new Promise(r=>setTimeout(r,600));
         await generate(chat, retryCount+1);
@@ -4489,10 +4495,21 @@ async function generate(chat, retryCount = 0) {
     SFX.play('error');
     if (isQuota) document.getElementById('quota-banner').style.display='block';
     let friendly;
-    if (isAuth) friendly=`**Connection issue with \`${modelShort(S.settings.model)}\`.**\n\nSwitching to a free model — click Send again.`;
-    else if (isQuota) friendly=`**Rate limit reached.**\n\nAll models tried. Wait a moment or use OpenRouter free tier.`;
-    else if (isProvider) friendly=`**Models temporarily unavailable.**\n\nTry again in a moment.`;
-    else friendly = err.message || 'Unknown error occurred.';
+    if (isAuth) {
+      const keyHint = model.startsWith('groq-')
+        ? 'Check your **GROQ_KEY** GitHub Secret — it may be missing or invalid.'
+        : model.startsWith('github-')
+        ? 'Check your **GITHUB_KEY** / **GITHUB_DS_KEY** GitHub Secret.'
+        : model==='deepseek-direct'
+        ? 'Check your **DEEPSEEK_KEY** GitHub Secret.'
+        : model==='openai-gpt-oss-20b'
+        ? 'Check your **OPENAI_KEY** GitHub Secret.'
+        : 'Check your **OPENROUTER_KEY** GitHub Secret.';
+      friendly = `**Auth error on \`${modelShort(model)}\` (HTTP ${status||401}).**\n\n${keyHint}\n\nAll fallback models also failed. Set your secrets at:\n\`github.com/YOUR_REPO/settings/secrets/actions\``;
+    }
+    else if (isQuota) friendly=`**Rate limit reached on all models (HTTP ${status||429}).**\n\nWait 30–60 seconds and try again, or switch to **OpenRouter Free** in the model picker.`;
+    else if (isProvider) friendly=`**Provider temporarily unavailable (HTTP ${status||503}).**\n\nTry again in a moment.`;
+    else friendly = `**Error:** ${err.message||'Unknown error'} (HTTP ${status||0})`;
     const errMsg = {id:'m'+Date.now(),role:'assistant',content:'⚠️ '+friendly,timestamp:Date.now(),isError:true};
     chat.messages.push(errMsg);
     renderMsg(errMsg);
@@ -6736,6 +6753,19 @@ document.addEventListener('click', e => {
 // ── INIT ──
 load();
 setMode('chat');
+
+// ── API KEY HEALTH CHECK ──
+setTimeout(() => {
+  const missing = [];
+  if (OPENROUTER_KEY.includes('%%')) missing.push('OPENROUTER_KEY');
+  if (GROQ_KEY.includes('%%'))       missing.push('GROQ_KEY');
+  if (GITHUB_KEY.includes('%%'))     missing.push('GITHUB_KEY');
+  if (DEEPSEEK_KEY.includes('%%'))   missing.push('DEEPSEEK_KEY');
+  if (missing.length > 0) {
+    toast(`⚠️ ${missing.length} API key(s) not set: ${missing.join(', ')}. Check GitHub Secrets.`, 'error');
+    console.warn('[SetupAI] GitHub Secrets not injected:', missing);
+  }
+}, 2500);
 
 // Start collapsed on mobile
 if (window.innerWidth <= 768) {
