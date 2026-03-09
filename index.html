@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>SetupAI</title>
-
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 /* ═══════════════════════════════════════
@@ -2547,94 +2547,6 @@ body.fullscreen-mode #fs-btn { color: var(--blue2); }
   cursor: pointer; border: none; line-height: 1;
 }
 
-/* ═══════════════════════════════════════
-   SMART REPLY CHIPS
-═══════════════════════════════════════ */
-#smart-reply-bar {
-  display: none; padding: 8px 14px 4px;
-  gap: 7px; flex-wrap: wrap;
-  animation: msg-enter 0.3s var(--ease-out);
-}
-#smart-reply-bar.show { display: flex; }
-.smart-chip {
-  padding: 6px 13px; border-radius: 20px;
-  border: 1px solid var(--border2); background: var(--surface2);
-  color: var(--text2); font-size: 12px; cursor: pointer;
-  transition: all 0.18s var(--ease); font-family: var(--font);
-  white-space: nowrap;
-}
-.smart-chip:hover { border-color: var(--blue); color: var(--blue2); background: rgba(59,130,246,0.08); transform: translateY(-1px); }
-.smart-chip:active { transform: scale(0.96); }
-
-/* ═══════════════════════════════════════
-   WORD COUNT BADGE ON MESSAGES
-═══════════════════════════════════════ */
-.msg-word-count {
-  font-size: 10px; color: var(--text4); font-family: var(--mono);
-  margin-left: 6px; opacity: 0.7;
-}
-
-/* ═══════════════════════════════════════
-   VOICE ACTIVE PULSE on btn
-═══════════════════════════════════════ */
-.input-icon-btn.recording {
-  color: var(--red) !important;
-  animation: voice-pulse 1s ease-in-out infinite;
-  background: rgba(239,68,68,0.1);
-}
-@keyframes voice-pulse {
-  0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
-  50%      { box-shadow: 0 0 0 6px rgba(239,68,68,0); }
-}
-
-/* ═══════════════════════════════════════
-   IMPROVED REACTION ROW
-═══════════════════════════════════════ */
-.reaction-row { display: flex; gap: 5px; margin-top: 7px; flex-wrap: wrap; }
-.reaction-btn {
-  padding: 4px 9px; border-radius: 14px; border: 1px solid var(--border);
-  background: var(--surface); color: var(--text3); font-size: 12px;
-  cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 4px;
-  font-family: var(--font);
-}
-.reaction-btn:hover { border-color: var(--border3); background: var(--surface3); transform: scale(1.12); }
-.reaction-btn.reacted { background: rgba(59,130,246,0.12); border-color: rgba(59,130,246,0.35); color: var(--blue2); }
-.reaction-count { font-size: 11px; font-family: var(--mono); min-width: 8px; }
-
-/* ═══════════════════════════════════════
-   AUTH FORM — cleaner without social
-═══════════════════════════════════════ */
-.auth-form-title { margin-bottom: 4px; }
-.auth-form-sub   { margin-bottom: 22px; }
-
-/* ═══════════════════════════════════════
-   TYPING SPEED INDICATOR
-═══════════════════════════════════════ */
-#wpm-badge {
-  font-size: 10px; color: var(--text4); font-family: var(--mono);
-  padding: 2px 7px; border-radius: 10px; border: 1px solid var(--border);
-  background: var(--surface2); display: none;
-}
-#wpm-badge.show { display: inline; }
-
-/* ═══════════════════════════════════════
-   FOCUS MODE (distraction-free)
-═══════════════════════════════════════ */
-body.focus-mode #sidebar         { transform: translateX(calc(-1 * var(--sidebar-w))); }
-body.focus-mode #topbar          { opacity: 0; pointer-events: none; height: 0; min-height: 0; overflow: hidden; }
-body.focus-mode #quick-bar       { display: none !important; }
-body.focus-mode #mobile-toolbar  { display: none !important; }
-body.focus-mode #input-area      { border-top: 1px solid var(--border); }
-body.focus-mode #focus-exit-btn  { display: flex; }
-#focus-exit-btn {
-  display: none; position: fixed; top: 12px; right: 14px; z-index: 300;
-  padding: 7px 14px; border-radius: 20px; background: var(--surface3);
-  border: 1px solid var(--border2); color: var(--text2); font-size: 12px;
-  cursor: pointer; font-family: var(--font); gap: 6px; align-items: center;
-  transition: all 0.2s;
-}
-#focus-exit-btn:hover { border-color: var(--border3); color: var(--text); }
-
 </style>
 </head>
 <body>
@@ -2739,6 +2651,14 @@ body.focus-mode #focus-exit-btn  { display: flex; }
       <div class="auth-form" id="form-signin">
         <div class="auth-form-title">Welcome back 👋</div>
         <div class="auth-form-sub">Sign in to continue your AI journey</div>
+        <div class="auth-social-btns">
+          <div class="auth-google-rendered" id="google-btn-si" style="min-height:44px"></div>
+          <button class="auth-social-btn" onclick="socialAuth('github')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+            Continue with GitHub
+          </button>
+        </div>
+        <div class="auth-divider"><span>or sign in with email</span></div>
         <div class="auth-field-group">
           <div class="auth-field">
             <label class="auth-label">Email</label>
@@ -2771,6 +2691,14 @@ body.focus-mode #focus-exit-btn  { display: flex; }
       <div class="auth-form" id="form-signup" style="display:none">
         <div class="auth-form-title">Create account ✨</div>
         <div class="auth-form-sub">Join thousands using AI superpowers</div>
+        <div class="auth-social-btns">
+          <div class="auth-google-rendered" id="google-btn-su" style="min-height:44px"></div>
+          <button class="auth-social-btn" onclick="socialAuth('github')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+            Continue with GitHub
+          </button>
+        </div>
+        <div class="auth-divider"><span>or create with email</span></div>
         <div class="auth-field-group">
           <div class="auth-field">
             <label class="auth-label">Full Name</label>
@@ -3161,9 +3089,6 @@ body.focus-mode #focus-exit-btn  { display: flex; }
     <button onclick="document.getElementById('quota-banner').style.display='none'" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:0 4px;line-height:1">✕</button>
   </div>
 
-  <!-- SMART REPLY CHIPS -->
-  <div id="smart-reply-bar"></div>
-
   <!-- INPUT AREA -->
   <div id="input-area">
     <!-- Quick Settings Bar -->
@@ -3254,9 +3179,6 @@ body.focus-mode #focus-exit-btn  { display: flex; }
 
 <!-- SCROLL FAB -->
 <button id="scroll-fab" onclick="scrollToBottom()">↓</button>
-
-<!-- FOCUS MODE EXIT -->
-<button id="focus-exit-btn" onclick="toggleFocusMode()">🎯 Exit Focus</button>
 
 <!-- TAP TO TYPE HINT -->
 <div id="tap-hint">👆 Tap anywhere to type</div>
@@ -3915,6 +3837,7 @@ body.focus-mode #focus-exit-btn  { display: flex; }
 // ════════════════════════════════════════════════
 
 // ── API CONFIGURATION ──
+// Keys are injected at deploy time via GitHub Actions secrets — never commit real keys here!
 const OPENROUTER_KEY = '%%OPENROUTER_KEY%%';
 const DEEPSEEK_KEY   = '%%DEEPSEEK_KEY%%';
 const OPENAI_KEY     = '%%OPENAI_KEY%%';
@@ -7026,10 +6949,99 @@ document.addEventListener('click', e => {
 
 
 
-// socialAuth — Google/GitHub removed; email auth only
-function socialAuth(provider) {
-  toast('Use email sign-in above', 'info');
+// ══════════════════════════════════════════════════════════
+//   API KEYS (all configured)
+// ══════════════════════════════════════════════════════════
+const GOOGLE_CLIENT_ID = '326584250917-2pol7ifu8oo6jct3couso03kc4hsv9im.apps.googleusercontent.com';
+
+// ══════════════════════════════════════════════════════════
+//   GOOGLE OAUTH — One Tap + Button
+// ══════════════════════════════════════════════════════════
+function initGoogleSignIn() {
+  if (typeof google === 'undefined' || !google.accounts) {
+    setTimeout(initGoogleSignIn, 500);
+    return;
+  }
+  google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback: handleGoogleCredential,
+    auto_select: false,
+    cancel_on_tap_outside: true,
+    itp_support: true,
+    use_fedcm_for_prompt: true
+  });
+  // Render custom Google buttons inside auth forms
+  ['google-btn-si', 'google-btn-su'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    google.accounts.id.renderButton(el, {
+      type: 'standard',
+      size: 'large',
+      theme: 'filled_black',
+      text: 'signin_with',
+      shape: 'pill',
+      logo_alignment: 'left',
+      width: el.offsetWidth || 300
+    });
+  });
 }
+
+function handleGoogleCredential(response) {
+  if (!response || !response.credential) return;
+  try {
+    // Decode JWT payload
+    const parts = response.credential.split('.');
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+    const user = {
+      id: 'google_' + payload.sub,
+      name: payload.name || 'Google User',
+      email: payload.email || '',
+      picture: payload.picture || '',
+      plan: 'free',
+      provider: 'google',
+      created: Date.now()
+    };
+    // Save to local user store
+    const users = JSON.parse(localStorage.getItem('setupai_users') || '[]');
+    const idx = users.findIndex(u => u.email === user.email);
+    if (idx >= 0) users[idx] = { ...users[idx], ...user };
+    else users.push(user);
+    localStorage.setItem('setupai_users', JSON.stringify(users));
+    loginUser(user);
+    toast('✅ Signed in with Google!', 'success');
+  } catch(e) {
+    console.error('Google auth error', e);
+    toast('Google sign-in failed — try email/password', 'error');
+  }
+}
+
+function triggerGoogleOneTap() {
+  if (typeof google === 'undefined' || !google.accounts) return;
+  google.accounts.id.prompt(notification => {
+    if (notification.isNotDisplayed()) {
+      console.log('One Tap not displayed:', notification.getNotDisplayedReason());
+    }
+  });
+}
+
+// Replace socialAuth handler
+function socialAuth(provider) {
+  if (provider === 'google') {
+    if (typeof google !== 'undefined' && google.accounts) {
+      google.accounts.id.prompt();
+    } else {
+      toast('Loading Google Sign-In...', 'info');
+      setTimeout(() => { initGoogleSignIn(); socialAuth('google'); }, 800);
+    }
+  } else if (provider === 'github') {
+    toast('GitHub login — configure GitHub OAuth app to enable', 'info');
+  }
+}
+
+// Initialize Google after page load
+window.addEventListener('load', () => {
+  setTimeout(initGoogleSignIn, 800);
+});
 
 // ══════════════════════════════════════════════════════════
 //   USER PROFILE SYSTEM
@@ -7343,217 +7355,6 @@ function updateSidebarAvatarFromProfile() {
       document.getElementById('signup-menu-item').style.display  = 'none';
     }
   } catch(e) {}
-})();
-
-// ══════════════════════════════════════════════════════════
-//   SMART REPLY CHIPS
-// ══════════════════════════════════════════════════════════
-const SMART_REPLIES = {
-  general:  ['Tell me more', 'Give an example', 'Simplify this', 'What are the pros & cons?', 'How does this work?'],
-  code:     ['Explain this code', 'Add error handling', 'Write tests for this', 'Optimize it', 'Show a different approach'],
-  analyze:  ['Go deeper', 'Summarize key points', 'What are the risks?', 'Compare alternatives', 'What should I do next?'],
-  create:   ['Make it longer', 'Make it shorter', 'Change the tone', 'Add more detail', 'Try a different style'],
-  explain:  ['ELI5 version', 'Give a real-world example', 'What are common mistakes?', 'What\'s the history?'],
-  translate:['Now translate back', 'Translate more formally', 'Translate more casually'],
-  summarize:['Bullet points only', 'One sentence summary', 'What\'s the most important point?'],
-  image:    ['Same but brighter', 'More detailed version', 'Different art style', 'Add more elements'],
-};
-
-function showSmartReplies(mode) {
-  const bar = document.getElementById('smart-reply-bar');
-  if (!bar) return;
-  const chips = SMART_REPLIES[mode] || SMART_REPLIES.general;
-  bar.innerHTML = chips.map(c =>
-    `<button class="smart-chip" onclick="useSmartChip(${JSON.stringify(c)})">${c}</button>`
-  ).join('');
-  bar.classList.add('show');
-}
-
-function useSmartChip(text) {
-  const inp = document.getElementById('msg-input');
-  if (!inp) return;
-  inp.value = text;
-  autoResize(inp); updateCharCount(); updateInputStats(); updateSendBtn();
-  focusInput();
-  document.getElementById('smart-reply-bar')?.classList.remove('show');
-}
-
-function hideSmartReplies() {
-  document.getElementById('smart-reply-bar')?.classList.remove('show');
-}
-
-// Show smart replies after each AI response
-const _origRenderMsg = renderMsg;
-renderMsg = function(msg, animate) {
-  _origRenderMsg(msg, animate);
-  if (msg.role === 'assistant' && !msg.isError) {
-    setTimeout(() => showSmartReplies(S.mode || 'general'), 400);
-  }
-};
-
-// ══════════════════════════════════════════════════════════
-//   WORD COUNT ON MESSAGES  
-// ══════════════════════════════════════════════════════════
-function addWordCountToMsg(msgId, text) {
-  const meta = document.querySelector(`#msg-${msgId} .msg-meta`);
-  if (!meta) return;
-  const words = text.trim().split(/\s+/).filter(Boolean).length;
-  const readSec = Math.ceil(words / 200 * 60);
-  const readStr = readSec < 60 ? readSec + 's read' : Math.ceil(readSec/60) + 'm read';
-  const existing = meta.querySelector('.msg-word-count');
-  if (!existing) {
-    meta.insertAdjacentHTML('beforeend', `<span class="msg-word-count">${words}w · ${readStr}</span>`);
-  }
-}
-
-// ══════════════════════════════════════════════════════════
-//   REACTIONS — persist counts
-// ══════════════════════════════════════════════════════════
-if (!S.reactions) S.reactions = {};
-
-function react(msgId, emojiIdx) {
-  if (!S.reactions[msgId]) S.reactions[msgId] = {};
-  const key = String(emojiIdx);
-  const btn = document.getElementById('rb-' + msgId + '-' + emojiIdx);
-  if (!btn) return;
-  const countEl = btn.querySelector('.reaction-count');
-  if (btn.classList.contains('reacted')) {
-    btn.classList.remove('reacted');
-    S.reactions[msgId][key] = Math.max(0, (S.reactions[msgId][key] || 1) - 1);
-  } else {
-    btn.classList.add('reacted');
-    S.reactions[msgId][key] = (S.reactions[msgId][key] || 0) + 1;
-    // micro-bounce
-    btn.style.transform = 'scale(1.35)';
-    setTimeout(() => btn.style.transform = '', 200);
-  }
-  if (countEl) countEl.textContent = S.reactions[msgId][key] || 0;
-  save();
-}
-
-function restoreReactions(msgId) {
-  if (!S.reactions || !S.reactions[msgId]) return;
-  Object.entries(S.reactions[msgId]).forEach(([k, v]) => {
-    const btn = document.getElementById('rb-' + msgId + '-' + k);
-    if (!btn) return;
-    const countEl = btn.querySelector('.reaction-count');
-    if (countEl) countEl.textContent = v;
-    if (v > 0) btn.classList.add('reacted');
-  });
-}
-
-// ══════════════════════════════════════════════════════════
-//   TYPING WPM INDICATOR
-// ══════════════════════════════════════════════════════════
-let _wpmWords = 0, _wpmStart = 0, _wpmTimer = null;
-function updateWPM() {
-  const inp = document.getElementById('msg-input');
-  if (!inp) return;
-  const words = inp.value.trim().split(/\s+/).filter(Boolean).length;
-  if (words !== _wpmWords) {
-    if (!_wpmStart) _wpmStart = Date.now();
-    _wpmWords = words;
-    clearTimeout(_wpmTimer);
-    if (words > 3) {
-      const mins = (Date.now() - _wpmStart) / 60000;
-      const wpm = Math.round(words / Math.max(mins, 0.01));
-      const badge = document.getElementById('wpm-badge');
-      if (badge && wpm > 0 && wpm < 500) {
-        badge.textContent = wpm + ' wpm';
-        badge.classList.add('show');
-      }
-    }
-    _wpmTimer = setTimeout(() => {
-      const b = document.getElementById('wpm-badge');
-      if (b) b.classList.remove('show');
-      _wpmStart = 0; _wpmWords = 0;
-    }, 3000);
-  }
-}
-
-// Patch updateInputStats to also call updateWPM
-const _origUpdateInputStats = typeof updateInputStats === 'function' ? updateInputStats : () => {};
-updateInputStats = function() {
-  _origUpdateInputStats();
-  updateWPM();
-};
-
-// ══════════════════════════════════════════════════════════
-//   FOCUS MODE (distraction-free writing)
-// ══════════════════════════════════════════════════════════
-let _focusActive = false;
-const _origToggleFocusMode = typeof toggleFocusMode === 'function' ? toggleFocusMode : null;
-toggleFocusMode = function() {
-  _focusActive = !_focusActive;
-  document.body.classList.toggle('focus-mode', _focusActive);
-  const btn = document.getElementById('focus-btn');
-  if (btn) {
-    btn.classList.toggle('active', _focusActive);
-    btn.title = _focusActive ? 'Exit Focus Mode' : 'Focus Mode (Ctrl+Shift+F)';
-  }
-  if (_focusActive) {
-    toast('🎯 Focus mode — press Esc or click Exit to leave', 'info');
-    setTimeout(() => focusInput(), 200);
-  } else {
-    toast('✅ Focus mode off', 'info');
-  }
-};
-
-// Esc exits focus mode
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && _focusActive) toggleFocusMode();
-});
-
-// ══════════════════════════════════════════════════════════
-//   DRAG & DROP FILE UPLOAD
-// ══════════════════════════════════════════════════════════
-(function() {
-  const inputArea = document.getElementById('input-area');
-  if (!inputArea) return;
-  let dragDepth = 0;
-  document.addEventListener('dragenter', e => {
-    if (!e.dataTransfer?.types?.includes('Files')) return;
-    dragDepth++;
-    inputArea.style.borderColor = 'var(--blue)';
-    inputArea.style.background  = 'rgba(59,130,246,0.04)';
-  });
-  document.addEventListener('dragleave', e => {
-    dragDepth--;
-    if (dragDepth === 0) {
-      inputArea.style.borderColor = '';
-      inputArea.style.background  = '';
-    }
-  });
-  document.addEventListener('dragover', e => e.preventDefault());
-  document.addEventListener('drop', e => {
-    e.preventDefault();
-    dragDepth = 0;
-    inputArea.style.borderColor = '';
-    inputArea.style.background  = '';
-    const files = Array.from(e.dataTransfer.files);
-    if (!files.length) return;
-    const images = files.filter(f => f.type.startsWith('image/'));
-    const others = files.filter(f => !f.type.startsWith('image/'));
-    if (images.length) {
-      const fakeEvt = { target: { files: images } };
-      if (typeof onImgSelect === 'function') onImgSelect(fakeEvt);
-    }
-    if (others.length) {
-      const fakeEvt = { target: { files: others } };
-      if (typeof onFileSelect === 'function') onFileSelect(fakeEvt);
-    }
-    toast(`📎 ${files.length} file${files.length > 1 ? 's' : ''} attached`, 'success');
-  });
-})();
-
-// ══════════════════════════════════════════════════════════
-//   WPM BADGE IN INPUT FOOTER (inject HTML once)
-// ══════════════════════════════════════════════════════════
-(function() {
-  const charCountEl = document.getElementById('char-count');
-  if (charCountEl && !document.getElementById('wpm-badge')) {
-    charCountEl.insertAdjacentHTML('afterend', '<span id="wpm-badge"></span>');
-  }
 })();
 
 </script>
