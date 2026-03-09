@@ -561,15 +561,7 @@ input, textarea, select { font-family: var(--font); }
 .msg-action-btn:active { transform: scale(0.95); }
 
 /* Reactions */
-.reaction-row { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
-.reaction-btn {
-  font-size: 13px; padding: 3px 8px; border-radius: 20px;
-  border: 1px solid var(--border); background: var(--surface);
-  transition: all 0.15s; display: flex; align-items: center; gap: 4px;
-}
-.reaction-btn:hover { border-color: var(--border3); background: var(--surface3); transform: scale(1.1); }
-.reaction-btn.reacted { background: rgba(59,130,246,0.1); border-color: rgba(59,130,246,0.3); }
-.reaction-count { font-family: var(--mono); font-size: 10px; color: var(--text3); }
+/* reaction styles defined in features section */
 
 /* ═══════════════════════════════════════
    TYPING INDICATOR
@@ -1374,7 +1366,8 @@ kbd{background:var(--surface3);border:1px solid var(--border2);border-radius:5px
 .btn-ecancel:hover{background:var(--surface4)}
 
 /* ─── FEATURE 7: FOCUS MODE ─── */
-body.focus-mode #sidebar,body.focus-mode #mobile-toolbar,body.focus-mode .mode-bar,body.focus-mode #quick-bar{display:none!important}
+body.focus-mode #sidebar,body.focus-mode #mobile-toolbar,body.focus-mode .mode-bar,body.focus-mode #quick-bar,body.focus-mode #smart-reply-bar{display:none!important}
+body.focus-mode #main{padding-bottom:0!important}
 body.focus-mode #topbar{background:transparent;border-bottom-color:transparent}
 body.focus-mode .msg-bubble{max-width:700px!important}
 body.focus-mode #main{width:100%}
@@ -1647,126 +1640,180 @@ body.fullscreen-mode #fs-btn { color: var(--blue2); }
   #model-name-display { max-width:100px; }
 }
 
-/* ── TABLET / SMALL DESKTOP ── */
+/* ════════════════════════════════════════
+   MOBILE RESPONSIVE SYSTEM
+════════════════════════════════════════ */
+
+/* ── TABLET ── */
 @media(max-width:768px) {
-  :root { --sidebar-w:288px; --topbar-h:54px; }
+  :root { --sidebar-w:290px; --topbar-h:54px; }
+
+  /* Sidebar slides in as overlay */
   #sidebar {
-    position:fixed; height:100%;
-    box-shadow:4px 0 40px rgba(0,0,0,0.5);
-    z-index:200;
+    position:fixed; height:100%; z-index:200;
+    box-shadow:4px 0 40px rgba(0,0,0,0.6);
   }
   #sidebar.collapsed { transform:translateX(-100%); }
-  .msg-wrapper { padding:0 14px; }
-  .msg-bubble { font-size:14px; padding:12px 15px; }
-  .panel { width:100vw; max-width:100vw; }
-  #input-area { padding:10px 12px 14px; }
-  #input-box { border-radius:var(--radius-lg); }
-  #msg-input { font-size:16px !important; }
-  .suggestion-grid { grid-template-columns:repeat(2,1fr); gap:8px; }
-  /* Hide extra topbar buttons — keep menu, model, theme, send */
-  .tb-hide-mobile { display:none !important; }
-  /* Model dropdown becomes bottom sheet on mobile */
+
+  /* Model dropdown hidden; bottom sheet used instead */
   #model-dropdown { display:none !important; }
-  /* Always show model pill on mobile */
-  #model-pill {
-    max-width:none !important;
-    flex:1;
-    justify-content:center;
-    padding:6px 10px;
-  }
-  #model-name-display { max-width:120px !important; }
-  /* Topbar compact layout */
+
+  /* Topbar */
   #topbar { gap:6px; padding:0 10px; }
   #chat-title { font-size:13px; }
   #token-badge { display:none; }
-  /* Mode bar horizontal scroll */
-  .mode-bar { gap:4px; }
-  .mode-btn { padding:5px 9px; font-size:11px; }
+  .tb-hide-mobile { display:none !important; }
+  #model-pill { max-width:none !important; flex:1; justify-content:center; padding:6px 10px; }
+  #model-name-display { max-width:120px !important; }
+
+  /* Panels full-width */
+  .panel { width:100vw; max-width:100vw; }
+
+  /* Messages */
+  .msg-wrapper { padding:0 14px; }
+  .msg-bubble { font-size:14px; padding:12px 15px; }
+
+  /* Input area */
+  #input-area { padding:8px 10px 10px; }
+  #input-box {
+    border-radius:18px;
+    border:1.5px solid var(--border2);
+    background:var(--surface2);
+  }
+  #input-box:focus-within {
+    border-color:rgba(59,130,246,0.45);
+    box-shadow:0 0 0 3px rgba(59,130,246,0.08);
+  }
+  #msg-input { font-size:16px !important; }
+  #input-stats { display:none !important; }
+  #quick-bar { display:none !important; }
+
+  /* Send button */
+  #send-btn {
+    width:42px; height:42px; border-radius:13px;
+    background:var(--grad-main) !important;
+    box-shadow:0 3px 14px rgba(59,130,246,0.45);
+  }
+  #send-btn svg { stroke:white; }
+  #send-btn:disabled { background:var(--surface4) !important; box-shadow:none; opacity:0.5; }
+  #stop-btn { width:42px; height:42px; border-radius:13px; }
+
+  /* Mode bar — horizontal scroll */
+  .mode-bar {
+    display:flex; overflow-x:auto; flex-wrap:nowrap;
+    scrollbar-width:none; gap:5px; padding:0 2px 6px;
+    -webkit-overflow-scrolling:touch;
+  }
+  .mode-bar::-webkit-scrollbar { display:none; }
+  .mode-btn { flex-shrink:0; padding:5px 10px; font-size:11px; min-height:32px; border-radius:20px; }
+
+  /* Image options bar scroll */
+  #img-options-bar {
+    overflow-x:auto; flex-wrap:nowrap;
+    scrollbar-width:none; -webkit-overflow-scrolling:touch;
+  }
+  #img-options-bar::-webkit-scrollbar { display:none; }
+
+  /* Smart reply chips scroll */
+  #smart-reply-bar { overflow-x:auto; flex-wrap:nowrap; scrollbar-width:none; padding:5px 10px 3px; }
+  #smart-reply-bar::-webkit-scrollbar { display:none; }
+  .smart-chip { flex-shrink:0; }
+
+  /* Welcome */
+  .suggestion-grid { grid-template-columns:repeat(2,1fr); gap:8px; }
+
+  /* Action rows horizontal scroll */
+  .msg-actions { overflow-x:auto; flex-wrap:nowrap; scrollbar-width:none; padding-bottom:4px; }
+  .msg-actions::-webkit-scrollbar { display:none; }
+  .msg-action-btn { flex-shrink:0; }
+  .msg-actions { opacity:1 !important; pointer-events:all !important; }
+
+  .reaction-row { overflow-x:auto; flex-wrap:nowrap; scrollbar-width:none; }
+  .reaction-row::-webkit-scrollbar { display:none; }
+  .reaction-btn { flex-shrink:0; }
+
+  /* Context meter — hide to save space */
+  #ctx-meter { display:none; }
 }
 
 /* ── PHONE ── */
 @media(max-width:480px) {
   :root { --topbar-h:52px; }
-  #topbar { padding:0 8px; gap:4px; }
+
+  /* Topbar */
+  #topbar { padding:0 8px; gap:3px; }
   #chat-title { font-size:12px; max-width:80px; }
   #model-pill { flex:1; min-width:0; max-width:none !important; padding:5px 8px; }
-  #model-name-display { max-width:90px !important; font-size:10.5px; }
+  #model-name-display { max-width:88px !important; font-size:10.5px; }
   .pill-arrow { font-size:9px; }
   .model-pill-dot { width:6px; height:6px; }
   .topbar-actions { gap:2px; flex-shrink:0; }
-
-  /* Premium mobile message layout */
-  .msg-wrapper { padding:0 8px; }
-  .msg { gap:10px; margin-bottom:20px; }
-  .msg-bubble {
-    font-size:14px; padding:11px 13px;
-    line-height: 1.7;
-  }
-  .msg.user .msg-bubble {
-    border-radius:var(--radius-lg) 4px var(--radius-lg) var(--radius-lg);
-  }
-  .msg.ai .msg-bubble {
-    border-radius:4px var(--radius-lg) var(--radius-lg) var(--radius-lg);
-  }
-  .msg-avatar { width:30px; height:30px; font-size:13px; }
-  .msg-name { font-size:12px; }
-  .msg-time { font-size:10px; }
-
-  /* Welcome screen mobile */
-  .suggestion-grid { grid-template-columns:1fr 1fr; gap:7px; }
-  .sc-desc { display:none; }
-  .welcome-title { font-size:24px; }
-  .welcome-sub { font-size:13px; margin-bottom:20px; }
-  .welcome-orb { width:72px; height:72px; font-size:30px; margin-bottom:20px; }
-  .welcome-providers { gap:6px; }
-  .provider-badge { font-size:11px; padding:5px 10px; }
-  .new-chat-btn { font-size:12px; padding:9px 12px; }
-
-  /* Input */
-  #send-btn, #stop-btn { width:38px; height:38px; }
-  .mode-btn { padding:5px 9px; font-size:11px; flex-shrink:0; }
-  .input-icon-btn { width:30px; height:30px; font-size:15px; }
-  #char-count { display:none; }
-  #msg-input { font-size:16px !important; padding:12px 14px; }
-
-  /* Hide less important buttons on phone */
   .tb-hide-phone { display:none !important; }
+
+  /* Messages */
+  .msg-wrapper { padding:0 8px; }
+  .msg { gap:8px; margin-bottom:18px; }
+  .msg-bubble { font-size:14px; padding:10px 12px; line-height:1.72; }
+  .msg.user .msg-bubble { border-radius:var(--radius-lg) 5px var(--radius-lg) var(--radius-lg); }
+  .msg.ai .msg-bubble { border-radius:5px var(--radius-lg) var(--radius-lg) var(--radius-lg); }
+  .msg-avatar { width:28px; height:28px; font-size:12px; }
+  .msg-name { font-size:11.5px; }
+  .msg-time { font-size:10px; }
+  .msg-action-btn { padding:6px 10px; font-size:11px; }
+  .msg-bubble pre code { font-size:12px; padding:10px 12px; }
+  .code-block-header { padding:6px 10px; }
   .img-gen-card { max-width:100%; }
   .img-action-btn { font-size:11px; padding:5px 9px; }
 
-  /* Mobile code blocks — smaller */
-  .msg-bubble pre code { font-size:12px; padding:10px 12px; }
-  .code-block-header { padding:6px 10px; }
+  /* Welcome */
+  .suggestion-grid { grid-template-columns:1fr 1fr; gap:7px; }
+  .sc-desc { display:none; }
+  .welcome-title { font-size:22px; }
+  .welcome-sub { font-size:13px; margin-bottom:18px; }
+  .welcome-orb { width:68px; height:68px; font-size:28px; margin-bottom:20px; }
+  .welcome-providers { display:none; }
+  .new-chat-btn { font-size:12px; padding:9px 12px; }
 
-  /* Action buttons always visible on touch */
-  .msg-actions { opacity:1 !important; pointer-events:all !important; }
-  .msg-action-btn { padding:6px 10px; font-size:11px; }
+  /* Input */
+  #input-area { padding:6px 8px 8px; }
+  .input-icon-btn { width:31px; height:31px; font-size:15px; }
+  #char-count { display:none; }
+  #msg-input { font-size:16px !important; padding:11px 13px; }
+  .input-footer { padding:5px 8px 6px; }
+  .input-left { gap:1px; }
 }
 
-/* ── VERY SMALL PHONE ── */
+/* ── TINY PHONE ── */
 @media(max-width:360px) {
   :root { --topbar-h:50px; }
   .suggestion-grid { grid-template-columns:1fr; }
   #chat-title { display:none; }
-  #model-pill { padding:5px 7px; }
-  #model-name-display { max-width:70px !important; font-size:10px; }
   .topbar-icon-btn { width:32px; height:32px; }
-  .mode-btn { padding:3px 7px; font-size:10.5px; }
+  .mode-btn { padding:4px 8px; font-size:10.5px; }
+  #model-pill { padding:5px 7px; }
+  #model-name-display { max-width:66px !important; font-size:10px; }
 }
 
-@supports(padding-bottom:env(safe-area-inset-bottom)) {
-  #input-area { padding-bottom:calc(14px + env(safe-area-inset-bottom)); }
-  #topbar { padding-top:calc(0px + env(safe-area-inset-top)); height:calc(var(--topbar-h) + env(safe-area-inset-top)); min-height:calc(var(--topbar-h) + env(safe-area-inset-top)); }
+/* ── NOTCH / SAFE AREA ── */
+@supports(padding:env(safe-area-inset-top)) {
+  #topbar {
+    padding-top:env(safe-area-inset-top,0px);
+    height:calc(var(--topbar-h) + env(safe-area-inset-top,0px));
+    min-height:calc(var(--topbar-h) + env(safe-area-inset-top,0px));
+  }
 }
+
+/* ── TOUCH DEVICES ── */
 @media(hover:none) and (pointer:coarse) {
   .chat-item,.tool-btn { padding:12px 11px; }
   .msg-actions { opacity:1 !important; pointer-events:all !important; }
-  .msg-action-btn { padding:7px 12px; font-size:12px; }
-  .reaction-btn { padding:6px 10px; }
+  .msg-action-btn { padding:7px 12px; font-size:12px; min-height:34px; }
+  .reaction-btn { padding:6px 10px; min-height:34px; }
   select,input,textarea { font-size:16px !important; }
-  .mode-btn { min-height:36px; }
-  .topbar-icon-btn { width:38px; height:38px; }
+  .mode-btn { min-height:34px; }
+  .topbar-icon-btn { width:40px; height:40px; }
   .sheet-model-option { padding:16px 14px; }
+  .smart-chip { min-height:34px; display:flex; align-items:center; }
 }
 
   /* ═══ IMAGE GENERATION ═══ */
@@ -1953,37 +2000,70 @@ body.fullscreen-mode #fs-btn { color: var(--blue2); }
   }
   .gallery-empty-icon { font-size: 48px; margin-bottom: 12px; display: block; }
 
-  /* ═══ MOBILE QUICK TOOLBAR ═══ */
+  /* ═══════════════════════════════════════
+     MOBILE BOTTOM TOOLBAR
+  ═══════════════════════════════════════ */
   #mobile-toolbar {
     display: none;
     position: fixed; bottom: 0; left: 0; right: 0;
-    background: rgba(12,17,34,0.97); border-top: 1px solid var(--border2);
-    z-index: 150; padding: 8px 16px;
-    padding-bottom: max(8px,env(safe-area-inset-bottom));
-    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    background: rgba(8,12,24,0.98);
+    border-top: 1px solid rgba(110,150,255,0.1);
+    z-index: 400;
+    padding: 0 6px;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px);
     gap: 0; justify-content: space-around; align-items: center;
+    box-shadow: 0 -4px 30px rgba(0,0,0,0.6);
+    height: calc(56px + env(safe-area-inset-bottom, 0px));
   }
   @media(max-width:768px) { #mobile-toolbar { display:flex; } }
-  .mtb-btn {
-    display: flex; flex-direction: column; align-items: center;
-    gap: 3px; padding: 6px 10px; border-radius: var(--radius-sm);
-    color: var(--text3); font-size: 10px; font-family: var(--mono);
-    transition: color 0.15s, background 0.15s; cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    flex: 1; max-width: 72px;
-  }
-  .mtb-btn .mtb-icon { font-size: 20px; line-height: 1; }
-  .mtb-btn:active { background: var(--surface3); color: var(--text); }
-  .mtb-btn.mtb-active { color: var(--blue2); }
 
-  /* Offset input area on mobile so toolbar doesn't cover it */
+  /* Make main area leave room for toolbar */
   @media(max-width:768px) {
-    #scroll-fab {
-      bottom: calc(68px + max(10px,env(safe-area-inset-bottom)) + 140px) !important;
-    }
-    /* Voice indicator offset */
-    #voice-indicator { bottom: calc(68px + 140px + 70px); }
+    #main { padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px)); }
+    #scroll-fab { bottom: calc(56px + env(safe-area-inset-bottom, 0px) + 90px) !important; right:14px; }
+    #voice-indicator { bottom: calc(56px + env(safe-area-inset-bottom, 0px) + 60px) !important; }
   }
+
+  .mtb-btn {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 3px; padding: 6px 2px; border-radius: 12px;
+    color: var(--text3); font-size: 9.5px; font-family: var(--mono);
+    font-weight: 600; letter-spacing: 0.2px;
+    transition: all 0.18s var(--ease-spring); cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    flex: 1; min-height: 44px; position: relative;
+  }
+  .mtb-btn span:not(.mtb-icon) { font-size: 9px; line-height: 1; }
+  .mtb-btn .mtb-icon { font-size: 20px; line-height: 1; transition: transform 0.18s var(--ease-spring); display:block; }
+  .mtb-btn:active { transform: scale(0.9); }
+  .mtb-btn:active .mtb-icon { transform: scale(0.88); }
+  .mtb-btn.mtb-active { color: var(--blue2); }
+  .mtb-btn.mtb-active .mtb-icon { filter: drop-shadow(0 0 5px rgba(59,130,246,0.7)); }
+  .mtb-btn.mtb-active::after {
+    content: ''; position: absolute; bottom: 2px;
+    left: 50%; transform: translateX(-50%);
+    width: 18px; height: 2px; border-radius: 2px;
+    background: var(--blue2);
+    animation: mtb-dot-in 0.2s var(--ease-spring);
+  }
+  @keyframes mtb-dot-in { from{width:0} to{width:18px} }
+
+  /* Raised center SEND button */
+  .mtb-send-btn {
+    color: white !important;
+    background: var(--grad-main) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 4px 18px rgba(59,130,246,0.45);
+    transform: translateY(-8px);
+    max-width: 62px !important;
+    border: 1.5px solid rgba(255,255,255,0.12);
+  }
+  .mtb-send-btn::after { display:none !important; }
+  .mtb-send-btn .mtb-icon { font-size: 20px !important; }
+  .mtb-send-btn:active { transform: translateY(-8px) scale(0.92) !important; box-shadow: 0 2px 10px rgba(59,130,246,0.3); }
+
+
 
   /* Network status badge */
   #net-status {
@@ -2070,57 +2150,7 @@ body.fullscreen-mode #fs-btn { color: var(--blue2); }
   @keyframes think-bounce { 0%,100%{transform:translateY(0);opacity:0.4} 50%{transform:translateY(-5px);opacity:1} }
   #thinking-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 400px; flex: 1; }
 
-  /* ═══ PREMIUM MOBILE TOOLBAR ═══ */
-  #mobile-toolbar {
-    display: none;
-    position: fixed; bottom: 0; left: 0; right: 0;
-    background: rgba(9,14,26,0.97);
-    border-top: 1px solid rgba(110,150,255,0.12);
-    z-index: 150;
-    padding: 6px 8px;
-    padding-bottom: max(6px,env(safe-area-inset-bottom));
-    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-    gap: 0; justify-content: space-around; align-items: center;
-    box-shadow: 0 -4px 24px rgba(0,0,0,0.4), 0 -1px 0 rgba(255,255,255,0.03);
-  }
-  @media(max-width:768px) { #mobile-toolbar { display:flex; } }
-  .mtb-btn {
-    display: flex; flex-direction: column; align-items: center;
-    gap: 4px; padding: 8px 6px; border-radius: var(--radius);
-    color: var(--text3); font-size: 10px; font-family: var(--mono);
-    font-weight: 600; letter-spacing: 0.3px;
-    transition: all 0.2s var(--ease-spring); cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    flex: 1; max-width: 72px; position: relative;
-  }
-  .mtb-btn .mtb-icon { font-size: 22px; line-height: 1; transition: transform 0.2s var(--ease-spring); }
-  .mtb-btn:active { background: rgba(59,130,246,0.12); color: var(--blue2); transform: scale(0.9); }
-  .mtb-btn:active .mtb-icon { transform: scale(0.88); }
-  .mtb-btn.mtb-active { color: var(--blue2); }
-  .mtb-btn.mtb-active .mtb-icon { filter: drop-shadow(0 0 6px var(--blue)); }
-  /* Active indicator dot */
-  .mtb-btn.mtb-active::after {
-    content: ''; position: absolute; bottom: 2px;
-    width: 16px; height: 3px; border-radius: 3px;
-    background: var(--blue2);
-    animation: mtb-dot-in 0.2s var(--ease-spring);
-  }
-  @keyframes mtb-dot-in { from{transform:scaleX(0)} to{transform:scaleX(1)} }
-  /* Premium center send button */
-  .mtb-send-btn {
-    position: relative;
-    color: var(--blue2) !important;
-  }
-  .mtb-send-btn .mtb-icon {
-    font-size: 24px !important;
-    filter: drop-shadow(0 0 8px rgba(59,130,246,0.6));
-  }
-  .mtb-send-btn::before {
-    content: ''; position: absolute;
-    inset: 4px; border-radius: var(--radius);
-    background: rgba(59,130,246,0.1);
-    border: 1px solid rgba(59,130,246,0.2);
-  }
+  /* mtb styles defined above */
 
   /* ═══ HAPTIC TAP OVERLAY ═══ */
   .tap-ripple {
@@ -2547,40 +2577,83 @@ body.fullscreen-mode #fs-btn { color: var(--blue2); }
   cursor: pointer; border: none; line-height: 1;
 }
 
+/* auth form fix */.auth-form-title{margin-bottom:4px}.auth-form-sub{margin-bottom:22px}
+
 /* ═══════════════════════════════════════
-   SMART REPLY CHIPS
+   MOBILE QUICK STRIP (icons above mode bar)
+═══════════════════════════════════════ */
+#mobile-quick-strip {
+  display: none;
+  gap: 6px; padding: 4px 4px 6px;
+  overflow-x: auto; scrollbar-width: none;
+  align-items: center;
+}
+#mobile-quick-strip::-webkit-scrollbar { display: none; }
+@media(max-width:768px) { #mobile-quick-strip { display: flex; } }
+.mqs-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+  background: var(--surface2); border: 1px solid var(--border2);
+  font-size: 17px; cursor: pointer; transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.mqs-btn:active { background: var(--surface3); transform: scale(0.92); }
+.mqs-btn.active { background: rgba(59,130,246,0.15); border-color: rgba(59,130,246,0.35); }
+
+/* ═══════════════════════════════════════
+   MOBILE INPUT BOX POLISH
+═══════════════════════════════════════ */
+@media(max-width:768px) {
+  .input-footer { padding: 6px 10px 7px; gap: 6px; }
+  .input-left { gap: 1px; }
+  #send-btn, #stop-btn {
+    width: 42px; height: 42px; min-width: 42px; border-radius: 13px;
+  }
+  #send-btn {
+    background: var(--grad-main) !important;
+    box-shadow: 0 3px 14px rgba(59,130,246,0.4);
+  }
+  #send-btn svg { stroke: white !important; }
+  #send-btn:disabled {
+    background: var(--surface3) !important;
+    box-shadow: none; opacity: 0.5;
+  }
+}
+
+/* ═══════════════════════════════════════
+   SMART REPLY BAR
 ═══════════════════════════════════════ */
 #smart-reply-bar {
-  display: none; padding: 8px 14px 4px;
+  display: none; padding: 6px 12px 4px;
   gap: 7px; flex-wrap: wrap;
-  animation: msg-enter 0.3s var(--ease-out);
 }
 #smart-reply-bar.show { display: flex; }
 .smart-chip {
   padding: 6px 13px; border-radius: 20px;
   border: 1px solid var(--border2); background: var(--surface2);
   color: var(--text2); font-size: 12px; cursor: pointer;
-  transition: all 0.18s var(--ease); font-family: var(--font);
-  white-space: nowrap;
+  transition: all 0.16s; font-family: var(--font); white-space: nowrap;
 }
 .smart-chip:hover { border-color: var(--blue); color: var(--blue2); background: rgba(59,130,246,0.08); transform: translateY(-1px); }
 .smart-chip:active { transform: scale(0.96); }
 
 /* ═══════════════════════════════════════
-   WORD COUNT BADGE ON MESSAGES
+   WPM BADGE
 ═══════════════════════════════════════ */
-.msg-word-count {
+#wpm-badge {
   font-size: 10px; color: var(--text4); font-family: var(--mono);
-  margin-left: 6px; opacity: 0.7;
+  padding: 2px 6px; border-radius: 10px; border: 1px solid var(--border);
+  background: var(--surface2); display: none; margin-left: 4px;
 }
+#wpm-badge.show { display: inline; }
 
 /* ═══════════════════════════════════════
-   VOICE ACTIVE PULSE on btn
+   VOICE RECORDING PULSE
 ═══════════════════════════════════════ */
 .input-icon-btn.recording {
   color: var(--red) !important;
-  animation: voice-pulse 1s ease-in-out infinite;
   background: rgba(239,68,68,0.1);
+  animation: voice-pulse 1s ease-in-out infinite;
 }
 @keyframes voice-pulse {
   0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
@@ -2588,52 +2661,40 @@ body.fullscreen-mode #fs-btn { color: var(--blue2); }
 }
 
 /* ═══════════════════════════════════════
-   IMPROVED REACTION ROW
+   FOCUS MODE
 ═══════════════════════════════════════ */
-.reaction-row { display: flex; gap: 5px; margin-top: 7px; flex-wrap: wrap; }
-.reaction-btn {
-  padding: 4px 9px; border-radius: 14px; border: 1px solid var(--border);
-  background: var(--surface); color: var(--text3); font-size: 12px;
-  cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 4px;
-  font-family: var(--font);
-}
-.reaction-btn:hover { border-color: var(--border3); background: var(--surface3); transform: scale(1.12); }
-.reaction-btn.reacted { background: rgba(59,130,246,0.12); border-color: rgba(59,130,246,0.35); color: var(--blue2); }
-.reaction-count { font-size: 11px; font-family: var(--mono); min-width: 8px; }
-
-/* ═══════════════════════════════════════
-   AUTH FORM — cleaner without social
-═══════════════════════════════════════ */
-.auth-form-title { margin-bottom: 4px; }
-.auth-form-sub   { margin-bottom: 22px; }
-
-/* ═══════════════════════════════════════
-   TYPING SPEED INDICATOR
-═══════════════════════════════════════ */
-#wpm-badge {
-  font-size: 10px; color: var(--text4); font-family: var(--mono);
-  padding: 2px 7px; border-radius: 10px; border: 1px solid var(--border);
-  background: var(--surface2); display: none;
-}
-#wpm-badge.show { display: inline; }
-
-/* ═══════════════════════════════════════
-   FOCUS MODE (distraction-free)
-═══════════════════════════════════════ */
-body.focus-mode #sidebar         { transform: translateX(calc(-1 * var(--sidebar-w))); }
-body.focus-mode #topbar          { opacity: 0; pointer-events: none; height: 0; min-height: 0; overflow: hidden; }
-body.focus-mode #quick-bar       { display: none !important; }
-body.focus-mode #mobile-toolbar  { display: none !important; }
-body.focus-mode #input-area      { border-top: 1px solid var(--border); }
-body.focus-mode #focus-exit-btn  { display: flex; }
 #focus-exit-btn {
-  display: none; position: fixed; top: 12px; right: 14px; z-index: 300;
+  display: none; position: fixed; top: 12px; right: 14px; z-index: 600;
   padding: 7px 14px; border-radius: 20px; background: var(--surface3);
   border: 1px solid var(--border2); color: var(--text2); font-size: 12px;
   cursor: pointer; font-family: var(--font); gap: 6px; align-items: center;
   transition: all 0.2s;
 }
 #focus-exit-btn:hover { border-color: var(--border3); color: var(--text); }
+body.focus-mode #topbar { opacity: 0; pointer-events: none; height: 0; min-height: 0; overflow: hidden; }
+body.focus-mode #input-area { border-top: 1px solid var(--border2); }
+body.focus-mode #focus-exit-btn { display: flex; }
+
+/* ═══════════════════════════════════════
+   REACTION BUTTONS (improved)
+═══════════════════════════════════════ */
+.reaction-btn {
+  font-size: 13px; padding: 4px 9px; border-radius: 18px;
+  border: 1px solid var(--border); background: var(--surface);
+  transition: all 0.15s; display: flex; align-items: center; gap: 4px;
+  cursor: pointer; font-family: var(--font);
+}
+.reaction-btn:hover { border-color: var(--border3); background: var(--surface3); transform: scale(1.1); }
+.reaction-btn.reacted { background: rgba(59,130,246,0.12); border-color: rgba(59,130,246,0.3); color: var(--blue2); }
+.reaction-count { font-size: 11px; font-family: var(--mono); min-width: 8px; }
+
+/* ═══════════════════════════════════════
+   MOBILE MESSAGE WORD COUNT
+═══════════════════════════════════════ */
+.msg-word-count {
+  font-size: 10px; color: var(--text4); font-family: var(--mono); margin-left: 5px;
+}
+
 
 </style>
 </head>
@@ -3061,15 +3122,14 @@ body.focus-mode #focus-exit-btn  { display: flex; }
     <div id="welcome">
       <div class="welcome-orb">✦</div>
       <div class="welcome-title">Welcome to SetupAI</div>
-      <div class="welcome-sub">Powered by OpenRouter & DeepSeek. Ask anything — coding, analysis, creative writing, math, and more.</div>
+      <div class="welcome-sub">15+ AI models — DeepSeek, GPT, Llama, Groq. Code, create, analyze, anything.</div>
       <div class="welcome-providers">
-        <div class="provider-badge active">🔀 OpenRouter Free</div>
-        <div class="provider-badge active">🔥 DeepSeek Direct</div>
-        <div class="provider-badge active">🤖 OpenAI GPT</div>
-        <div class="provider-badge active">⚡ Groq Ultra-fast</div>
-        <div class="provider-badge active">⭐ GPT-5 GitHub</div>
-        <div class="provider-badge active">🧠 DeepSeek GitHub</div>
-        <div class="provider-badge">🌐 13 Models</div>
+        <div class="provider-badge active">🔀 OpenRouter</div>
+        <div class="provider-badge active">🔥 DeepSeek</div>
+        <div class="provider-badge active">🤖 OpenAI</div>
+        <div class="provider-badge active">⚡ Groq</div>
+        <div class="provider-badge active">⭐ GitHub</div>
+        <div class="provider-badge">🌐 13+ Models</div>
       </div>
       <div class="suggestion-grid">
         <div class="suggestion-card" onclick="useSuggestion('Explain quantum computing in simple terms with an analogy')">
@@ -3176,6 +3236,16 @@ body.focus-mode #focus-exit-btn  { display: flex; }
       <span class="qb-chip" id="qb-fullscreen" onclick="toggleFullscreen()" title="Fullscreen">⛶ Full</span>
     </div>
 
+    <!-- Mobile quick actions (shown only on mobile) -->
+    <div id="mobile-quick-strip">
+      <button class="mqs-btn" id="mqs-voice" onclick="toggleVoice()">🎙️</button>
+      <button class="mqs-btn" id="mqs-image" onclick="setMode('image')">🎨</button>
+      <button class="mqs-btn" id="mqs-code" onclick="setMode('code')">💻</button>
+      <button class="mqs-btn" id="mqs-search" onclick="openChatSearch()">🔍</button>
+      <button class="mqs-btn" onclick="openPanel('memory')">🧠</button>
+      <button class="mqs-btn" onclick="newChat()">✦</button>
+    </div>
+
     <div class="mode-bar">
       <button class="mode-btn active" id="mode-chat" onclick="setMode('chat')">💬 Chat</button>
       <button class="mode-btn" id="mode-code" onclick="setMode('code')">💻 Code</button>
@@ -3264,29 +3334,26 @@ body.focus-mode #focus-exit-btn  { display: flex; }
 <!-- NETWORK STATUS -->
 <div id="net-status">⚡ Offline</div>
 
-<!-- MOBILE BOTTOM TOOLBAR — Premium 7-button -->
+<!-- MOBILE BOTTOM TOOLBAR -->
 <div id="mobile-toolbar">
-  <button class="mtb-btn" id="mtb-new" onclick="newChat();mtbActive('mtb-new')" title="New Chat">
+  <button class="mtb-btn" id="mtb-new" onclick="newChat();mtbActive('mtb-new')">
     <span class="mtb-icon">✦</span><span>New</span>
   </button>
-  <button class="mtb-btn" id="mtb-chats" onclick="toggleSidebar();mtbActive('mtb-chats')" title="Chats">
-    <span class="mtb-icon">💬</span><span>Chats</span>
+  <button class="mtb-btn" id="mtb-chats" onclick="toggleSidebar();mtbActive('mtb-chats')">
+    <svg class="mtb-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    <span>Chats</span>
   </button>
-  <button class="mtb-btn" id="mtb-model" onclick="toggleModelDropdown();mtbActive('mtb-model')" title="Models">
-    <span class="mtb-icon">🤖</span><span>Models</span>
+  <button class="mtb-btn mtb-send-btn" id="mtb-send" onclick="mobileSendOrFocus()">
+    <svg class="mtb-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    <span>Send</span>
   </button>
-  <!-- Center send button — premium style -->
-  <button class="mtb-btn mtb-send-btn" id="mtb-send" onclick="mobileSendOrFocus()" title="Send / Type">
-    <span class="mtb-icon">🚀</span><span>Send</span>
+  <button class="mtb-btn" id="mtb-model" onclick="openModelSheet();mtbActive('mtb-model')">
+    <svg class="mtb-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+    <span>Model</span>
   </button>
-  <button class="mtb-btn" id="mtb-voice" onclick="toggleVoice();mtbActive('mtb-voice')" title="Voice">
-    <span class="mtb-icon">🎙️</span><span>Voice</span>
-  </button>
-  <button class="mtb-btn" id="mtb-search" onclick="openChatSearch();mtbActive('mtb-search')" title="Search">
-    <span class="mtb-icon">🔍</span><span>Search</span>
-  </button>
-  <button class="mtb-btn" id="mtb-settings" onclick="openPanel('settings');mtbActive('mtb-settings')" title="Settings">
-    <span class="mtb-icon">⚙️</span><span>More</span>
+  <button class="mtb-btn" id="mtb-more" onclick="openPanel('settings');mtbActive('mtb-more')">
+    <svg class="mtb-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+    <span>More</span>
   </button>
 </div>
 
@@ -5308,9 +5375,23 @@ function setSendState(generating) {
   S.generating = generating;
   const send = document.getElementById('send-btn');
   const stop = document.getElementById('stop-btn');
-  const inp = document.getElementById('msg-input');
   if (generating) { send.style.display='none'; stop.classList.add('show'); }
   else { send.style.display='flex'; stop.classList.remove('show'); updateSendBtn(); }
+  // Update mobile toolbar send button
+  const mtbSend = document.getElementById('mtb-send');
+  if (mtbSend) {
+    const icon = mtbSend.querySelector('.mtb-icon');
+    const lbl  = mtbSend.querySelector('span:not(.mtb-icon)');
+    if (generating) {
+      if (icon) icon.innerHTML = '⏹';
+      if (lbl)  lbl.textContent = 'Stop';
+      mtbSend.style.cssText = 'background:linear-gradient(135deg,#ef4444,#b91c1c)!important;box-shadow:0 4px 14px rgba(239,68,68,0.5)';
+    } else {
+      if (icon) icon.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
+      if (lbl)  lbl.textContent = 'Send';
+      mtbSend.style.cssText = '';
+    }
+  }
 }
 
 // ── MODEL SELECTOR ──
@@ -6136,15 +6217,21 @@ function mtbActive(btnId) {
 
 // Mobile send: if input has text send, else focus input
 function mobileSendOrFocus() {
-  mtbActive('mtb-send');
   const input = document.getElementById('msg-input');
   const text = input ? input.value.trim() : '';
-  if (text && !S.generating) {
+  if (S.generating) {
+    stopGeneration();
+    mtbActive('mtb-send');
+    return;
+  }
+  if (text) {
+    if (typeof hideSmartReplies === 'function') hideSmartReplies();
     sendMessage();
   } else {
     focusInput();
     SFX.play('ping');
   }
+  mtbActive('mtb-send');
 }
 
 // Visual tap ripple for mobile
