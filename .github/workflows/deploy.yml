@@ -1,0 +1,77 @@
+name: 🚀 Build & Deploy SetupAI
+
+on:
+  push:
+    branches:
+      - main          # Deploy on every push to main
+  workflow_dispatch:  # Allow manual trigger from GitHub UI
+
+# Grant GITHUB_TOKEN permission to deploy to Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only allow one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    name: Inject Secrets & Deploy
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      # ── 1. Checkout source ─────────────────────────────────────────────────
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Inject API keys from GitHub Secrets into index.html ────────────
+      - name: 🔑 Inject API secrets into HTML
+        env:
+          OPENROUTER_KEY:  ${{ secrets.OPENROUTER_KEY }}
+          DEEPSEEK_KEY:    ${{ secrets.DEEPSEEK_KEY }}
+          OPENAI_KEY:      ${{ secrets.OPENAI_KEY }}
+          GROQ_KEY:        ${{ secrets.GROQ_KEY }}
+          GITHUB_KEY:      ${{ secrets.SETUPAI_GITHUB_KEY }}
+          GITHUB_DS_KEY:   ${{ secrets.GITHUB_DS_KEY }}
+          GITHUB_DS_KEY2:  ${{ secrets.GITHUB_DS_KEY2 }}
+        run: |
+          # Replace each placeholder token with the real secret value
+          sed -i \
+            -e "s|%%OPENROUTER_KEY%%|${OPENROUTER_KEY}|g" \
+            -e "s|%%DEEPSEEK_KEY%%|${DEEPSEEK_KEY}|g" \
+            -e "s|%%OPENAI_KEY%%|${OPENAI_KEY}|g" \
+            -e "s|%%GROQ_KEY%%|${GROQ_KEY}|g" \
+            -e "s|%%GITHUB_KEY%%|${GITHUB_KEY}|g" \
+            -e "s|%%GITHUB_DS_KEY%%|${GITHUB_DS_KEY}|g" \
+            -e "s|%%GITHUB_DS_KEY2%%|${GITHUB_DS_KEY2}|g" \
+            index.html
+
+          # Verify no placeholders remain (fail build if any are still present)
+          if grep -q '%%' index.html; then
+            echo "❌ ERROR: Unreplaced placeholders found in index.html:"
+            grep -n '%%' index.html
+            exit 1
+          fi
+          echo "✅ All secrets injected successfully."
+
+      # ── 3. Prepare GitHub Pages artifact ──────────────────────────────────
+      - name: 🔧 Configure GitHub Pages
+        uses: actions/configure-pages@v4
+
+      - name: 📦 Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Upload the repo root (where index.html lives)
+          path: "."
+
+      # ── 4. Deploy ─────────────────────────────────────────────────────────
+      - name: 🌐 Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
