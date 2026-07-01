@@ -1,0 +1,135 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  height: 100%;
+  background-color: #05070b;
+}
+
+body {
+  background-image: radial-gradient(
+      circle at 1px 1px,
+      rgba(143, 196, 255, 0.07) 1px,
+      transparent 0
+    ),
+    linear-gradient(180deg, #05070b 0%, #0a0e14 100%);
+  background-size: 22px 22px, 100% 100%;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #25314459 transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #1b2434;
+  border-radius: 8px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #263248;
+}
+
+::selection {
+  background: rgba(47, 143, 255, 0.35);
+  color: #e4eaf2;
+}
+
+:focus-visible {
+  outline: 2px solid #2f8fff;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* Markdown content inside chat bubbles */
+.prose-setupai {
+  color: #e4eaf2;
+  line-height: 1.65;
+}
+.prose-setupai p {
+  margin: 0 0 0.85em 0;
+}
+.prose-setupai p:last-child {
+  margin-bottom: 0;
+}
+.prose-setupai ul,
+.prose-setupai ol {
+  margin: 0 0 0.85em 1.25em;
+}
+.prose-setupai li {
+  margin-bottom: 0.3em;
+}
+.prose-setupai a {
+  color: #5ba8ff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.prose-setupai h1,
+.prose-setupai h2,
+.prose-setupai h3 {
+  font-family: var(--font-display);
+  color: #c8d3e0;
+  margin: 1em 0 0.5em 0;
+  letter-spacing: 0.01em;
+}
+.prose-setupai code {
+  font-family: var(--font-mono);
+  background: rgba(47, 143, 255, 0.1);
+  border: 1px solid rgba(47, 143, 255, 0.18);
+  padding: 0.1em 0.4em;
+  border-radius: 4px;
+  font-size: 0.88em;
+}
+.prose-setupai pre {
+  background: #0a0e14;
+  border: 1px solid #1b2434;
+  border-radius: 10px;
+  padding: 0.9em 1em;
+  overflow-x: auto;
+  margin: 0 0 0.85em 0;
+}
+.prose-setupai pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.85em;
+}
+.prose-setupai blockquote {
+  border-left: 2px solid #2f8fff;
+  padding-left: 0.9em;
+  color: #a9b4c4;
+  margin: 0 0 0.85em 0;
+}
+.prose-setupai table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 0.85em 0;
+  font-size: 0.9em;
+}
+.prose-setupai th,
+.prose-setupai td {
+  border: 1px solid #1b2434;
+  padding: 0.4em 0.6em;
+  text-align: left;
+}
