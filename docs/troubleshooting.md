@@ -45,3 +45,30 @@ sudo userdel firewing
 
 Review before running — this deletes the venv, cached weights, and
 config under `/opt/firewing`.
+
+## `apt-get` 404 on security.debian.org / EOL base image
+
+If `install.sh` (or any `apt-get install`) fails with a wall of
+`404 Not Found` errors for packages under
+`security.debian.org/debian-security <codename>-security`, your base
+image's Debian codename has gone end-of-life and its security repo
+was pulled with no archive replacement yet. This is common on
+container/VM images (Firebase Studio, old Docker base images, etc.)
+that haven't been rebuilt in a while — Debian 11 (bullseye)'s LTS
+support closed at the end of August 2026 and hit exactly this.
+
+`install.sh` now detects and works around this automatically
+(`fix_eol_debian_repos` comments out the dead security repo before
+running `apt-get update`), but **the base image itself is still
+unpatched for security going forward** — this only gets your install
+unstuck, it doesn't fix the underlying OS support gap. For anything
+beyond local testing, move to a currently-supported base image
+(Ubuntu 22.04/24.04, or a non-EOL Debian release).
+
+If you hit this outside of `install.sh` (e.g. running `apt-get`
+directly), the manual fix is the same idea:
+
+```bash
+sudo sed -i '/security\.debian\.org/ s/^deb/#deb/' /etc/apt/sources.list
+sudo apt-get update
+```

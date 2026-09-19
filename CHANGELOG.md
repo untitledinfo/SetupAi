@@ -20,10 +20,14 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 - Test suite covering config loading and unauthenticated/authenticated
   health endpoints (no GPU/weights required).
 
-### Known limitations
-- See `docs/troubleshooting.md`.
-
 ## [Unreleased]
+
+### Fixed
+- `install.sh` now detects an EOL Debian base image (dead
+  `security.debian.org` repo — e.g. bullseye after its LTS support
+  closed) and disables the dead security source before running
+  `apt-get update`, instead of failing the whole install with a wall
+  of 404 errors. See `docs/troubleshooting.md`.
 
 ### Added
 - LoRA fine-tuning pipeline (`scripts/training/`): dataset prep with

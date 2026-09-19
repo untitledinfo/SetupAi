@@ -38,6 +38,44 @@ detect_os() {
     log "Detected: ${PRETTY_NAME:-unknown}"
 }
 
+fix_eol_debian_repos() {
+    # Debian codenames go EOL and their security repo (security.debian.org)
+    # gets pulled with no replacement — apt-get update/install then fails
+    # with 404s on every *-security package. Detect this and route around
+    # it instead of failing the whole install over an OS-level repo issue.
+    #
+    # As of this writing, bullseye (Debian 11) LTS closed end of August
+    # 2026 and its security repo returns 404 with no archive available yet.
+    # This list may need updating as more codenames go EOL after you're
+    # reading this — check https://www.debian.org/releases/ if a future
+    # codename hits the same issue.
+    local eol_codenames=("bullseye" "buster" "stretch" "jessie")
+
+    [[ -f /etc/os-release ]] || return 0
+    . /etc/os-release
+    [[ "${ID:-}" == "debian" ]] || return 0
+
+    local codename="${VERSION_CODENAME:-}"
+    local is_eol=0
+    for c in "${eol_codenames[@]}"; do
+        [[ "$codename" == "$c" ]] && is_eol=1 && break
+    done
+    [[ $is_eol -eq 1 ]] || return 0
+
+    warn "Debian '${codename}' is EOL — its security repo (security.debian.org) is gone."
+    warn "Disabling the dead security repo so 'apt-get update' can succeed. This base"
+    warn "image will NOT receive further security patches — consider upgrading it."
+
+    local sources_files=(/etc/apt/sources.list /etc/apt/sources.list.d/*.list)
+    for f in "${sources_files[@]}"; do
+        [[ -f "$f" ]] || continue
+        # Comment out any line referencing the dead security suite rather
+        # than deleting it, so it's easy to see/restore what was disabled.
+        sed -i.bak "/security\.debian\.org/ s/^deb/#deb/" "$f" 2>/dev/null || true
+        sed -i "/${codename}-security/ s/^deb/#deb/" "$f" 2>/dev/null || true
+    done
+}
+
 detect_gpu() {
     if command -v nvidia-smi &>/dev/null; then
         log "NVIDIA GPU detected:"
@@ -51,7 +89,10 @@ detect_gpu() {
 
 install_system_deps() {
     log "Installing system packages..."
-    apt-get update -y
+    fix_eol_debian_repos
+    if ! apt-get update -y; then
+        die "'apt-get update' failed. If this is an EOL Debian/Ubuntu base image, check its sources.list — see docs/troubleshooting.md ('apt-get 404 on security.debian.org / EOL base image')."
+    fi
     apt-get install -y python3 python3-venv python3-pip git curl ufw
 }
 
