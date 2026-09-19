@@ -22,6 +22,13 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+- Documentation website (`docs/index.html`, docsify-based) with
+  sidebar nav, search, and syntax highlighting, covering every
+  existing docs page. Deployed automatically to GitHub Pages via
+  `.github/workflows/pages.yml` on every push to `main` that touches
+  `docs/`.
+
 ### Fixed
 - `install.sh` now detects an EOL Debian base image (dead
   `security.debian.org` repo — e.g. bullseye after its LTS support

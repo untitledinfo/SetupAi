@@ -1,5 +1,7 @@
 # Setup AI → FIREWING 1.0 BETA
 
+**[📖 Full documentation](https://untitledinfo.github.io/SetupAi/)** · [GitHub](https://github.com/untitledinfo/SetupAi)
+
 FIREWING is a self-hosted AI assistant platform: an API server, CLI,
 web UI, and installer built around the **Qwen3-Omni** base model.
 
