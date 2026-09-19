@@ -1,0 +1,32 @@
+Setup AI / FIREWING 1.0 BETA
+Copyright 2026 Setup AI
+
+This product includes software and model weights developed by the
+Qwen Team, Alibaba Group, as part of the Qwen3-Omni project:
+
+    https://github.com/QwenLM/Qwen3-Omni
+    https://huggingface.co/Qwen/Qwen3-Omni-30B-A3B-Instruct
+
+Qwen3-Omni is licensed under the Apache License, Version 2.0.
+A copy of that license is available at:
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+FIREWING 1.0 BETA is NOT an independently trained model. It uses the
+Qwen3-Omni base model weights and tokenizer, unmodified unless stated
+otherwise in a specific release's CHANGELOG.md. The inference engine,
+conversation management, HTTP API, CLI, installer, web interface, and
+all other application-layer code in this repository were developed
+independently by Setup AI and are not derived from Qwen3-Omni source
+code except where explicitly noted with an inline attribution comment.
+
+If any Qwen3-Omni source files are vendored directly into this
+repository (rather than imported as a dependency), their original
+copyright and license headers are preserved unmodified in those files,
+and any changes made to them are documented at the top of the file per
+Apache License 2.0 Section 4(b).
+
+No claims of Qwen-affiliation, endorsement, or partnership are made or
+implied. "Qwen" and "Alibaba" are trademarks of their respective
+owners and are used here solely to describe factual technical lineage,
+as required for honest attribution.

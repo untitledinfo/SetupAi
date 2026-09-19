@@ -1,0 +1,11 @@
+{
+  "name": "firewing-sdk-example",
+  "version": "1.0.0-beta.1",
+  "description": "Minimal JS/TS client example for the FIREWING API",
+  "type": "module",
+  "main": "firewing-sdk.ts",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}

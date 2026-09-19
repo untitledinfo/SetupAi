@@ -1,0 +1,35 @@
+name: Release
+
+# Triggered by pushing a tag like v1.0.0-beta.1
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Build sdist/wheel
+        run: |
+          pip install build
+          python -m build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: setup-ai-dist
+          path: dist/
+
+      # NOTE: intentionally no `pypi-publish` or Docker-push step here.
+      # Wire those up yourself once you have real PyPI/registry
+      # credentials and have decided on a public package name —
+      # don't publish placeholder credentials or push to a registry
+      # nobody has configured.

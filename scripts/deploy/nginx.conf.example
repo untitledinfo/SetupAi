@@ -1,0 +1,28 @@
+# Example nginx reverse proxy for FIREWING.
+# Copy to /etc/nginx/sites-available/firewing, adjust the domain below,
+# symlink into sites-enabled, then run certbot for TLS.
+#
+#   sudo cp nginx.conf.example /etc/nginx/sites-available/firewing
+#   sudo ln -s /etc/nginx/sites-available/firewing /etc/nginx/sites-enabled/
+#   sudo certbot --nginx -d ai.example.com
+#
+# Replace ai.example.com with your actual domain — do not use this
+# placeholder in production.
+
+server {
+    listen 80;
+    server_name ai.example.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Needed for streaming (SSE) chat completions.
+        proxy_buffering off;
+        proxy_read_timeout 300s;
+    }
+}

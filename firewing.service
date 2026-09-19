@@ -1,0 +1,22 @@
+[Unit]
+Description=FIREWING 1.0 BETA (Setup AI)
+After=network.target
+
+[Service]
+Type=simple
+User=firewing
+Group=firewing
+WorkingDirectory=/opt/firewing/app
+EnvironmentFile=/opt/firewing/app/.env
+ExecStart=/opt/firewing/venv/bin/uvicorn firewing.api.server:app --host 0.0.0.0 --port 8000
+Restart=on-failure
+RestartSec=5
+
+# Hardening — remove/relax only if you understand the tradeoff.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/var/log/firewing /var/lib/firewing
+
+[Install]
+WantedBy=multi-user.target

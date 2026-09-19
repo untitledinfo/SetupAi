@@ -1,0 +1,29 @@
+# Copy to configs/firewing.yaml and adjust for your environment.
+# Any value here can be overridden by an env var: FIREWING_<SECTION>_<FIELD>
+# e.g. FIREWING_API_PORT=9000
+
+model:
+  model_path: "Qwen/Qwen3-Omni-30B-A3B-Instruct"
+  device: "auto"          # auto | cpu | cuda | cuda:0
+  dtype: "auto"
+  quantization: null       # null | int8 | int4  (int8/int4 for smaller VPS/GPU)
+  max_context_tokens: 32768
+  trust_remote_code: true
+  adapter_path: null       # path to a trained LoRA adapter, see docs/training.md
+  context_strategy: "drop"  # "drop" (fast, default) | "summarize" (costs an extra generation call)
+
+api:
+  host: "0.0.0.0"
+  port: 8000
+  require_api_key: true
+  cors_allowed_origins: []
+  rate_limit_requests_per_minute: 60
+  max_tokens_per_request: 4096
+  request_timeout_seconds: 120
+
+logging:
+  level: "INFO"
+  log_dir: "/var/log/firewing"
+  json_logs: false
+
+data_dir: "/var/lib/firewing"

@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FIREWING 1.0 BETA</title>
+<style>
+  :root {
+    --bg: #f7f7f8;
+    --panel: #ffffff;
+    --text: #1a1a1a;
+    --text-muted: #6b6b70;
+    --border: #e4e4e7;
+    --accent: #d94f1e;
+    --accent-hover: #b8410a;
+    --bubble-user: #eef0f3;
+    --bubble-assistant: #ffffff;
+    --code-bg: #f0f0f2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #17171a;
+      --panel: #1f1f23;
+      --text: #ececee;
+      --text-muted: #9a9aa2;
+      --border: #2e2e33;
+      --accent: #ff7a3d;
+      --accent-hover: #ff8f5c;
+      --bubble-user: #29292f;
+      --bubble-assistant: #1f1f23;
+      --code-bg: #101013;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+  }
+  #sidebar {
+    width: 260px;
+    min-width: 200px;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+  }
+  #sidebar h1 {
+    font-size: 15px;
+    margin: 0 0 4px 0;
+    letter-spacing: 0.02em;
+  }
+  #sidebar .sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+  label { font-size: 12px; color: var(--text-muted); display: block; margin-top: 10px; }
+  input, select, textarea {
+    width: 100%;
+    margin-top: 4px;
+    padding: 8px;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+  }
+  textarea { resize: vertical; min-height: 60px; }
+  button {
+    cursor: pointer;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  #new-chat-btn {
+    background: var(--accent);
+    color: white;
+  }
+  #new-chat-btn:hover { background: var(--accent-hover); }
+  #main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  #chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .msg {
+    max-width: 75ch;
+    padding: 10px 14px;
+    border-radius: 10px;
+    line-height: 1.5;
+    font-size: 14px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  .msg.user {
+    align-self: flex-end;
+    background: var(--bubble-user);
+  }
+  .msg.assistant {
+    align-self: flex-start;
+    background: var(--bubble-assistant);
+    border: 1px solid var(--border);
+  }
+  .msg .role-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .msg pre {
+    background: var(--code-bg);
+    padding: 10px;
+    border-radius: 6px;
+    overflow-x: auto;
+    position: relative;
+  }
+  .msg pre .copy-btn {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    font-size: 11px;
+    padding: 2px 8px;
+    background: var(--border);
+    color: var(--text);
+  }
+  .msg code {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 12.5px;
+  }
+  .msg code:not(pre code) {
+    background: var(--code-bg);
+    padding: 2px 5px;
+    border-radius: 4px;
+  }
+  #input-bar {
+    border-top: 1px solid var(--border);
+    padding: 16px;
+    display: flex;
+    gap: 8px;
+    background: var(--panel);
+  }
+  #input-bar textarea {
+    flex: 1;
+    min-height: 44px;
+    max-height: 160px;
+  }
+  #send-btn {
+    background: var(--accent);
+    color: white;
+    align-self: flex-end;
+  }
+  #send-btn:hover { background: var(--accent-hover); }
+  #send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  #status-bar {
+    font-size: 11px;
+    color: var(--text-muted);
+    padding: 4px 16px 0 16px;
+  }
+  @media (max-width: 700px) {
+    #sidebar { position: absolute; z-index: 10; height: 100%; transform: translateX(-100%); transition: transform 0.2s; }
+    #sidebar.open { transform: translateX(0); }
+  }
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+  <h1>FIREWING 1.0 BETA</h1>
+  <div class="sub">Setup AI</div>
+  <button id="new-chat-btn">+ New conversation</button>
+
+  <label>API base URL</label>
+  <input id="base-url" value="http://localhost:8000" />
+
+  <label>API key</label>
+  <input id="api-key" type="password" placeholder="Bearer token" />
+
+  <label>System prompt</label>
+  <textarea id="system-prompt">You are FIREWING, a helpful AI assistant. Be direct, accurate, and concise.</textarea>
+
+  <label>Temperature: <span id="temp-val">0.7</span></label>
+  <input id="temperature" type="range" min="0" max="1.5" step="0.05" value="0.7" />
+
+  <label>Max tokens</label>
+  <input id="max-tokens" type="number" value="1024" min="1" max="8192" />
+</div>
+
+<div id="main">
+  <div id="chat"></div>
+  <div id="status-bar"></div>
+  <div id="input-bar">
+    <textarea id="message-input" placeholder="Message FIREWING..." rows="1"></textarea>
+    <button id="send-btn">Send</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  const chatEl = document.getElementById("chat");
+  const inputEl = document.getElementById("message-input");
+  const sendBtn = document.getElementById("send-btn");
+  const baseUrlEl = document.getElementById("base-url");
+  const apiKeyEl = document.getElementById("api-key");
+  const systemPromptEl = document.getElementById("system-prompt");
+  const tempEl = document.getElementById("temperature");
+  const tempValEl = document.getElementById("temp-val");
+  const maxTokensEl = document.getElementById("max-tokens");
+  const statusBar = document.getElementById("status-bar");
+  const newChatBtn = document.getElementById("new-chat-btn");
+
+  let history = []; // {role, content}
+
+  tempEl.addEventListener("input", () => { tempValEl.textContent = tempEl.value; });
+
+  newChatBtn.addEventListener("click", () => {
+    history = [];
+    chatEl.innerHTML = "";
+    statusBar.textContent = "";
+  });
+
+  function escapeHtml(str) {
+    return str.replace(/[&<>"']/g, (c) => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    })[c]);
+  }
+
+  // Minimal markdown: fenced code blocks + inline code + bold/italic.
+  // Intentionally small and dependency-free rather than pulling in a
+  // full markdown library for a beta chat UI.
+  function renderMarkdown(text) {
+    const escaped = escapeHtml(text);
+    let html = escaped.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => {
+      return `<pre><button class="copy-btn" onclick="navigator.clipboard.writeText(this.nextSibling.textContent)">Copy</button><code class="lang-${lang}">${code}</code></pre>`;
+    });
+    html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
+    html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    html = html.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+    return html;
+  }
+
+  function addMessageBubble(role, initialText) {
+    const wrap = document.createElement("div");
+    wrap.className = `msg ${role}`;
+    const label = document.createElement("div");
+    label.className = "role-label";
+    label.textContent = role === "user" ? "You" : "FIREWING";
+    const content = document.createElement("div");
+    content.className = "content";
+    content.innerHTML = renderMarkdown(initialText || "");
+    wrap.appendChild(label);
+    wrap.appendChild(content);
+    chatEl.appendChild(wrap);
+    chatEl.scrollTop = chatEl.scrollHeight;
+    return content;
+  }
+
+  async function sendMessage() {
+    const text = inputEl.value.trim();
+    if (!text) return;
+    const apiKey = apiKeyEl.value.trim();
+    const baseUrl = baseUrlEl.value.trim().replace(/\/$/, "");
+
+    inputEl.value = "";
+    sendBtn.disabled = true;
+    statusBar.textContent = "";
+
+    addMessageBubble("user", text);
+    history.push({ role: "user", content: text });
+
+    const assistantContentEl = addMessageBubble("assistant", "");
+    let assistantText = "";
+
+    const body = {
+      model: "firewing-1.0-beta",
+      messages: [
+        { role: "system", content: systemPromptEl.value },
+        ...history,
+      ],
+      temperature: parseFloat(tempEl.value),
+      max_tokens: parseInt(maxTokensEl.value, 10),
+      stream: true,
+    };
+
+    try {
+      const resp = await fetch(`${baseUrl}/v1/chat/completions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!resp.ok) {
+        const errData = await resp.json().catch(() => ({}));
+        throw new Error(errData?.error?.message || `HTTP ${resp.status}`);
+      }
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const chunks = buffer.split("\n\n");
+        buffer = chunks.pop() ?? "";
+        for (const chunk of chunks) {
+          if (!chunk.startsWith("data: ")) continue;
+          const payload = chunk.slice(6);
+          if (payload === "[DONE]") continue;
+          assistantText += payload;
+          assistantContentEl.innerHTML = renderMarkdown(assistantText);
+          chatEl.scrollTop = chatEl.scrollHeight;
+        }
+      }
+
+      history.push({ role: "assistant", content: assistantText });
+    } catch (err) {
+      statusBar.textContent = `Error: ${err.message}`;
+      assistantContentEl.innerHTML = `<em style="color:#c0392b">Request failed — see status bar.</em>`;
+    } finally {
+      sendBtn.disabled = false;
+      inputEl.focus();
+    }
+  }
+
+  sendBtn.addEventListener("click", sendMessage);
+  inputEl.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+  inputEl.addEventListener("input", () => {
+    inputEl.style.height = "auto";
+    inputEl.style.height = Math.min(inputEl.scrollHeight, 160) + "px";
+  });
+})();
+</script>
+
+</body>
+</html>

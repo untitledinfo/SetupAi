@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FIREWING Admin</title>
+<style>
+  :root {
+    --bg: #f7f7f8; --panel: #ffffff; --text: #1a1a1a; --text-muted: #6b6b70;
+    --border: #e4e4e7; --accent: #d94f1e; --accent-hover: #b8410a; --danger: #c0392b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #17171a; --panel: #1f1f23; --text: #ececee; --text-muted: #9a9aa2;
+      --border: #2e2e33; --accent: #ff7a3d; --accent-hover: #ff8f5c; --danger: #ff6b6b;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); padding: 24px; max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 18px; }
+  h2 { font-size: 14px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 32px; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-top: 8px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+  .stat { font-size: 22px; font-weight: 600; }
+  .stat-label { font-size: 12px; color: var(--text-muted); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--border); }
+  input { padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 13px; }
+  button { cursor: pointer; border: none; border-radius: 6px; padding: 8px 12px; font-size: 13px; font-weight: 600; background: var(--accent); color: white; }
+  button:hover { background: var(--accent-hover); }
+  button.danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+  .row { display: flex; gap: 8px; align-items: center; }
+  #new-key-result { font-family: monospace; font-size: 12px; background: var(--bg); padding: 8px; border-radius: 6px; margin-top: 8px; word-break: break-all; display: none; }
+  #status-line { font-size: 12px; color: var(--text-muted); margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<h1>FIREWING Admin</h1>
+
+<div class="card row">
+  <input id="base-url" value="http://localhost:8000" placeholder="API base URL" style="flex:1" />
+  <input id="admin-key" type="password" placeholder="Admin key" style="flex:1" />
+  <button id="refresh-btn">Refresh</button>
+</div>
+<div id="status-line"></div>
+
+<h2>System</h2>
+<div class="card grid" id="system-grid">
+  <div><div class="stat" id="stat-gpu">—</div><div class="stat-label">GPU</div></div>
+  <div><div class="stat" id="stat-ram">—</div><div class="stat-label">RAM</div></div>
+  <div><div class="stat" id="stat-vram">—</div><div class="stat-label">VRAM free/total</div></div>
+  <div><div class="stat" id="stat-disk">—</div><div class="stat-label">Free disk</div></div>
+</div>
+
+<h2>Request stats</h2>
+<div class="card grid" id="stats-grid">
+  <div><div class="stat" id="stat-uptime">—</div><div class="stat-label">Uptime (s)</div></div>
+  <div><div class="stat" id="stat-requests">—</div><div class="stat-label">Requests (recent)</div></div>
+  <div><div class="stat" id="stat-errors">—</div><div class="stat-label">Errors</div></div>
+  <div><div class="stat" id="stat-latency">—</div><div class="stat-label">Avg latency (ms)</div></div>
+</div>
+
+<h2>API keys</h2>
+<div class="card">
+  <div class="row">
+    <input id="new-key-label" placeholder="Label (e.g. 'mobile app')" style="flex:1" />
+    <button id="create-key-btn">Create key</button>
+  </div>
+  <div id="new-key-result"></div>
+  <table id="keys-table">
+    <thead><tr><th>Label</th><th>Key ID</th><th>Created</th><th>Status</th><th></th></tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  const baseUrlEl = document.getElementById("base-url");
+  const adminKeyEl = document.getElementById("admin-key");
+  const statusLine = document.getElementById("status-line");
+
+  function headers() {
+    return { "Authorization": `Bearer ${adminKeyEl.value.trim()}`, "Content-Type": "application/json" };
+  }
+
+  async function apiGet(path) {
+    const resp = await fetch(`${baseUrlEl.value.replace(/\/$/, "")}${path}`, { headers: headers() });
+    if (!resp.ok) throw new Error(`${resp.status}: ${(await resp.json().catch(() => ({})))?.detail || resp.statusText}`);
+    return resp.json();
+  }
+
+  async function apiPost(path, body) {
+    const resp = await fetch(`${baseUrlEl.value.replace(/\/$/, "")}${path}`, { method: "POST", headers: headers(), body: JSON.stringify(body) });
+    if (!resp.ok) throw new Error(`${resp.status}: ${(await resp.json().catch(() => ({})))?.detail || resp.statusText}`);
+    return resp.json();
+  }
+
+  async function apiDelete(path) {
+    const resp = await fetch(`${baseUrlEl.value.replace(/\/$/, "")}${path}`, { method: "DELETE", headers: headers() });
+    if (!resp.ok) throw new Error(`${resp.status}: ${(await resp.json().catch(() => ({})))?.detail || resp.statusText}`);
+    return resp.json();
+  }
+
+  async function refresh() {
+    statusLine.textContent = "Loading...";
+    try {
+      const [system, stats, keys] = await Promise.all([
+        apiGet("/v1/system"),
+        apiGet("/v1/admin/stats"),
+        apiGet("/v1/admin/keys"),
+      ]);
+
+      document.getElementById("stat-gpu").textContent = system.gpu?.available ? system.gpu.name : "None (CPU)";
+      document.getElementById("stat-ram").textContent = system.total_ram_mb ? `${(system.total_ram_mb / 1024).toFixed(1)} GB` : "—";
+      document.getElementById("stat-vram").textContent = system.gpu?.available ? `${system.gpu.free_vram_mb}/${system.gpu.total_vram_mb} MB` : "—";
+      document.getElementById("stat-disk").textContent = system.free_disk_mb ? `${(system.free_disk_mb / 1024).toFixed(1)} GB` : "—";
+
+      document.getElementById("stat-uptime").textContent = stats.uptime_seconds;
+      document.getElementById("stat-requests").textContent = stats.requests_recorded;
+      document.getElementById("stat-errors").textContent = stats.errors_recorded;
+      document.getElementById("stat-latency").textContent = stats.avg_latency_ms;
+
+      const tbody = document.querySelector("#keys-table tbody");
+      tbody.innerHTML = "";
+      for (const k of keys.keys) {
+        const tr = document.createElement("tr");
+        const created = new Date(k.created_at * 1000).toLocaleString();
+        tr.innerHTML = `<td>${k.label}</td><td>${k.key_id}</td><td>${created}</td><td>${k.revoked ? "revoked" : "active"}</td><td></td>`;
+        if (!k.revoked) {
+          const btn = document.createElement("button");
+          btn.textContent = "Revoke";
+          btn.className = "danger";
+          btn.onclick = async () => {
+            await apiDelete(`/v1/admin/keys/${k.key_id}`);
+            refresh();
+          };
+          tr.lastElementChild.appendChild(btn);
+        }
+        tbody.appendChild(tr);
+      }
+
+      statusLine.textContent = `Updated ${new Date().toLocaleTimeString()}`;
+    } catch (err) {
+      statusLine.textContent = `Error: ${err.message}`;
+    }
+  }
+
+  document.getElementById("refresh-btn").addEventListener("click", refresh);
+
+  document.getElementById("create-key-btn").addEventListener("click", async () => {
+    const label = document.getElementById("new-key-label").value.trim();
+    if (!label) return;
+    try {
+      const result = await apiPost("/v1/admin/keys", { label });
+      const box = document.getElementById("new-key-result");
+      box.style.display = "block";
+      box.textContent = `New key (shown once): ${result.api_key}`;
+      document.getElementById("new-key-label").value = "";
+      refresh();
+    } catch (err) {
+      statusLine.textContent = `Error: ${err.message}`;
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,31 @@
+services:
+  firewing-api:
+    build: .
+    image: firewing:1.0.0-beta
+    env_file: .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - firewing-models:/var/lib/firewing
+      - firewing-logs:/var/log/firewing
+      - ./configs:/app/configs:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 60s
+      retries: 3
+    restart: unless-stopped
+    # Uncomment for NVIDIA GPU passthrough (requires nvidia-container-toolkit
+    # on the host):
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+volumes:
+  firewing-models:
+  firewing-logs:
