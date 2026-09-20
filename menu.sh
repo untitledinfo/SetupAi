@@ -69,7 +69,9 @@ action_models() {
     echo "  2) Use a local checkpoint path"
     echo "  3) Attach/replace a LoRA adapter (your own fine-tune) on top of the current base model"
     echo "  4) Show current model config"
-    read -r -p "Choose [1-4]: " choice
+    echo "  5) Browse popular models on Hugging Face (no API key needed)"
+    echo "  6) Search Hugging Face by keyword (no API key needed)"
+    read -r -p "Choose [1-6]: " choice
 
     local py
     py="$(venv_python)"
@@ -96,6 +98,15 @@ action_models() {
             ;;
         4)
             (cd "${APP_DIR}" && "$py" -m setup_ai.cli.main --config "${CONFIG_FILE}" model info)
+            ;;
+        5)
+            read -r -p "How many to show [20]: " n
+            (cd "${APP_DIR}" && "$py" -m setup_ai.cli.main model list --limit "${n:-20}")
+            ;;
+        6)
+            read -r -p "Search keyword (e.g. qwen, llama, omni): " kw
+            [[ -z "$kw" ]] && { err "No keyword given."; return; }
+            (cd "${APP_DIR}" && "$py" -m setup_ai.cli.main model search "$kw")
             ;;
         *) err "Invalid choice." ;;
     esac

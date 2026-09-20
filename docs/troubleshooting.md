@@ -1,5 +1,46 @@
 # Troubleshooting & Known Beta Limitations
 
+## `ValueError: Unrecognized configuration class ... for this kind of AutoModel`
+
+This happened because the loader always called `AutoModelForCausalLM`,
+which cannot load multimodal/omni checkpoints like the default
+`Qwen/Qwen3-Omni-30B-A3B-Instruct` (its config class is
+`Qwen3OmniMoeConfig`, which needs `Qwen3OmniMoeForConditionalGeneration`
+instead). Fixed as of this release: `firewing/model/loader.py` now reads
+`config.architectures` from the checkpoint itself and tries the matching
+`transformers` class first, falling back through the generic multimodal
+Auto classes and finally `AutoModelForCausalLM` — so both plain
+text-only checkpoints and multimodal/omni ones load correctly.
+
+This checkpoint's support also requires a recent `transformers`:
+Qwen3-Omni support first shipped in **transformers 4.57.0**. If you
+still hit this error after updating this repo, run:
+
+```bash
+pip install -U "transformers>=4.57.0" qwen-omni-utils soundfile
+```
+
+(`requirements.txt` now pins these versions — a fresh `pip install -r
+requirements.txt` in your venv is usually all you need.)
+
+## Do I need a Hugging Face API key / token?
+
+No, not for the default setup. `HF_TOKEN` is **only** needed for two
+things: raising your Hugging Face download rate limit, and accessing
+gated/private repos. Every command in this project — `chat`,
+`model list`, `model search`, the first-run weight download — works
+against **public** models with no token and no login. The
+"unauthenticated requests" warning you see on first run is informational
+only, not an error.
+
+## Browsing/searching for models
+
+`setup-ai model list` and `setup-ai model search <keyword>` (menu.sh
+option 1 → 5/6) query the public Hugging Face Hub for model ids you can
+pass straight to `setup-ai model set --path <id>`. No API key required;
+set `HF_TOKEN` only if you want a higher rate limit or need a
+gated/private repo.
+
 ## "Model is not loaded yet" (503)
 
 Check `sudo journalctl -u firewing` or `docker compose logs` for a

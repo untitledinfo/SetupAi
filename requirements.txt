@@ -1,8 +1,20 @@
 # Core
 torch>=2.2
-transformers>=4.51
+# 4.57.0 is the first PyPI release with Qwen3-Omni support
+# (model_type "qwen3_omni_moe" / Qwen3OmniMoeForConditionalGeneration).
+# Older transformers can still load plain text models (Qwen2/Qwen3/Llama/...)
+# fine, but will crash on the default FIREWING model with:
+#   "Unrecognized configuration class ... for this kind of AutoModel"
+transformers>=4.57.0
 accelerate>=0.30
 pyyaml>=6.0
+huggingface_hub>=0.24   # used by `setup-ai model list` / `model search`
+
+# Multimodal (audio/video) support for the default Qwen3-Omni model.
+# Also requires the `ffmpeg` system package to be installed separately
+# (apt install ffmpeg / brew install ffmpeg).
+qwen-omni-utils>=0.0.8
+soundfile>=0.12
 
 # API
 fastapi>=0.110

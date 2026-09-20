@@ -22,7 +22,36 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+- `firewing/model/loader.py`: fixed `ValueError: Unrecognized
+  configuration class ... for this kind of AutoModel` when loading the
+  default Qwen3-Omni checkpoint. The loader now resolves the correct
+  `transformers` model class from `config.architectures` instead of
+  hard-coding `AutoModelForCausalLM`, with a fallback chain (exact
+  architecture class → generic multimodal Auto classes →
+  `AutoModelForCausalLM`) so both omni/multimodal and plain text
+  checkpoints load correctly. Also: `dtype=` is tried before the
+  deprecated `torch_dtype=` kwarg, and big/MoE checkpoints now load with
+  `device_map="auto"` instead of a manual `.to(device)`.
+- `requirements.txt`: bumped `transformers>=4.57.0` (first PyPI release
+  with Qwen3-Omni support) and added `qwen-omni-utils`, `soundfile`,
+  and `huggingface_hub` as explicit dependencies.
+- `install.sh`: installs `ffmpeg` (required by `qwen-omni-utils` for
+  audio/video input) alongside the existing system packages.
+
 ### Added
+- `setup-ai model list` / `setup-ai model search <keyword>` (and
+  menu.sh → option 1 → 5/6): browse or search public models on the
+  Hugging Face Hub and print their exact repo id, downloads, likes, and
+  gated status — no API key needed, since Hub listing/search is
+  anonymous for public repos. Feeds directly into
+  `setup-ai model set --path <id>`.
+- `setup-ai chat` now prints a best-effort hardware pre-flight warning
+  (VRAM/RAM vs. the configured model + quantization) before attempting
+  to load, instead of only discovering an OOM/slow-CPU situation
+  minutes into a first-run weight download.
+
+
 - **Multimodal (image) input**: OpenAI-vision-style content parts in
   chat messages, processor auto-loading with text-only fallback. See
   `docs/multimodal.md`. Not yet validated against real weights (no

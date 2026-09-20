@@ -114,7 +114,7 @@ detect_init_system() {
 # are missing — instead of blindly re-running the full requirements.txt
 # every time, or (the bug you hit) silently doing nothing and leaving you
 # with a bare venv.
-REQUIRED_MODULES=(yaml torch transformers fastapi uvicorn pydantic accelerate)
+REQUIRED_MODULES=(yaml torch transformers fastapi uvicorn pydantic accelerate huggingface_hub)
 module_to_pip_spec() {
     case "$1" in
         yaml) echo "pyyaml>=6.0" ;;
@@ -192,7 +192,7 @@ install_system_deps() {
     if ! apt-get update -y; then
         die "'apt-get update' failed. If this is an EOL Debian/Ubuntu base image, check its sources.list — see docs/troubleshooting.md ('apt-get 404 on security.debian.org / EOL base image')."
     fi
-    apt-get install -y python3 python3-venv python3-pip git curl ufw
+    apt-get install -y python3 python3-venv python3-pip git curl ufw ffmpeg
 }
 
 create_service_user() {
@@ -251,7 +251,7 @@ install_local() {
         log "Ensuring python3-venv/pip/git are installed..."
         fix_eol_debian_repos
         apt-get update -y || warn "'apt-get update' failed — continuing, this only matters if python3-venv/pip aren't already present."
-        apt-get install -y python3 python3-venv python3-pip git curl || warn "Some system packages failed to install — continuing if python3 already works."
+        apt-get install -y python3 python3-venv python3-pip git curl ffmpeg || warn "Some system packages failed to install — continuing if python3 already works."
     else
         warn "Not root or no apt-get available — skipping system package install. If 'python3 -m venv' fails below, install python3-venv yourself first."
     fi

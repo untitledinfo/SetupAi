@@ -31,11 +31,12 @@ BANNER = f"""\
 _PIP_SPEC = {
     "yaml": "pyyaml>=6.0",
     "torch": "torch>=2.2",
-    "transformers": "transformers>=4.51",
+    "transformers": "transformers>=4.57.0",
     "fastapi": "fastapi>=0.110",
     "uvicorn": "uvicorn[standard]>=0.29",
     "pydantic": "pydantic>=2.6",
     "accelerate": "accelerate>=0.30",
+    "huggingface_hub": "huggingface_hub>=0.24",
 }
 
 # Commands that need more than the base `yaml` config loader.
@@ -171,8 +172,78 @@ def cmd_model(args: argparse.Namespace) -> int:
         print("Restart the service to load it: sudo systemctl restart firewing")
         return 0
 
+    if action in ("list", "search"):
+        return cmd_model_browse(args)
+
     print(f"Unknown model action: {action}", file=sys.stderr)
     return 1
+
+
+def cmd_model_browse(args: argparse.Namespace) -> int:
+    """`setup-ai model list` / `setup-ai model search <query>`.
+
+    Browses public models on the Hugging Face Hub, showing each model's
+    id (the exact string to pass to `model set --path`), downloads, and
+    likes. This is a read-only, unauthenticated call — the Hub allows
+    anonymous listing/searching of *public* models with no HF_TOKEN and
+    no login; a token only raises your rate limit and is required for
+    gated/private repos, never for browsing.
+    """
+    try:
+        from huggingface_hub import HfApi
+    except ImportError:
+        print("Missing required package: huggingface_hub", file=sys.stderr)
+        print("Fix: pip install -U huggingface_hub", file=sys.stderr)
+        return 1
+
+    query = getattr(args, "query", None)
+    limit = getattr(args, "limit", None) or 20
+    task = getattr(args, "task", None)
+
+    kwargs: dict = {"limit": limit, "sort": "downloads"}
+    if query:
+        kwargs["search"] = query
+    if task:
+        kwargs["pipeline_tag"] = task
+    elif not query:
+        # With no search term and no task filter, default to chat/instruct
+        # text models so the list isn't dominated by unrelated classifiers.
+        kwargs["pipeline_tag"] = "text-generation"
+
+    label = "Browsing" if not query else f"Searching for {query!r}"
+    print(f"{label} on huggingface.co"
+          + (f" (pipeline_tag={task})" if task else "")
+          + " ... (public, no API key needed — set HF_TOKEN only for higher rate "
+            "limits or gated/private repos)")
+
+    api = HfApi()  # anonymous client — works for any public repo with no token
+    try:
+        results = list(api.list_models(**kwargs))
+    except Exception as exc:  # noqa: BLE001 — network/HTTP errors from the Hub client
+        print(f"Could not reach Hugging Face Hub: {exc}", file=sys.stderr)
+        print("Run 'setup-ai doctor' to check connectivity.", file=sys.stderr)
+        return 1
+
+    if not results:
+        print("No models found. Try a different --task or search term.")
+        return 0
+
+    print(f"\n{'MODEL ID':<55} {'DOWNLOADS':>10} {'LIKES':>6}  GATED")
+    print("-" * 82)
+    for m in results:
+        downloads = getattr(m, "downloads", None)
+        likes = getattr(m, "likes", None)
+        gated = getattr(m, "gated", False)
+        print(
+            f"{m.id:<55} "
+            f"{downloads if downloads is not None else '-':>10} "
+            f"{likes if likes is not None else '-':>6}  "
+            f"{'yes' if gated else 'no'}"
+        )
+    print("\nUse one of these with:")
+    print("  setup-ai model set --path <MODEL ID>")
+    print("(gated repos also need: huggingface-cli login, or export HF_TOKEN=...)")
+    return 0
 
 
 def _update_model_config(config_path: str | None, model_path: str | None, adapter_path: str | None) -> None:
@@ -195,6 +266,60 @@ def _update_model_config(config_path: str | None, model_path: str | None, adapte
 
     with open(path, "w", encoding="utf-8") as fh:
         yaml.safe_dump(data, fh, sort_keys=False)
+
+
+# Rough total-weight sizes (GB) for models FIREWING ships/documents by
+# default, keyed by lowercased repo id -> {dtype-or-quantization: GB}. Best
+# effort only: used to print an early, actionable heads-up instead of
+# letting a 30B+ model silently OOM (or crawl on CPU) several minutes into
+# a first-run weight download.
+_KNOWN_MODEL_VRAM_GB = {
+    "qwen/qwen3-omni-30b-a3b-instruct": {"bfloat16": 62, "float16": 62, "float32": 124, "int8": 32, "int4": 18},
+    "qwen/qwen3-omni-30b-a3b-thinking": {"bfloat16": 62, "float16": 62, "float32": 124, "int8": 32, "int4": 18},
+    "qwen/qwen3-omni-30b-a3b-captioner": {"bfloat16": 62, "float16": 62, "float32": 124, "int8": 32, "int4": 18},
+}
+
+
+def _maybe_warn_hardware(model_cfg) -> None:
+    """Best-effort pre-flight check: warn (never block) if the configured
+    model likely won't fit on this machine's GPU/RAM, and suggest concrete
+    fixes (quantization, or a smaller model via `setup-ai model search`).
+    """
+    try:
+        from firewing.model.loader import _resolve_device, _resolve_dtype
+        from firewing.utils.system_info import get_system_info
+
+        info = get_system_info()
+        device = _resolve_device(model_cfg.device)
+        dtype = _resolve_dtype(model_cfg.dtype, device)
+        needed_gb = _KNOWN_MODEL_VRAM_GB.get(model_cfg.model_path.lower(), {}).get(
+            model_cfg.quantization or dtype
+        )
+        if needed_gb is None:
+            return
+
+        if device.startswith("cuda") and info.gpu.available and info.gpu.free_vram_mb:
+            free_gb = info.gpu.free_vram_mb / 1024
+            if free_gb < needed_gb:
+                print(
+                    f"Heads up: {model_cfg.model_path} needs roughly {needed_gb} GB of VRAM at "
+                    f"{model_cfg.quantization or dtype}, but only ~{free_gb:.1f} GB free was "
+                    "detected on this GPU. It may fail with an out-of-memory error. Try: set "
+                    "'quantization: int4' in configs/firewing.yaml, or pick a smaller model with "
+                    "'setup-ai model search <keyword>'."
+                )
+        elif not device.startswith("cuda") and info.total_ram_mb:
+            ram_gb = info.total_ram_mb / 1024
+            if ram_gb < needed_gb:
+                print(
+                    f"Heads up: {model_cfg.model_path} needs roughly {needed_gb} GB of RAM to run "
+                    f"on CPU at {model_cfg.quantization or dtype}, but only ~{ram_gb:.1f} GB total "
+                    "RAM was detected. This will likely be extremely slow or fail. Try: set "
+                    "'quantization: int4', or pick a smaller model with 'setup-ai model search "
+                    "<keyword>'."
+                )
+    except Exception:  # noqa: BLE001 — this check must never block chat from starting
+        pass
 
 
 def cmd_chat(args: argparse.Namespace) -> int:
@@ -221,6 +346,8 @@ def cmd_chat(args: argparse.Namespace) -> int:
     print(f"Loading model: {settings.model.model_path}"
           + (f" + adapter {settings.model.adapter_path}" if settings.model.adapter_path else "")
           + " ... (first run downloads the weights and can take a while)")
+    _maybe_warn_hardware(settings.model)
+
     try:
         loaded = load_model(settings.model)
     except ModelLoadError as exc:
@@ -405,7 +532,21 @@ def build_parser() -> argparse.ArgumentParser:
     model_upgrade = model_sub.add_parser("upgrade", help="Upgrade/replace the served base model")
     model_upgrade.add_argument("--path", help="HF repo id or local path for the new base model")
     model_upgrade.add_argument("--adapter", help="Path to a trained LoRA adapter to keep applied")
-    for p in (model_parser, model_info, model_show, model_set, model_upgrade):
+    model_list = model_sub.add_parser(
+        "list", help="Browse popular public models on the Hugging Face Hub (no API key needed)"
+    )
+    model_list.add_argument("--limit", type=int, default=20, help="Max results to show (default 20)")
+    model_list.add_argument(
+        "--task", default=None,
+        help="Filter by HF pipeline_tag, e.g. text-generation, image-text-to-text, any-to-any",
+    )
+    model_search = model_sub.add_parser(
+        "search", help="Search the Hugging Face Hub by keyword (no API key needed)"
+    )
+    model_search.add_argument("query", help="Keyword to search for, e.g. qwen, llama, omni")
+    model_search.add_argument("--limit", type=int, default=20, help="Max results to show (default 20)")
+    model_search.add_argument("--task", default=None, help="Filter by HF pipeline_tag")
+    for p in (model_parser, model_info, model_show, model_set, model_upgrade, model_list, model_search):
         p.set_defaults(func=cmd_model)
 
     return parser
