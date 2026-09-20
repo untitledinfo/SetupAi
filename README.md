@@ -81,7 +81,8 @@ sudo bash menu.sh
 5) SSL / HTTPS Install
 6) API
 7) Database
-8) Exit
+8) Chat with Terminal AI (hi -> thinking -> reply, fully working test)
+9) Exit
 ```
 
 `menu.sh` shells out to `install.sh`, `uninstall.sh`, the `setup-ai`

@@ -11,7 +11,11 @@ import subprocess
 import sys
 
 from firewing import MODEL_NAME, __version__
-from firewing.config.settings import load_settings
+# NOTE: firewing.config.settings imports `yaml`, and cmd_chat's imports pull
+# in torch/transformers/fastapi. Those are NOT imported at module level here
+# on purpose — a bare venv (no `pip install -r requirements.txt` yet) must
+# still be able to run `setup-ai --help` and `setup-ai doctor` without a
+# raw ModuleNotFoundError traceback. See _missing_deps_for() + main().
 
 
 BANNER = f"""\
@@ -20,6 +24,50 @@ BANNER = f"""\
         {MODEL_NAME}
 ========================================
 """
+
+# Every package requirements.txt installs that at least one subcommand
+# needs, mapped to (import name -> pip spec) so a clean message can name
+# the exact fix instead of just "something is missing".
+_PIP_SPEC = {
+    "yaml": "pyyaml>=6.0",
+    "torch": "torch>=2.2",
+    "transformers": "transformers>=4.51",
+    "fastapi": "fastapi>=0.110",
+    "uvicorn": "uvicorn[standard]>=0.29",
+    "pydantic": "pydantic>=2.6",
+    "accelerate": "accelerate>=0.30",
+}
+
+# Commands that need more than the base `yaml` config loader.
+_EXTRA_DEPS = {
+    "chat": ["torch", "transformers"],
+    "config": [],
+    "model": [],
+}
+
+
+def _missing_deps_for(command: str) -> list[str]:
+    needed = ["yaml"] + _EXTRA_DEPS.get(command, [])
+    missing = []
+    for mod in needed:
+        try:
+            __import__(mod)
+        except ImportError:
+            missing.append(mod)
+    return missing
+
+
+def _dep_error(missing: list[str]) -> None:
+    print(f"Missing required package(s): {', '.join(missing)}", file=sys.stderr)
+    print(file=sys.stderr)
+    print("Fix:", file=sys.stderr)
+    print("  pip install -r requirements.txt", file=sys.stderr)
+    print(file=sys.stderr)
+    print("If you haven't set up a virtual environment yet:", file=sys.stderr)
+    print("  python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt", file=sys.stderr)
+    print(file=sys.stderr)
+    print("Or let the installer verify/fix this for you: sudo bash install.sh (works in containers too — it", file=sys.stderr)
+    print("auto-detects no systemd and falls back to a local venv install instead of failing).", file=sys.stderr)
 
 
 def cmd_doctor(_args: argparse.Namespace) -> int:
@@ -36,11 +84,37 @@ def cmd_doctor(_args: argparse.Namespace) -> int:
         print(f"GPU:           {info.gpu.name} ({info.gpu.free_vram_mb}/{info.gpu.total_vram_mb} MB free)")
         print(f"CUDA:          {info.gpu.cuda_version or 'unknown'}")
     else:
-        print("GPU:           none detected (CPU-only inference)")
+        print("GPU:           none detected (CPU-only inference — the 30B base model will be very slow)")
+
+    print()
+    print("Python packages:")
+    for mod, spec in _PIP_SPEC.items():
+        try:
+            __import__(mod)
+            print(f"  [ok]      {mod}")
+        except ImportError:
+            print(f"  [missing] {mod}   (pip install '{spec}')")
+
+    print()
+    print("Config files:")
+    for path in ("configs/firewing.yaml", ".env"):
+        print(f"  [{'ok' if __import__('os').path.exists(path) else 'MISSING'}]  {path}")
+
+    print()
+    print("Internet reachability (huggingface.co, for downloading model weights):")
+    import socket
+
+    try:
+        socket.create_connection(("huggingface.co", 443), timeout=3).close()
+        print("  [ok]      reachable")
+    except OSError as exc:
+        print(f"  [no]      not reachable ({exc}) — offline is fine only if the model is already cached locally")
     return 0
 
 
 def cmd_config(args: argparse.Namespace) -> int:
+    from firewing.config.settings import load_settings
+
     settings = load_settings(args.config)
     print(f"model_path:  {settings.model.model_path}")
     print(f"device:      {settings.model.device}")
@@ -52,10 +126,11 @@ def cmd_config(args: argparse.Namespace) -> int:
 
 def cmd_model(args: argparse.Namespace) -> int:
     from firewing import UPSTREAM_BASE_MODEL, UPSTREAM_LICENSE
+    from firewing.config.settings import load_settings
 
     action = getattr(args, "model_action", None) or "info"
 
-    if action == "info":
+    if action in ("info", "show"):
         settings = load_settings(args.config)
         print(f"Upstream base: {UPSTREAM_BASE_MODEL}")
         print(f"License:       {UPSTREAM_LICENSE}")
@@ -123,6 +198,17 @@ def _update_model_config(config_path: str | None, model_path: str | None, adapte
 
 
 def cmd_chat(args: argparse.Namespace) -> int:
+    import os as _os
+
+    if getattr(args, "offline", False):
+        # Tell huggingface_hub/transformers not to make any network calls —
+        # only use what's already cached under ~/.cache/huggingface. This is
+        # the "run locally, no internet needed" mode: it only works once the
+        # model has been downloaded at least once with a network connection.
+        _os.environ["HF_HUB_OFFLINE"] = "1"
+        _os.environ["TRANSFORMERS_OFFLINE"] = "1"
+        print("(offline mode: will only use already-cached model files, no network calls)")
+
     from firewing.config.settings import load_settings
     from firewing.model.loader import load_model, ModelLoadError
     from firewing.inference.engine import InferenceEngine, GenerationParams
@@ -132,10 +218,16 @@ def cmd_chat(args: argparse.Namespace) -> int:
 
     print(BANNER)
     settings = load_settings(args.config)
+    print(f"Loading model: {settings.model.model_path}"
+          + (f" + adapter {settings.model.adapter_path}" if settings.model.adapter_path else "")
+          + " ... (first run downloads the weights and can take a while)")
     try:
         loaded = load_model(settings.model)
     except ModelLoadError as exc:
         print(f"Failed to load model: {exc}", file=sys.stderr)
+        if not getattr(args, "offline", False):
+            print("If you're offline or Hugging Face is unreachable, this is expected — "
+                  "run 'setup-ai doctor' to check connectivity.", file=sys.stderr)
         return 1
 
     engine = InferenceEngine(loaded, settings.model.max_context_tokens, settings.model.context_strategy)
@@ -147,6 +239,20 @@ def cmd_chat(args: argparse.Namespace) -> int:
         print(f"(tool calling enabled: {', '.join(t['function']['name'] for t in tool_registry.schemas())})")
 
     print("Type 'exit' to quit.\n")
+
+    if getattr(args, "self_test", False):
+        # Prove the pipeline is actually working end to end — send a fixed
+        # "hi", show the same thinking indicator + streamed reply the
+        # interactive loop uses, then fall through into the normal REPL.
+        print("You: hi   (automatic self-test)")
+        conversation.add_user("hi")
+        params = GenerationParams(temperature=persona.temperature, top_p=persona.top_p)
+        if tool_registry:
+            _run_turn_with_tools(engine, conversation, params, tool_registry)
+        else:
+            _run_turn_streaming(engine, conversation, params)
+        print(f"Self-test passed — {MODEL_NAME} is loaded and replying. Continuing to chat below.\n")
+
     while True:
         try:
             user_input = input("You: ")
@@ -167,11 +273,23 @@ def cmd_chat(args: argparse.Namespace) -> int:
 
 
 def _run_turn_streaming(engine, conversation, params) -> None:
-    print(f"\n{MODEL_NAME}: ", end="", flush=True)
-    reply_parts = []
+    thinking_label = f"\n{MODEL_NAME} is thinking..."
+    print(thinking_label, end="", flush=True)
+    reply_parts: list[str] = []
+    first = True
     for chunk in engine.stream(conversation, params):
+        if first:
+            # First real token is ready — clear the "thinking..." line and
+            # start printing the actual reply in its place.
+            print("\r" + " " * len(thinking_label) + "\r", end="")
+            print(f"{MODEL_NAME}: ", end="", flush=True)
+            first = False
         print(chunk, end="", flush=True)
         reply_parts.append(chunk)
+    if first:
+        # Model produced no tokens at all (immediate EOS / max_tokens=0).
+        print("\r" + " " * len(thinking_label) + "\r", end="")
+        print(f"{MODEL_NAME}: (empty response — check max_tokens / the model checkpoint)", end="")
     print("\n")
     conversation.add_assistant("".join(reply_parts))
 
@@ -184,15 +302,19 @@ def _run_turn_with_tools(engine, conversation, params, tool_registry, max_hops: 
     """
     tools = tool_registry.schemas()
     for _ in range(max_hops):
+        thinking_label = f"\n{MODEL_NAME} is thinking..."
+        print(thinking_label, end="", flush=True)
         result = engine.generate(conversation, params, tools=tools)
+        print("\r" + " " * len(thinking_label) + "\r", end="")
+
         if not result.tool_calls:
-            print(f"\n{MODEL_NAME}: {result.text}\n")
+            print(f"{MODEL_NAME}: {result.text}\n")
             conversation.add_assistant(result.text)
             return
 
         conversation.add_assistant(result.text or "")
         for call in result.tool_calls:
-            print(f"\n[calling tool: {call.name}({call.arguments})]")
+            print(f"[calling tool: {call.name}({call.arguments})]")
             tool_result = tool_registry.execute(call)
             print(f"[tool result: {tool_result}]")
             conversation.add_tool_result(call.id, call.name, tool_result)
@@ -255,23 +377,35 @@ def build_parser() -> argparse.ArgumentParser:
         ("update", cmd_update),
         ("config", cmd_config),
         ("doctor", cmd_doctor),
-        ("chat", cmd_chat),
     ]:
         p = sub.add_parser(name)
         p.set_defaults(func=func)
 
-    # `model` has sub-actions (info | set | upgrade) instead of separate
+    chat_parser = sub.add_parser("chat", help="Interactive REPL against the local model")
+    chat_parser.add_argument(
+        "--offline", action="store_true",
+        help="Don't contact Hugging Face at all — use only what's already cached locally",
+    )
+    chat_parser.add_argument(
+        "--self-test", action="store_true", dest="self_test",
+        help="Send a fixed 'hi' first, show thinking + reply, then continue into the normal REPL "
+             "— proves the model is actually loaded and generating before you type anything",
+    )
+    chat_parser.set_defaults(func=cmd_chat)
+
+    # `model` has sub-actions (info/show | set | upgrade) instead of separate
     # top-level commands, since they all operate on the same config field.
     model_parser = sub.add_parser("model", help="Inspect or change the served base model / LoRA adapter")
     model_sub = model_parser.add_subparsers(dest="model_action")
     model_info = model_sub.add_parser("info", help="Show the currently configured model (default)")
+    model_show = model_sub.add_parser("show", help="Alias for 'info'")
     model_set = model_sub.add_parser("set", help="Point FIREWING at a different base model and/or LoRA adapter")
     model_set.add_argument("--path", help="HF repo id or local path for the base model")
     model_set.add_argument("--adapter", help="Path to a trained LoRA adapter (see docs/training.md)")
     model_upgrade = model_sub.add_parser("upgrade", help="Upgrade/replace the served base model")
     model_upgrade.add_argument("--path", help="HF repo id or local path for the new base model")
     model_upgrade.add_argument("--adapter", help="Path to a trained LoRA adapter to keep applied")
-    for p in (model_parser, model_info, model_set, model_upgrade):
+    for p in (model_parser, model_info, model_show, model_set, model_upgrade):
         p.set_defaults(func=cmd_model)
 
     return parser
@@ -280,6 +414,12 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
+
+    missing = _missing_deps_for(args.command)
+    if missing:
+        _dep_error(missing)
+        return 1
+
     return args.func(args)
 
 

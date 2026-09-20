@@ -314,6 +314,32 @@ action_database() {
 }
 
 # ---------------------------------------------------------------------------
+# 8. Chat with Terminal AI — proves the pipeline is actually working
+#    (sends "hi", shows a thinking indicator, shows the real streamed
+#    reply) then drops you straight into the normal interactive REPL.
+# ---------------------------------------------------------------------------
+action_chat_test() {
+    local py
+    py="$(venv_python)"
+    if [[ ! -x "$py" ]]; then
+        err "No Python found. Run option 0 (install) first — it creates the venv and installs torch/transformers."
+        return
+    fi
+    if ! "$py" -c "import torch, transformers" &>/dev/null; then
+        warn "torch/transformers aren't installed yet in this venv."
+        read -r -p "Install requirements.txt now? [y/N] " r
+        if [[ "$r" =~ ^[Yy]$ ]]; then
+            (cd "${APP_DIR}" && "$py" -m pip install -r requirements.txt)
+        else
+            err "Can't chat without torch/transformers. Run option 0 or 'pip install -r requirements.txt'."
+            return
+        fi
+    fi
+    log "Sending a test message ('hi') to confirm FIREWING loads and replies, then handing off to interactive chat..."
+    (cd "${APP_DIR}" && "$py" -m setup_ai.cli.main --config "${CONFIG_FILE}" chat --self-test)
+}
+
+# ---------------------------------------------------------------------------
 main_menu() {
     while true; do
         cat <<'EOF'
@@ -329,9 +355,10 @@ main_menu() {
   5) SSL / HTTPS Install
   6) API
   7) Database
-  8) Exit
+  8) Chat with Terminal AI (hi -> thinking -> reply, fully working test)
+  9) Exit
 EOF
-        read -r -p "Choose an option [0-8]: " opt
+        read -r -p "Choose an option [0-9]: " opt
         case "$opt" in
             0) action_install ;;
             1) action_models ;;
@@ -341,7 +368,8 @@ EOF
             5) action_ssl ;;
             6) action_api ;;
             7) action_database ;;
-            8) exit 0 ;;
+            8) action_chat_test ;;
+            9) exit 0 ;;
             *) err "Invalid option." ;;
         esac
         pause

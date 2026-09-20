@@ -10,6 +10,7 @@ setup-ai update     # pull + reinstall + restart (placeholder — wire to your d
 setup-ai config     # print resolved configuration
 setup-ai doctor     # hardware/environment check (OS, CPU, RAM, GPU, CUDA, disk, Docker)
 setup-ai chat        # interactive REPL against the local model
+setup-ai chat --self-test    # sends "hi" first, shows thinking + reply, then continues to the REPL
 setup-ai --version
 setup-ai --config <path>   # use a specific config file for any subcommand
 
@@ -47,7 +48,8 @@ sudo systemctl restart firewing   # apply the change
 For anyone who'd rather click through numbered options than remember
 subcommands, the repo root also ships `menu.sh`, a single entry point
 covering install, model management, uninstall, domain/DNS + SSL setup,
-local chat, API key management, and the database:
+local chat, API key management, the database, and a one-shot chat
+self-test:
 
 ```bash
 git clone https://github.com/untitledinfo/SetupAi.git
@@ -64,7 +66,8 @@ sudo bash menu.sh
 5) SSL / HTTPS Install
 6) API
 7) Database
-8) Exit
+8) Chat with Terminal AI (hi -> thinking -> reply, fully working test)
+9) Exit
 ```
 
 Every option shells out to a real, readable command (`install.sh`,
@@ -72,3 +75,12 @@ Every option shells out to a real, readable command (`install.sh`,
 Cloudflare API) — nothing is hidden, so it's worth reading `menu.sh`
 once before running it against a production box. See
 [Installation](installation.md) for what each underlying step does.
+
+Option 8 (**Chat with Terminal AI**) is the fastest way to confirm the
+whole pipeline actually works after an install or a model change: it
+sends a fixed `hi`, shows the same "thinking..." indicator and live
+streamed reply the normal REPL uses, prints "Self-test passed" once a
+real reply came back, then hands off straight into normal interactive
+chat — so if it prints a reply, chat is fully working; if it errors,
+you get the same actionable message `setup-ai chat` would (missing
+deps, or a model load failure) instead of guessing.
