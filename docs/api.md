@@ -33,9 +33,18 @@ Request:
   "top_p": 0.9,
   "max_tokens": 1024,
   "stream": false,
-  "persona": "default"
+  "persona": "default",
+  "tools": null,
+  "tool_choice": null
 }
 ```
+
+`messages[].content` accepts either a plain string or a list of
+OpenAI-vision-style content parts (`{"type": "text", ...}` /
+`{"type": "image_url", "image_url": {"url": "..."}}`) — see
+[Multimodal Input](multimodal.md). `tools` follows the OpenAI function
+schema — see [Function / Tool Calling](tool-calling.md) (note:
+`tools` + `stream: true` together return 400 in this beta).
 
 Non-streaming response:
 ```json
@@ -51,6 +60,12 @@ Non-streaming response:
 
 Streaming (`"stream": true`): Server-Sent Events, `data: <chunk>` per
 token/segment, terminated by `data: [DONE]`.
+
+## Persistent conversations (authenticated)
+
+See [Persistent Conversations](conversations.md) for the full
+`/v1/conversations` API (create/list/get/delete, and
+`POST /v1/conversations/{id}/messages` for server-held chat history).
 
 ## Admin API (requires `FIREWING_ADMIN_KEY`, not a regular API key)
 

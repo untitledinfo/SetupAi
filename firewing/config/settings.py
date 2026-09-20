@@ -31,6 +31,8 @@ class ModelConfig:
     trust_remote_code: bool = True  # required by some HF omni architectures
     adapter_path: str | None = None  # optional path to a trained LoRA adapter (see docs/training.md)
     context_strategy: str = "drop"  # "drop" | "summarize" — see firewing/inference/context.py
+    enable_multimodal: bool = True  # attempt to load an AutoProcessor for image input
+    enable_tool_calling: bool = True  # parse <tool_call> tags in model output
 
 
 @dataclass

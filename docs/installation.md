@@ -10,13 +10,28 @@
 ## Option A: git clone + install.sh (recommended)
 
 ```bash
-git clone <repository>   # replace with your actual repo URL — none is published yet
-cd setup-ai
+git clone https://github.com/untitledinfo/SetupAi.git
+cd SetupAi/setup-ai
 sudo bash install.sh
 ```
 
 This creates a dedicated `firewing` system user, a Python virtualenv
 under `/opt/firewing`, a systemd service, and default config files.
+
+## Option A2: the interactive menu
+
+Prefer a menu over remembering commands? `menu.sh` wraps `install.sh`,
+model management, `uninstall.sh`, domain/DNS + SSL setup, local chat,
+API key management, and the database behind one numbered prompt:
+
+```bash
+git clone https://github.com/untitledinfo/SetupAi.git
+cd SetupAi/setup-ai
+sudo bash menu.sh
+```
+
+See [CLI Reference → Interactive menu](cli.md#interactive-menu-menush)
+for the full option list and what each one does.
 
 ## Option B: manual / local development
 

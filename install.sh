@@ -2,14 +2,18 @@
 # Setup AI / FIREWING 1.0 BETA installer for Ubuntu 22.04 / 24.04 LTS.
 #
 # Usage:
-#   git clone <repository>       # replace with your actual repo URL
-#   cd setup-ai
-#   bash install.sh
+#   git clone https://github.com/untitledinfo/SetupAi.git
+#   cd SetupAi/setup-ai
+#   sudo bash install.sh
 #
-# There is currently no hosted curl-pipe installer — no
-# `curl -fsSL https://.../install.sh | bash` — because no public
-# download URL exists yet for this project. Use git clone above, or
-# publish install.sh at a URL you control and update this comment.
+# There is intentionally no curl-pipe installer — this script needs
+# root and touches system state (users, systemd, firewall), so review
+# it from a clone rather than piping it blind from a URL.
+#
+# Related scripts in this same directory:
+#   sudo bash menu.sh       interactive menu covering install, models,
+#                           uninstall, domain/SSL, chat, API keys, DB
+#   sudo bash uninstall.sh  reverses everything this script does
 
 set -euo pipefail
 

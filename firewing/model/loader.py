@@ -29,6 +29,11 @@ class LoadedModel:
     device: str
     dtype: str
     quantization: str | None
+    processor: Any = None  # AutoProcessor, only set if multimodal loading succeeds
+
+    @property
+    def supports_multimodal(self) -> bool:
+        return self.processor is not None
 
 
 def _resolve_device(requested: str) -> str:
@@ -50,8 +55,31 @@ def _resolve_dtype(requested: str, device: str) -> str:
     return "bfloat16" if device.startswith("cuda") else "float32"
 
 
+def _try_load_processor(model_path: str, trust_remote_code: bool) -> Any:
+    """Best-effort load of an AutoProcessor for multimodal (image/audio)
+    input handling. Qwen3-Omni ships a processor for this; if it's
+    unavailable (e.g. a text-only checkpoint, or the installed
+    `transformers` version doesn't support this architecture's
+    processor yet), FIREWING degrades to text-only rather than failing
+    the whole model load over it.
+    """
+    try:
+        from transformers import AutoProcessor
+
+        return AutoProcessor.from_pretrained(model_path, trust_remote_code=trust_remote_code)
+    except Exception as exc:  # noqa: BLE001 — deliberately broad, this is a soft-fail path
+        logger.warning(
+            "Could not load multimodal processor for %s (%s). "
+            "Falling back to text-only mode.",
+            model_path,
+            exc,
+        )
+        return None
+
+
 def load_model(config: ModelConfig) -> LoadedModel:
-    """Load the base model + tokenizer according to `config`.
+    """Load the base model + tokenizer (+ processor, if available)
+    according to `config`.
 
     Raises ModelLoadError with a clear, actionable message on failure
     rather than letting an opaque exception from `transformers` bubble
@@ -127,10 +155,15 @@ def load_model(config: ModelConfig) -> LoadedModel:
                 f"Could not load adapter from '{config.adapter_path}': {exc}"
             ) from exc
 
+    processor = None
+    if config.enable_multimodal:
+        processor = _try_load_processor(config.model_path, config.trust_remote_code)
+
     return LoadedModel(
         model=model,
         tokenizer=tokenizer,
         device=device,
         dtype=dtype,
         quantization=config.quantization,
+        processor=processor,
     )

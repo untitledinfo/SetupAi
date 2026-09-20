@@ -8,10 +8,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from firewing.config.settings import load_settings
-from firewing.api.routes import health, chat
+from firewing.api.routes import health, chat, conversations
 from firewing.api.admin import routes as admin_routes
 from firewing.api.security.rate_limit import RateLimiter
 from firewing.api.security.key_store import KeyStore
+from firewing.inference.conversation_store import ConversationStore
 from firewing.model.loader import load_model, ModelLoadError
 from firewing.inference.engine import InferenceEngine
 from firewing.utils.logging import configure_logging, get_logger
@@ -50,6 +51,7 @@ def create_app(config_path: str | None = None, lazy_load_model: bool = False) ->
     app.state.rate_limiter = RateLimiter(settings.api.rate_limit_requests_per_minute)
     app.state.engine = None
     app.state.key_store = KeyStore(f"{settings.data_dir}/api_keys.json")
+    app.state.conversation_store = ConversationStore(f"{settings.data_dir}/conversations.db")
     app.state.stats_tracker = StatsTracker()
 
     if settings.api.cors_allowed_origins:
@@ -77,6 +79,7 @@ def create_app(config_path: str | None = None, lazy_load_model: bool = False) ->
 
     app.include_router(health.router)
     app.include_router(chat.router)
+    app.include_router(conversations.router)
     app.include_router(admin_routes.router)
 
     return app

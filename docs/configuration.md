@@ -17,6 +17,8 @@ FIREWING loads settings in this order (later overrides earlier):
 | `model.max_context_tokens` | `FIREWING_MODEL_MAX_CONTEXT_TOKENS` | `32768` | |
 | `model.adapter_path` | `FIREWING_MODEL_ADAPTER_PATH` | `null` | Path to a trained LoRA adapter — see `docs/training.md` |
 | `model.context_strategy` | `FIREWING_MODEL_CONTEXT_STRATEGY` | `drop` | `drop` or `summarize` — see `firewing/inference/context.py` |
+| `model.enable_multimodal` | `FIREWING_MODEL_ENABLE_MULTIMODAL` | `true` | Attempt to load an image processor at startup |
+| `model.enable_tool_calling` | `FIREWING_MODEL_ENABLE_TOOL_CALLING` | `true` | Used by `setup-ai chat`'s built-in tool demo; the API always accepts `tools` regardless of this flag |
 | `api.port` | `FIREWING_API_PORT` | `8000` | |
 | `api.require_api_key` | `FIREWING_API_REQUIRE_API_KEY` | `true` | Keys themselves come from `FIREWING_API_KEYS`, not this file |
 | `api.rate_limit_requests_per_minute` | `FIREWING_API_RATE_LIMIT_REQUESTS_PER_MINUTE` | `60` | Per API key |

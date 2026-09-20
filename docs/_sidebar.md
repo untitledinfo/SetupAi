@@ -18,6 +18,12 @@
   - [CLI](cli.md)
   - [Model Card](model-card.md)
 
+- Features
+
+  - [Multimodal Input](multimodal.md)
+  - [Function / Tool Calling](tool-calling.md)
+  - [Persistent Conversations](conversations.md)
+
 - Model
 
   - [Fine-Tuning](training.md)

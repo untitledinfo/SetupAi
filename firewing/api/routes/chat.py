@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import time
 import uuid
 
@@ -11,10 +12,12 @@ from firewing.api.schemas.chat import (
     ChatCompletionResponse,
     ChatCompletionChoice,
     ChatMessage,
+    ToolCallOut,
 )
 from firewing.api.security.auth import require_api_key
 from firewing.inference.conversation import Conversation
 from firewing.inference.engine import GenerationParams
+from firewing.inference.multimodal import MultimodalError
 from firewing.inference.personas import load_personas
 from firewing.utils.logging import get_logger
 
@@ -44,6 +47,45 @@ async def chat_completions(
             ),
         )
 
+    if body.tools and body.stream:
+        # Tool-call parsing needs the complete response (see
+        # InferenceEngine.stream's docstring) — reject the combination
+        # up front with a clear message rather than silently ignoring
+        # tool calls embedded in a stream.
+        stats.record((time.perf_counter() - start_time) * 1000, "error")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="tools + stream=true is not supported in this beta; set stream=false when using tools.",
+        )
+
+    personas = load_personas()
+    persona = personas.get(body.persona or "default", personas["default"])
+
+    conversation = Conversation(system_prompt=persona.system_prompt)
+    try:
+        for m in body.messages:
+            content = [p.model_dump(exclude_none=True) for p in m.content] if isinstance(m.content, list) else m.content
+            if m.role == "user":
+                conversation.add_user(content)
+            elif m.role == "assistant":
+                conversation.add_assistant(content)
+            elif m.role == "tool":
+                if not m.tool_call_id:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="role=tool messages require tool_call_id",
+                    )
+                conversation.add_tool_result(m.tool_call_id, m.name or "", content or "")
+            elif m.role == "system":
+                # explicit "system" messages in the request override the persona
+                conversation.system_prompt = content
+    except MultimodalError as exc:
+        stats.record((time.perf_counter() - start_time) * 1000, "error")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    except HTTPException:
+        stats.record((time.perf_counter() - start_time) * 1000, "error")
+        raise
+
     engine = request.app.state.engine
     if engine is None:
         stats.record((time.perf_counter() - start_time) * 1000, "error")
@@ -52,24 +94,15 @@ async def chat_completions(
             detail="Model is not loaded yet",
         )
 
-    personas = load_personas()
-    persona = personas.get(body.persona or "default", personas["default"])
-
-    conversation = Conversation(system_prompt=persona.system_prompt)
-    for m in body.messages:
-        if m.role == "user":
-            conversation.add_user(m.content)
-        elif m.role == "assistant":
-            conversation.add_assistant(m.content)
-        # explicit "system" messages in the request override the persona
-        elif m.role == "system":
-            conversation.system_prompt = m.content
-
     params = GenerationParams(
         temperature=body.temperature, top_p=body.top_p, max_tokens=body.max_tokens
     )
+    tools = [t.model_dump() for t in body.tools] if body.tools else None
 
-    logger.info("chat request_id=%s stream=%s persona=%s", request_id, body.stream, persona.name)
+    logger.info(
+        "chat request_id=%s stream=%s persona=%s tools=%s",
+        request_id, body.stream, persona.name, bool(tools),
+    )
 
     if body.stream:
         def event_stream():
@@ -85,20 +118,38 @@ async def chat_completions(
         return StreamingResponse(event_stream(), media_type="text/event-stream")
 
     try:
-        text = engine.generate(conversation, params)
+        result = engine.generate(conversation, params, tools=tools)
+    except MultimodalError as exc:
+        stats.record((time.perf_counter() - start_time) * 1000, "error")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     except Exception:
         stats.record((time.perf_counter() - start_time) * 1000, "error")
         raise
 
     stats.record((time.perf_counter() - start_time) * 1000, "success")
+
+    tool_calls_out = None
+    if result.tool_calls:
+        tool_calls_out = [
+            ToolCallOut(
+                id=tc.id,
+                function={"name": tc.name, "arguments": json.dumps(tc.arguments)},
+            ).model_dump()
+            for tc in result.tool_calls
+        ]
+
     return ChatCompletionResponse(
         id=request_id,
         model=body.model,
         choices=[
             ChatCompletionChoice(
                 index=0,
-                message=ChatMessage(role="assistant", content=text),
-                finish_reason="stop",
+                message=ChatMessage(
+                    role="assistant",
+                    content=result.text or None,
+                    tool_calls=tool_calls_out,
+                ),
+                finish_reason=result.finish_reason,
             )
         ],
     )

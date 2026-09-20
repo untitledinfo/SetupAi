@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import Callable
 
-from firewing.inference.conversation import Conversation, Message
+from firewing.inference.conversation import Conversation, Message, content_to_text
 
 SummarizerFn = Callable[[str], str]
 
@@ -33,7 +33,7 @@ def trim_by_summarizing(
     budget. Recent turns are always kept verbatim — summarization only
     touches history the model has already "moved past".
     """
-    rendered = "\n".join(m.content for m in conversation.messages)
+    rendered = "\n".join(content_to_text(m.content) for m in conversation.messages)
     system_len = count_tokens_fn(conversation.system_prompt) if conversation.system_prompt else 0
     if count_tokens_fn(rendered) + system_len <= max_tokens:
         return
@@ -47,7 +47,7 @@ def trim_by_summarizing(
     to_summarize = conversation.messages[:-keep_recent_turns]
     recent = conversation.messages[-keep_recent_turns:]
 
-    transcript = "\n".join(f"{m.role}: {m.content}" for m in to_summarize)
+    transcript = "\n".join(f"{m.role}: {content_to_text(m.content)}" for m in to_summarize)
     summary_prompt = (
         "Summarize the key facts, decisions, and context from this earlier "
         "part of a conversation in a few sentences, for use as background "
