@@ -7,7 +7,7 @@ API keys.
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from pydantic import BaseModel
 
 from firewing.api.security.auth import require_admin_key
@@ -16,6 +16,10 @@ router = APIRouter(prefix="/v1/admin")
 
 
 class CreateKeyRequest(BaseModel):
+    label: str
+
+
+class UpdateKeyRequest(BaseModel):
     label: str
 
 
@@ -38,9 +42,32 @@ def list_keys(request: Request, _: str = Depends(require_admin_key)):
     return {"keys": [r.to_public_dict() for r in key_store.list_keys()]}
 
 
-@router.delete("/keys/{key_id}")
-def revoke_key(key_id: str, request: Request, _: str = Depends(require_admin_key)):
+@router.patch("/keys/{key_id}")
+def update_key(
+    key_id: str,
+    body: UpdateKeyRequest,
+    request: Request,
+    _: str = Depends(require_admin_key),
+):
     key_store = request.app.state.key_store
+    if not key_store.update_key(key_id, body.label):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Key not found")
+    record = key_store.get_key(key_id)
+    return record.to_public_dict() if record else {"key_id": key_id, "updated": True}
+
+
+@router.delete("/keys/{key_id}")
+def revoke_or_delete_key(
+    key_id: str,
+    request: Request,
+    permanent: bool = Query(default=False),
+    _: str = Depends(require_admin_key),
+):
+    key_store = request.app.state.key_store
+    if permanent:
+        if not key_store.delete_key(key_id):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Key not found")
+        return {"key_id": key_id, "deleted": True}
     if not key_store.revoke_key(key_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Key not found")
     return {"key_id": key_id, "revoked": True}

@@ -62,6 +62,43 @@ class ChatCompletionResponse(BaseModel):
     choices: list[ChatCompletionChoice]
 
 
+class ChatCompletionChunkDelta(BaseModel):
+    role: str | None = None
+    content: str | None = None
+
+
+class ChatCompletionChunkChoice(BaseModel):
+    index: int = 0
+    delta: ChatCompletionChunkDelta
+    finish_reason: str | None = None
+
+
+class ChatCompletionChunk(BaseModel):
+    id: str
+    object: str = "chat.completion.chunk"
+    created: int
+    model: str
+    choices: list[ChatCompletionChunkChoice]
+
+
+class EmbeddingRequest(BaseModel):
+    input: Union[str, list[str]]
+    model: str = "firewing-1.0-beta"
+
+
+class EmbeddingObject(BaseModel):
+    object: str = "embedding"
+    index: int
+    embedding: list[float]
+
+
+class EmbeddingResponse(BaseModel):
+    object: str = "list"
+    data: list[EmbeddingObject]
+    model: str
+    usage: dict[str, int]
+
+
 class ErrorDetail(BaseModel):
     type: str
     message: str

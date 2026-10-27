@@ -103,3 +103,36 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
   validating message shape (e.g. a `role: "tool"` message missing
   `tool_call_id` would return 503 instead of 400). Reordered so
   request validation happens first.
+
+## [1.0.0-beta.2] — Feature Update & Bug Fixes
+
+### Added
+- **OpenAI-Compatible Streaming SSE**: `/v1/chat/completions` emits standard `chat.completion.chunk` JSON Server-Sent Events, enabling direct integration with official OpenAI SDKs, LangChain, LlamaIndex, Cursor, and web clients.
+- **Persistent Conversation Streaming**: `POST /v1/conversations/{id}/messages` now supports `stream: true`, streaming response chunks while automatically saving turns to SQLite.
+- **Conversation Management Endpoints**:
+  - `PATCH /v1/conversations/{id}`: Update title, persona, or system prompt.
+  - `POST /v1/conversations/{id}/clear`: Clear message history while preserving conversation metadata.
+  - `GET /v1/conversations/{id}/export`: Export conversations as formatted Markdown or JSON.
+- **Personas Discovery API**: Added `GET /v1/personas` and `GET /v1/personas/{name}` with built-in presets (`default`, `coding`, `concise`, `creative`), plus automatic loading from `configs/personas.yaml`.
+- **OpenAI-Compatible Embeddings**: Added `POST /v1/embeddings` endpoint with batch and single text support.
+- **Readiness Probe**: Added `GET /ready` probe for container orchestrators and Kubernetes, returning 200 OK when the inference engine is loaded and 503 when not ready.
+- **Advanced Request Telemetry**: Added latency percentiles (p50, p90, p95, p99), min/max latency, success/error rates, and token count tracking in `StatsTracker` and `GET /v1/admin/stats`.
+- **CLI Commands**:
+  - `setup-ai keys`: Manage API keys (`list`, `create`, `revoke`, `delete`) directly from the terminal.
+  - `setup-ai conv`: Manage persistent conversations (`list`, `show`, `export`, `delete`).
+  - `setup-ai bench`: Run hardware inference latency benchmarks directly.
+  - `setup-ai serve`: Launch local Uvicorn server with configurable host, port, reload, and worker options.
+- **Modernized Web UI & Admin Dashboard**:
+  - `webui/index.html`: Added sidebar conversation history, persona selection, export (Markdown/JSON), generation abort/stop button, code block copy, and real-time status indicators.
+  - `webui/admin.html`: Real-time telemetry dashboard with latency percentiles, error rates, token stats, key search filtering, permanent deletion, and auto-refresh.
+
+### Fixed
+- Fixed timing attack vulnerability in API key and Admin key comparisons by using `hmac.compare_digest` constant-time verification.
+- Fixed rate-limiting key collisions and added standard `Retry-After` HTTP headers on 429 Too Many Requests responses.
+- Fixed `scripts/bench/benchmark.py` crash on Windows (`ModuleNotFoundError: No module named 'resource'`) with cross-platform memory tracking via `psutil`/`resource`.
+- Fixed system memory detection on Windows and macOS (`/proc/meminfo` was returning `None`) using `psutil` and Windows `GlobalMemoryStatusEx` ctypes.
+- Fixed disk space detection on Windows drives (`shutil.disk_usage("/")` was prone to drive root issues).
+- Fixed persona being ignored when creating persistent conversations or continuing conversation turns.
+- Fixed multimodal image handling with 25MB maximum download size protection and support for local `file://` URIs and paths.
+- Fixed CORS middleware to allow `PATCH` and `OPTIONS` HTTP methods.
+- Fixed installer wizard uninstall action to invoke `uninstall.sh`.

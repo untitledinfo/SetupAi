@@ -1,29 +1,48 @@
 # CLI Reference
 
-```
-setup-ai start      # systemctl start firewing
+```bash
+setup-ai start      # systemctl start firewing (or check local server status)
 setup-ai stop       # systemctl stop firewing
 setup-ai restart    # systemctl restart firewing
-setup-ai status     # systemctl status firewing
+setup-ai status     # checks systemctl service or queries local API /health
 setup-ai logs       # journalctl -u firewing -f
-setup-ai update     # pull + reinstall + restart (placeholder — wire to your deploy method)
+setup-ai update     # git pull + reinstall dependencies + restart
 setup-ai config     # print resolved configuration
 setup-ai doctor     # hardware/environment check (OS, CPU, RAM, GPU, CUDA, disk, Docker)
-setup-ai chat        # interactive REPL against the local model
+setup-ai chat       # interactive REPL against the local model
 setup-ai chat --self-test    # sends "hi" first, shows thinking + reply, then continues to the REPL
+setup-ai chat --persona <name> # specify persona preset (default, coding, concise, creative)
+setup-ai bench      # run performance and latency benchmarks directly
+setup-ai serve      # launch local Uvicorn API server (--host, --port, --reload, --workers)
 setup-ai --version
 setup-ai --config <path>   # use a specific config file for any subcommand
 
+# Model Management
 setup-ai model info                          # base model + license + configured path
 setup-ai model set --path <hf-repo-or-path>  # point at a different base model
 setup-ai model set --adapter <path>          # attach/replace a LoRA adapter
 setup-ai model upgrade --path <hf-repo-or-path> [--adapter <path>]
+setup-ai model list [--limit 20] [--task ...] # browse popular HF models
+setup-ai model search <query> [--limit 20]   # search HF models
+
+# API Key Management
+setup-ai keys list                           # list all keys, labels, creation dates, usage
+setup-ai keys create <label>                 # generate and display a new API key
+setup-ai keys revoke <key_id>                # revoke an existing API key
+setup-ai keys delete <key_id>                # permanently delete an API key
+
+# Persistent Conversations Management
+setup-ai conv list                           # list recent conversations
+setup-ai conv show <conv_id>                 # display conversation messages
+setup-ai conv export <conv_id> [--out file]  # export conversation to Markdown
+setup-ai conv delete <conv_id>               # delete a conversation
 ```
 
 `start`/`stop`/`restart`/`status`/`logs` shell out to `systemctl`/
-`journalctl` and expect the systemd service installed by `install.sh`
-to exist. Running them without that service installed will just
-surface the underlying `systemctl` error.
+`journalctl` on systemd-based Linux systems. On systems without systemd
+(e.g., local development or Windows), `setup-ai status` gracefully checks
+the running HTTP API server, and `setup-ai serve` can be used to run the API
+server directly.
 
 ## `model set` / `model upgrade`
 
@@ -69,18 +88,3 @@ sudo bash menu.sh
 8) Chat with Terminal AI (hi -> thinking -> reply, fully working test)
 9) Exit
 ```
-
-Every option shells out to a real, readable command (`install.sh`,
-`uninstall.sh`, the `setup-ai` CLI above, `nginx`, `certbot`, and the
-Cloudflare API) — nothing is hidden, so it's worth reading `menu.sh`
-once before running it against a production box. See
-[Installation](installation.md) for what each underlying step does.
-
-Option 8 (**Chat with Terminal AI**) is the fastest way to confirm the
-whole pipeline actually works after an install or a model change: it
-sends a fixed `hi`, shows the same "thinking..." indicator and live
-streamed reply the normal REPL uses, prints "Self-test passed" once a
-real reply came back, then hands off straight into normal interactive
-chat — so if it prints a reply, chat is fully working; if it errors,
-you get the same actionable message `setup-ai chat` would (missing
-deps, or a model load failure) instead of guessing.

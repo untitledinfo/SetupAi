@@ -16,6 +16,7 @@ users' keys.
 
 from __future__ import annotations
 
+import hmac
 import os
 
 from fastapi import Header, HTTPException, Request, status
@@ -54,10 +55,13 @@ def require_api_key(
 
     key = authorization.removeprefix("Bearer ").strip()
 
-    if key in env_keys:
-        return redact(key)
+    for env_k in env_keys:
+        if hmac.compare_digest(key, env_k):
+            return key
+
     if key_store and key_store.is_valid(key):
-        return redact(key)
+        key_store.record_usage(key)
+        return key
 
     logger.info("Rejected API key ending in %s", redact(key))
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid API key")
@@ -83,7 +87,7 @@ def require_admin_key(authorization: str | None = Header(default=None)) -> str:
         )
 
     key = authorization.removeprefix("Bearer ").strip()
-    if key != admin_key:
+    if not hmac.compare_digest(key, admin_key):
         logger.info("Rejected admin key ending in %s", redact(key))
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid admin key")
 

@@ -2,6 +2,10 @@
 
     setup-ai start | stop | restart | status | logs | update | config | model | doctor
     setup-ai chat
+    setup-ai keys
+    setup-ai conv
+    setup-ai bench
+    setup-ai serve
 """
 
 from __future__ import annotations
@@ -9,14 +13,9 @@ from __future__ import annotations
 import argparse
 import subprocess
 import sys
+import time
 
 from firewing import MODEL_NAME, __version__
-# NOTE: firewing.config.settings imports `yaml`, and cmd_chat's imports pull
-# in torch/transformers/fastapi. Those are NOT imported at module level here
-# on purpose — a bare venv (no `pip install -r requirements.txt` yet) must
-# still be able to run `setup-ai --help` and `setup-ai doctor` without a
-# raw ModuleNotFoundError traceback. See _missing_deps_for() + main().
-
 
 BANNER = f"""\
 ========================================
@@ -42,8 +41,12 @@ _PIP_SPEC = {
 # Commands that need more than the base `yaml` config loader.
 _EXTRA_DEPS = {
     "chat": ["torch", "transformers"],
+    "bench": ["torch", "transformers"],
+    "serve": ["uvicorn", "fastapi"],
     "config": [],
     "model": [],
+    "keys": [],
+    "conv": [],
 }
 
 
@@ -180,15 +183,6 @@ def cmd_model(args: argparse.Namespace) -> int:
 
 
 def cmd_model_browse(args: argparse.Namespace) -> int:
-    """`setup-ai model list` / `setup-ai model search <query>`.
-
-    Browses public models on the Hugging Face Hub, showing each model's
-    id (the exact string to pass to `model set --path`), downloads, and
-    likes. This is a read-only, unauthenticated call — the Hub allows
-    anonymous listing/searching of *public* models with no HF_TOKEN and
-    no login; a token only raises your rate limit and is required for
-    gated/private repos, never for browsing.
-    """
     try:
         from huggingface_hub import HfApi
     except ImportError:
@@ -206,8 +200,6 @@ def cmd_model_browse(args: argparse.Namespace) -> int:
     if task:
         kwargs["pipeline_tag"] = task
     elif not query:
-        # With no search term and no task filter, default to chat/instruct
-        # text models so the list isn't dominated by unrelated classifiers.
         kwargs["pipeline_tag"] = "text-generation"
 
     label = "Browsing" if not query else f"Searching for {query!r}"
@@ -216,10 +208,10 @@ def cmd_model_browse(args: argparse.Namespace) -> int:
           + " ... (public, no API key needed — set HF_TOKEN only for higher rate "
             "limits or gated/private repos)")
 
-    api = HfApi()  # anonymous client — works for any public repo with no token
+    api = HfApi()
     try:
         results = list(api.list_models(**kwargs))
-    except Exception as exc:  # noqa: BLE001 — network/HTTP errors from the Hub client
+    except Exception as exc:
         print(f"Could not reach Hugging Face Hub: {exc}", file=sys.stderr)
         print("Run 'setup-ai doctor' to check connectivity.", file=sys.stderr)
         return 1
@@ -247,8 +239,6 @@ def cmd_model_browse(args: argparse.Namespace) -> int:
 
 
 def _update_model_config(config_path: str | None, model_path: str | None, adapter_path: str | None) -> None:
-    """Patch model_path/adapter_path in the YAML config in place, preserving
-    everything else. Falls back to configs/firewing.yaml if no path given."""
     import yaml
 
     path = config_path or "configs/firewing.yaml"
@@ -268,11 +258,6 @@ def _update_model_config(config_path: str | None, model_path: str | None, adapte
         yaml.safe_dump(data, fh, sort_keys=False)
 
 
-# Rough total-weight sizes (GB) for models FIREWING ships/documents by
-# default, keyed by lowercased repo id -> {dtype-or-quantization: GB}. Best
-# effort only: used to print an early, actionable heads-up instead of
-# letting a 30B+ model silently OOM (or crawl on CPU) several minutes into
-# a first-run weight download.
 _KNOWN_MODEL_VRAM_GB = {
     "qwen/qwen3-omni-30b-a3b-instruct": {"bfloat16": 62, "float16": 62, "float32": 124, "int8": 32, "int4": 18},
     "qwen/qwen3-omni-30b-a3b-thinking": {"bfloat16": 62, "float16": 62, "float32": 124, "int8": 32, "int4": 18},
@@ -281,10 +266,6 @@ _KNOWN_MODEL_VRAM_GB = {
 
 
 def _maybe_warn_hardware(model_cfg) -> None:
-    """Best-effort pre-flight check: warn (never block) if the configured
-    model likely won't fit on this machine's GPU/RAM, and suggest concrete
-    fixes (quantization, or a smaller model via `setup-ai model search`).
-    """
     try:
         from firewing.model.loader import _resolve_device, _resolve_dtype
         from firewing.utils.system_info import get_system_info
@@ -318,7 +299,7 @@ def _maybe_warn_hardware(model_cfg) -> None:
                     "'quantization: int4', or pick a smaller model with 'setup-ai model search "
                     "<keyword>'."
                 )
-    except Exception:  # noqa: BLE001 — this check must never block chat from starting
+    except Exception:
         pass
 
 
@@ -326,10 +307,6 @@ def cmd_chat(args: argparse.Namespace) -> int:
     import os as _os
 
     if getattr(args, "offline", False):
-        # Tell huggingface_hub/transformers not to make any network calls —
-        # only use what's already cached under ~/.cache/huggingface. This is
-        # the "run locally, no internet needed" mode: it only works once the
-        # model has been downloaded at least once with a network connection.
         _os.environ["HF_HUB_OFFLINE"] = "1"
         _os.environ["TRANSFORMERS_OFFLINE"] = "1"
         print("(offline mode: will only use already-cached model files, no network calls)")
@@ -358,19 +335,19 @@ def cmd_chat(args: argparse.Namespace) -> int:
         return 1
 
     engine = InferenceEngine(loaded, settings.model.max_context_tokens, settings.model.context_strategy)
-    persona = load_personas()["default"]
+    personas = load_personas()
+    persona_name = getattr(args, "persona", None) or "default"
+    persona = personas.get(persona_name, personas["default"])
     conversation = Conversation(system_prompt=persona.system_prompt)
 
     tool_registry = build_default_registry() if settings.model.enable_tool_calling else None
     if tool_registry:
         print(f"(tool calling enabled: {', '.join(t['function']['name'] for t in tool_registry.schemas())})")
 
+    print(f"(persona: {persona.name})")
     print("Type 'exit' to quit.\n")
 
     if getattr(args, "self_test", False):
-        # Prove the pipeline is actually working end to end — send a fixed
-        # "hi", show the same thinking indicator + streamed reply the
-        # interactive loop uses, then fall through into the normal REPL.
         print("You: hi   (automatic self-test)")
         conversation.add_user("hi")
         params = GenerationParams(temperature=persona.temperature, top_p=persona.top_p)
@@ -406,15 +383,12 @@ def _run_turn_streaming(engine, conversation, params) -> None:
     first = True
     for chunk in engine.stream(conversation, params):
         if first:
-            # First real token is ready — clear the "thinking..." line and
-            # start printing the actual reply in its place.
             print("\r" + " " * len(thinking_label) + "\r", end="")
             print(f"{MODEL_NAME}: ", end="", flush=True)
             first = False
         print(chunk, end="", flush=True)
         reply_parts.append(chunk)
     if first:
-        # Model produced no tokens at all (immediate EOS / max_tokens=0).
         print("\r" + " " * len(thinking_label) + "\r", end="")
         print(f"{MODEL_NAME}: (empty response — check max_tokens / the model checkpoint)", end="")
     print("\n")
@@ -422,11 +396,6 @@ def _run_turn_streaming(engine, conversation, params) -> None:
 
 
 def _run_turn_with_tools(engine, conversation, params, tool_registry, max_hops: int = 3) -> None:
-    """Non-streaming turn that lets the model call tools (possibly
-    more than once) before producing its final answer. Streaming isn't
-    used here since tool-call detection needs the complete response —
-    see InferenceEngine.stream's docstring.
-    """
     tools = tool_registry.schemas()
     for _ in range(max_hops):
         thinking_label = f"\n{MODEL_NAME} is thinking..."
@@ -449,29 +418,197 @@ def _run_turn_with_tools(engine, conversation, params, tool_registry, max_hops: 
     print(f"\n{MODEL_NAME}: (stopped after {max_hops} tool calls without a final answer)\n")
 
 
+def cmd_keys(args: argparse.Namespace) -> int:
+    from firewing.config.settings import load_settings
+    from firewing.api.security.key_store import KeyStore
+
+    settings = load_settings(args.config)
+    store = KeyStore(f"{settings.data_dir}/api_keys.json")
+    action = getattr(args, "keys_action", None) or "list"
+
+    if action == "list":
+        keys = store.list_keys()
+        if not keys:
+            print("No API keys configured.")
+            return 0
+        print(f"\n{'LABEL':<25} {'KEY ID':<18} {'CREATED':<22} {'STATUS':<10} {'REQUESTS':<10}")
+        print("-" * 88)
+        for k in keys:
+            created_str = time.strftime("%Y-%m-%d %H:%M", time.localtime(k.created_at))
+            status_str = "revoked" if k.revoked else "active"
+            print(f"{k.label:<25} {k.key_id:<18} {created_str:<22} {status_str:<10} {k.request_count:<10}")
+        return 0
+
+    if action == "create":
+        label = args.label
+        plaintext, record = store.create_key(label)
+        print(f"\nCreated key '{label}':")
+        print(f"  Key ID:     {record.key_id}")
+        print(f"  API Key:    {plaintext}")
+        print("\nSave this key now — it is hashed in storage and cannot be shown again.")
+        return 0
+
+    if action == "revoke":
+        if store.revoke_key(args.key_id):
+            print(f"Key {args.key_id} has been revoked.")
+            return 0
+        print(f"Key {args.key_id} not found.", file=sys.stderr)
+        return 1
+
+    if action == "delete":
+        if store.delete_key(args.key_id):
+            print(f"Key {args.key_id} permanently deleted.")
+            return 0
+        print(f"Key {args.key_id} not found.", file=sys.stderr)
+        return 1
+
+    print(f"Unknown keys action: {action}", file=sys.stderr)
+    return 1
+
+
+def cmd_conv(args: argparse.Namespace) -> int:
+    from firewing.config.settings import load_settings
+    from firewing.inference.conversation_store import ConversationStore
+
+    settings = load_settings(args.config)
+    store = ConversationStore(f"{settings.data_dir}/conversations.db")
+    action = getattr(args, "conv_action", None) or "list"
+
+    if action == "list":
+        convs = store.list()
+        if not convs:
+            print("No persistent conversations found.")
+            return 0
+        print(f"\n{'ID':<34} {'UPDATED':<20} {'PERSONA':<12} TITLE")
+        print("-" * 85)
+        for c in convs:
+            up_str = time.strftime("%Y-%m-%d %H:%M", time.localtime(c.updated_at))
+            print(f"{c.conversation_id:<34} {up_str:<20} {(c.persona or 'default'):<12} {c.title}")
+        return 0
+
+    if action == "show":
+        rec = store.get(args.conversation_id)
+        if not rec:
+            print(f"Conversation {args.conversation_id} not found.", file=sys.stderr)
+            return 1
+        print(f"=== Conversation: {rec.title} ({rec.conversation_id}) ===")
+        print(f"Persona: {rec.persona or 'default'}")
+        print(f"Messages: {len(rec.messages)}\n")
+        for m in rec.messages:
+            print(f"[{m.role.upper()}]:")
+            print(f"{m.content}\n")
+        return 0
+
+    if action == "delete":
+        if store.delete(args.conversation_id):
+            print(f"Conversation {args.conversation_id} deleted.")
+            return 0
+        print(f"Conversation {args.conversation_id} not found.", file=sys.stderr)
+        return 1
+
+    if action == "export":
+        md = store.export_markdown(args.conversation_id)
+        if not md:
+            print(f"Conversation {args.conversation_id} not found.", file=sys.stderr)
+            return 1
+        if getattr(args, "out", None):
+            with open(args.out, "w", encoding="utf-8") as f:
+                f.write(md)
+            print(f"Exported conversation to {args.out}")
+        else:
+            print(md)
+        return 0
+
+    print(f"Unknown conv action: {action}", file=sys.stderr)
+    return 1
+
+
+def cmd_bench(args: argparse.Namespace) -> int:
+    from scripts.bench.benchmark import run_benchmark
+
+    prompt = getattr(args, "prompt", "Explain how photosynthesis works in three sentences.")
+    max_tokens = getattr(args, "max_tokens", 256)
+    run_benchmark(prompt, max_tokens, args.config)
+    return 0
+
+
+def cmd_serve(args: argparse.Namespace) -> int:
+    import uvicorn
+    from firewing.config.settings import load_settings
+
+    settings = load_settings(args.config)
+    host = getattr(args, "host", None) or settings.api.host
+    port = getattr(args, "port", None) or settings.api.port
+    reload = getattr(args, "reload", False)
+    workers = getattr(args, "workers", 1)
+
+    print(f"Starting FIREWING API server on http://{host}:{port} ...")
+    uvicorn.run(
+        "firewing.api.server:app",
+        host=host,
+        port=port,
+        reload=reload,
+        workers=workers if not reload else 1,
+    )
+    return 0
+
+
 def _systemctl(action: str) -> int:
     try:
         result = subprocess.run(["systemctl", action, "firewing"], check=False)
         return result.returncode
     except FileNotFoundError:
-        print("systemctl not found. Are you on a systemd-based Linux system?", file=sys.stderr)
-        return 1
+        return -1
 
 
 def cmd_start(_args: argparse.Namespace) -> int:
-    return _systemctl("start")
+    res = _systemctl("start")
+    if res == -1:
+        print("systemctl not found. Use 'setup-ai serve' to run the API server directly.", file=sys.stderr)
+        return 1
+    return res
 
 
 def cmd_stop(_args: argparse.Namespace) -> int:
-    return _systemctl("stop")
+    res = _systemctl("stop")
+    if res == -1:
+        print("systemctl not found. Terminate the running server process directly.", file=sys.stderr)
+        return 1
+    return res
 
 
 def cmd_restart(_args: argparse.Namespace) -> int:
-    return _systemctl("restart")
+    res = _systemctl("restart")
+    if res == -1:
+        print("systemctl not found.", file=sys.stderr)
+        return 1
+    return res
 
 
-def cmd_status(_args: argparse.Namespace) -> int:
-    return _systemctl("status")
+def cmd_status(args: argparse.Namespace) -> int:
+    res = _systemctl("status")
+    if res == 0:
+        return 0
+
+    # Fall back to checking local API HTTP server
+    from firewing.config.settings import load_settings
+    import urllib.request
+    import json
+
+    settings = load_settings(args.config)
+    host = "127.0.0.1" if settings.api.host in ("0.0.0.0", "") else settings.api.host
+    url = f"http://{host}:{settings.api.port}/health"
+    try:
+        with urllib.request.urlopen(url, timeout=3) as resp:
+            data = json.loads(resp.read().decode())
+            print(f"FIREWING API server is running on http://{host}:{settings.api.port}")
+            print(f"  Status:       {data.get('status')}")
+            print(f"  Version:      {data.get('version')}")
+            print(f"  Model loaded: {data.get('model_loaded')}")
+            return 0
+    except Exception:
+        print(f"FIREWING service is not active and API is not responding on port {settings.api.port}.")
+        return 1
 
 
 def cmd_logs(_args: argparse.Namespace) -> int:
@@ -479,14 +616,21 @@ def cmd_logs(_args: argparse.Namespace) -> int:
         subprocess.run(["journalctl", "-u", "firewing", "-f"], check=False)
         return 0
     except FileNotFoundError:
-        print("journalctl not found.", file=sys.stderr)
+        print("journalctl not found. Check local log files in /var/log/firewing or console output.", file=sys.stderr)
         return 1
 
 
 def cmd_update(_args: argparse.Namespace) -> int:
-    print("Update flow placeholder: git pull + pip install -r requirements.txt + systemctl restart firewing")
-    print("Wire this to your actual deployment method before using in production.")
-    return 0
+    print("Checking repository for updates...")
+    try:
+        subprocess.run(["git", "pull"], check=False)
+        subprocess.run([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"], check=False)
+        _systemctl("restart")
+        print("Update complete.")
+        return 0
+    except Exception as exc:
+        print(f"Update failed: {exc}", file=sys.stderr)
+        return 1
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -504,9 +648,18 @@ def build_parser() -> argparse.ArgumentParser:
         ("update", cmd_update),
         ("config", cmd_config),
         ("doctor", cmd_doctor),
+        ("bench", cmd_bench),
     ]:
         p = sub.add_parser(name)
         p.set_defaults(func=func)
+
+    # `serve` command
+    serve_parser = sub.add_parser("serve", help="Run the FIREWING API server locally")
+    serve_parser.add_argument("--host", default=None, help="Bind host (default: from config)")
+    serve_parser.add_argument("--port", type=int, default=None, help="Bind port (default: from config)")
+    serve_parser.add_argument("--reload", action="store_true", help="Enable auto-reload on code change")
+    serve_parser.add_argument("--workers", type=int, default=1, help="Number of worker processes")
+    serve_parser.set_defaults(func=cmd_serve)
 
     chat_parser = sub.add_parser("chat", help="Interactive REPL against the local model")
     chat_parser.add_argument(
@@ -518,10 +671,37 @@ def build_parser() -> argparse.ArgumentParser:
         help="Send a fixed 'hi' first, show thinking + reply, then continue into the normal REPL "
              "— proves the model is actually loaded and generating before you type anything",
     )
+    chat_parser.add_argument("--persona", default="default", help="Persona preset to use")
     chat_parser.set_defaults(func=cmd_chat)
 
-    # `model` has sub-actions (info/show | set | upgrade) instead of separate
-    # top-level commands, since they all operate on the same config field.
+    # `keys` command
+    keys_parser = sub.add_parser("keys", help="Manage multi-user API keys")
+    keys_sub = keys_parser.add_subparsers(dest="keys_action")
+    keys_list = keys_sub.add_parser("list", help="List all API keys")
+    keys_create = keys_sub.add_parser("create", help="Generate a new API key")
+    keys_create.add_argument("label", help="Label or owner of the new key")
+    keys_revoke = keys_sub.add_parser("revoke", help="Revoke an existing API key")
+    keys_revoke.add_argument("key_id", help="Hex key_id to revoke")
+    keys_delete = keys_sub.add_parser("delete", help="Permanently delete an API key")
+    keys_delete.add_argument("key_id", help="Hex key_id to delete")
+    for p in (keys_parser, keys_list, keys_create, keys_revoke, keys_delete):
+        p.set_defaults(func=cmd_keys)
+
+    # `conv` command
+    conv_parser = sub.add_parser("conv", help="Manage persistent server conversations")
+    conv_sub = conv_parser.add_subparsers(dest="conv_action")
+    conv_list = conv_sub.add_parser("list", help="List recent conversations")
+    conv_show = conv_sub.add_parser("show", help="Show full conversation transcript")
+    conv_show.add_argument("conversation_id", help="Conversation ID to view")
+    conv_delete = conv_sub.add_parser("delete", help="Delete a conversation")
+    conv_delete.add_argument("conversation_id", help="Conversation ID to delete")
+    conv_export = conv_sub.add_parser("export", help="Export a conversation as markdown")
+    conv_export.add_argument("conversation_id", help="Conversation ID to export")
+    conv_export.add_argument("--out", default=None, help="Save to markdown file instead of stdout")
+    for p in (conv_parser, conv_list, conv_show, conv_delete, conv_export):
+        p.set_defaults(func=cmd_conv)
+
+    # `model` subcommands
     model_parser = sub.add_parser("model", help="Inspect or change the served base model / LoRA adapter")
     model_sub = model_parser.add_subparsers(dest="model_action")
     model_info = model_sub.add_parser("info", help="Show the currently configured model (default)")

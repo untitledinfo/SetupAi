@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from firewing.config.settings import load_settings
-from firewing.api.routes import health, chat, conversations
+from firewing.api.routes import health, chat, conversations, personas, embeddings
 from firewing.api.admin import routes as admin_routes
 from firewing.api.security.rate_limit import RateLimiter
 from firewing.api.security.key_store import KeyStore
@@ -54,13 +54,13 @@ def create_app(config_path: str | None = None, lazy_load_model: bool = False) ->
     app.state.conversation_store = ConversationStore(f"{settings.data_dir}/conversations.db")
     app.state.stats_tracker = StatsTracker()
 
-    if settings.api.cors_allowed_origins:
-        app.add_middleware(
-            CORSMiddleware,
-            allow_origins=settings.api.cors_allowed_origins,
-            allow_methods=["GET", "POST", "DELETE"],
-            allow_headers=["*"],
-        )
+    cors_origins = settings.api.cors_allowed_origins or ["*"]
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=cors_origins,
+        allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+        allow_headers=["*"],
+    )
 
     @app.exception_handler(Exception)
     async def unhandled_exception_handler(request: Request, exc: Exception):
@@ -80,6 +80,8 @@ def create_app(config_path: str | None = None, lazy_load_model: bool = False) ->
     app.include_router(health.router)
     app.include_router(chat.router)
     app.include_router(conversations.router)
+    app.include_router(personas.router)
+    app.include_router(embeddings.router)
     app.include_router(admin_routes.router)
 
     return app

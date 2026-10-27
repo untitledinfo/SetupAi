@@ -11,6 +11,9 @@ from firewing.api.schemas.chat import (
     ChatCompletionRequest,
     ChatCompletionResponse,
     ChatCompletionChoice,
+    ChatCompletionChunk,
+    ChatCompletionChunkChoice,
+    ChatCompletionChunkDelta,
     ChatMessage,
     ToolCallOut,
 )
@@ -31,14 +34,14 @@ async def chat_completions(
     request: Request,
     api_key: str = Depends(require_api_key),
 ):
-    request_id = f"req_{uuid.uuid4().hex[:16]}"
+    request_id = f"chatcmpl-{uuid.uuid4().hex[:24]}"
     start_time = time.perf_counter()
     stats = request.app.state.stats_tracker
     limiter = request.app.state.rate_limiter
     limiter.check(api_key)
 
     if body.max_tokens > request.app.state.settings.api.max_tokens_per_request:
-        stats.record((time.perf_counter() - start_time) * 1000, "error")
+        stats.record((time.perf_counter() - start_time) * 1000, "error", endpoint="chat")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=(
@@ -52,7 +55,7 @@ async def chat_completions(
         # InferenceEngine.stream's docstring) — reject the combination
         # up front with a clear message rather than silently ignoring
         # tool calls embedded in a stream.
-        stats.record((time.perf_counter() - start_time) * 1000, "error")
+        stats.record((time.perf_counter() - start_time) * 1000, "error", endpoint="chat")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="tools + stream=true is not supported in this beta; set stream=false when using tools.",
@@ -80,15 +83,15 @@ async def chat_completions(
                 # explicit "system" messages in the request override the persona
                 conversation.system_prompt = content
     except MultimodalError as exc:
-        stats.record((time.perf_counter() - start_time) * 1000, "error")
+        stats.record((time.perf_counter() - start_time) * 1000, "error", endpoint="chat")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     except HTTPException:
-        stats.record((time.perf_counter() - start_time) * 1000, "error")
+        stats.record((time.perf_counter() - start_time) * 1000, "error", endpoint="chat")
         raise
 
     engine = request.app.state.engine
     if engine is None:
-        stats.record((time.perf_counter() - start_time) * 1000, "error")
+        stats.record((time.perf_counter() - start_time) * 1000, "error", endpoint="chat")
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Model is not loaded yet",
@@ -106,13 +109,62 @@ async def chat_completions(
 
     if body.stream:
         def event_stream():
+            now_ts = int(time.time())
+            total_tokens = 0
             try:
+                # Initial role chunk
+                init_chunk = ChatCompletionChunk(
+                    id=request_id,
+                    created=now_ts,
+                    model=body.model,
+                    choices=[
+                        ChatCompletionChunkChoice(
+                            index=0,
+                            delta=ChatCompletionChunkDelta(role="assistant", content=""),
+                            finish_reason=None,
+                        )
+                    ],
+                )
+                yield f"data: {init_chunk.model_dump_json()}\n\n"
+
                 for chunk in engine.stream(conversation, params):
-                    yield f"data: {chunk}\n\n"
+                    total_tokens += 1
+                    event = ChatCompletionChunk(
+                        id=request_id,
+                        created=now_ts,
+                        model=body.model,
+                        choices=[
+                            ChatCompletionChunkChoice(
+                                index=0,
+                                delta=ChatCompletionChunkDelta(content=chunk),
+                                finish_reason=None,
+                            )
+                        ],
+                    )
+                    yield f"data: {event.model_dump_json()}\n\n"
+
+                final_chunk = ChatCompletionChunk(
+                    id=request_id,
+                    created=now_ts,
+                    model=body.model,
+                    choices=[
+                        ChatCompletionChunkChoice(
+                            index=0,
+                            delta=ChatCompletionChunkDelta(),
+                            finish_reason="stop",
+                        )
+                    ],
+                )
+                yield f"data: {final_chunk.model_dump_json()}\n\n"
                 yield "data: [DONE]\n\n"
-                stats.record((time.perf_counter() - start_time) * 1000, "success")
+                stats.record(
+                    (time.perf_counter() - start_time) * 1000,
+                    "success",
+                    endpoint="chat",
+                    tokens=total_tokens,
+                )
             except Exception:
-                stats.record((time.perf_counter() - start_time) * 1000, "error")
+                stats.record((time.perf_counter() - start_time) * 1000, "error", endpoint="chat")
                 raise
 
         return StreamingResponse(event_stream(), media_type="text/event-stream")
@@ -120,13 +172,18 @@ async def chat_completions(
     try:
         result = engine.generate(conversation, params, tools=tools)
     except MultimodalError as exc:
-        stats.record((time.perf_counter() - start_time) * 1000, "error")
+        stats.record((time.perf_counter() - start_time) * 1000, "error", endpoint="chat")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     except Exception:
-        stats.record((time.perf_counter() - start_time) * 1000, "error")
+        stats.record((time.perf_counter() - start_time) * 1000, "error", endpoint="chat")
         raise
 
-    stats.record((time.perf_counter() - start_time) * 1000, "success")
+    stats.record(
+        (time.perf_counter() - start_time) * 1000,
+        "success",
+        endpoint="chat",
+        tokens=len((result.text or "").split()),
+    )
 
     tool_calls_out = None
     if result.tool_calls:

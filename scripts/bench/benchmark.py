@@ -17,6 +17,7 @@ script's output, on real target hardware, rather than estimating.
 from __future__ import annotations
 
 import argparse
+import sys
 import time
 
 from firewing.config.settings import load_settings
@@ -26,10 +27,20 @@ from firewing.inference.conversation import Conversation
 
 
 def _peak_ram_mb() -> float:
-    import resource
+    try:
+        import psutil
+        return psutil.Process().memory_info().rss / (1024 * 1024)
+    except ImportError:
+        pass
 
-    # ru_maxrss is KB on Linux, bytes on macOS — normalize to MB for Linux.
-    return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
+    try:
+        import resource
+        scale = 1024 * 1024 if sys.platform == "darwin" else 1024
+        return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / (scale / 1024)
+    except (ImportError, AttributeError):
+        pass
+
+    return 0.0
 
 
 def _vram_mb() -> float | None:

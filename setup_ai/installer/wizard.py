@@ -4,8 +4,11 @@
 
 from __future__ import annotations
 
+import os
+import shutil
 import subprocess
 import sys
+from pathlib import Path
 
 from firewing import MODEL_NAME
 
@@ -15,20 +18,23 @@ MENU = """\
         {model_name}
 ========================================
 
-[1] Install FIREWING
+[1] Install / Reinstall FIREWING
 [2] Update FIREWING
 [3] Configure FIREWING
-[4] Start FIREWING
-[5] Stop FIREWING
-[6] Restart FIREWING
+[4] Start FIREWING (Service)
+[5] Stop FIREWING (Service)
+[6] Restart FIREWING (Service)
 [7] View Logs
-[8] Check System
-[9] Uninstall
+[8] Check System / Doctor
+[9] Uninstall FIREWING
+[C] Interactive Chat (CLI)
+[S] Serve API Server (Local)
 [0] Exit
 """.format(model_name=MODEL_NAME)
 
 
-def _run(cmd: list[str]) -> None:
+def _cli(subcmd: list[str]) -> None:
+    cmd = [sys.executable, "-m", "setup_ai.cli.main"] + subcmd
     print(f"$ {' '.join(cmd)}")
     result = subprocess.run(cmd, check=False)
     if result.returncode != 0:
@@ -36,41 +42,65 @@ def _run(cmd: list[str]) -> None:
 
 
 def action_install() -> None:
-    _run(["bash", "install.sh"])
+    if Path("install.sh").exists():
+        bash = shutil.which("bash") or "bash"
+        subprocess.run([bash, "install.sh"], check=False)
+    else:
+        print("install.sh not found in the current directory.", file=sys.stderr)
 
 
 def action_update() -> None:
-    _run(["setup-ai", "update"])
+    _cli(["update"])
 
 
 def action_configure() -> None:
-    print("Edit configs/firewing.yaml (copy from configs/firewing.example.yaml if it doesn't exist yet).")
-    print("Then set secrets in .env (copy from .env.example).")
+    print("\nConfiguration files:")
+    print("1. configs/firewing.yaml (copy from configs/firewing.example.yaml)")
+    print("2. .env (copy from .env.example for API keys and secrets)")
+    if not Path("configs/firewing.yaml").exists() and Path("configs/firewing.example.yaml").exists():
+        shutil.copy("configs/firewing.example.yaml", "configs/firewing.yaml")
+        print("  -> Created configs/firewing.yaml from example.")
+    if not Path(".env").exists() and Path(".env.example").exists():
+        shutil.copy(".env.example", ".env")
+        print("  -> Created .env from example.")
 
 
 def action_start() -> None:
-    _run(["setup-ai", "start"])
+    _cli(["start"])
 
 
 def action_stop() -> None:
-    _run(["setup-ai", "stop"])
+    _cli(["stop"])
 
 
 def action_restart() -> None:
-    _run(["setup-ai", "restart"])
+    _cli(["restart"])
 
 
 def action_logs() -> None:
-    _run(["setup-ai", "logs"])
+    _cli(["logs"])
 
 
 def action_check_system() -> None:
-    _run(["setup-ai", "doctor"])
+    _cli(["doctor"])
+
+
+def action_chat() -> None:
+    _cli(["chat"])
+
+
+def action_serve() -> None:
+    _cli(["serve"])
 
 
 def action_uninstall() -> None:
-    print("Uninstall is intentionally manual in this beta to avoid accidental data loss.")
-    print("See docs/troubleshooting.md for the manual uninstall steps.")
+    if Path("uninstall.sh").exists():
+        confirm = input("Are you sure you want to uninstall FIREWING? [y/N]: ").strip().lower()
+        if confirm in ("y", "yes"):
+            bash = shutil.which("bash") or "bash"
+            subprocess.run([bash, "uninstall.sh"], check=False)
+            return
+    print("See docs/troubleshooting.md for manual removal instructions.")
 
 
 ACTIONS = {
@@ -83,6 +113,10 @@ ACTIONS = {
     "7": action_logs,
     "8": action_check_system,
     "9": action_uninstall,
+    "c": action_chat,
+    "C": action_chat,
+    "s": action_serve,
+    "S": action_serve,
 }
 
 

@@ -3,73 +3,120 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FIREWING Admin</title>
+<title>FIREWING Admin Dashboard</title>
 <style>
   :root {
     --bg: #f7f7f8; --panel: #ffffff; --text: #1a1a1a; --text-muted: #6b6b70;
-    --border: #e4e4e7; --accent: #d94f1e; --accent-hover: #b8410a; --danger: #c0392b;
+    --border: #e4e4e7; --accent: #d94f1e; --accent-hover: #b8410a; --danger: #c0392b; --success: #16a34a;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #17171a; --panel: #1f1f23; --text: #ececee; --text-muted: #9a9aa2;
-      --border: #2e2e33; --accent: #ff7a3d; --accent-hover: #ff8f5c; --danger: #ff6b6b;
+      --bg: #141416; --panel: #1e1e22; --text: #ececee; --text-muted: #9a9aa2;
+      --border: #2e2e34; --accent: #ff7a3d; --accent-hover: #ff8f5c; --danger: #ef4444; --success: #22c55e;
     }
   }
   * { box-sizing: border-box; }
-  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); padding: 24px; max-width: 900px; margin: 0 auto; }
-  h1 { font-size: 18px; }
-  h2 { font-size: 14px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 32px; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 24px;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  h1 { font-size: 20px; margin: 0; }
+  h2 { font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 28px; }
   .card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-top: 8px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
-  .stat { font-size: 22px; font-weight: 600; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+  .stat { font-size: 22px; font-weight: 700; margin-bottom: 2px; }
   .stat-label { font-size: 12px; color: var(--text-muted); }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--border); }
-  input { padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 13px; }
-  button { cursor: pointer; border: none; border-radius: 6px; padding: 8px 12px; font-size: 13px; font-weight: 600; background: var(--accent); color: white; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 12px; }
+  th, td { text-align: left; padding: 10px; border-bottom: 1px solid var(--border); }
+  th { font-size: 11px; text-transform: uppercase; color: var(--text-muted); }
+  input { padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 13px; }
+  button { cursor: pointer; border: none; border-radius: 6px; padding: 8px 14px; font-size: 13px; font-weight: 600; background: var(--accent); color: white; transition: background 0.15s; }
   button:hover { background: var(--accent-hover); }
   button.danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+  button.danger:hover { background: rgba(220, 38, 38, 0.1); }
   .row { display: flex; gap: 8px; align-items: center; }
-  #new-key-result { font-family: monospace; font-size: 12px; background: var(--bg); padding: 8px; border-radius: 6px; margin-top: 8px; word-break: break-all; display: none; }
+  #new-key-result { font-family: monospace; font-size: 13px; background: var(--bg); border: 1px solid var(--border); padding: 10px; border-radius: 6px; margin-top: 10px; word-break: break-all; display: none; }
   #status-line { font-size: 12px; color: var(--text-muted); margin-top: 8px; }
+  .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .badge.active { background: rgba(34, 197, 94, 0.15); color: var(--success); }
+  .badge.revoked { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+  .actions-cell { display: flex; gap: 6px; justify-content: flex-end; }
 </style>
 </head>
 <body>
 
-<h1>FIREWING Admin</h1>
+<header>
+  <div>
+    <h1>FIREWING Admin Dashboard</h1>
+    <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">Cluster Management & Telemetry</div>
+  </div>
+  <div class="row">
+    <label style="font-size:12px; color:var(--text-muted); display:flex; align-items:center; gap:6px;">
+      <input type="checkbox" id="auto-refresh" checked /> Auto-refresh (5s)
+    </label>
+  </div>
+</header>
 
 <div class="card row">
   <input id="base-url" value="http://localhost:8000" placeholder="API base URL" style="flex:1" />
-  <input id="admin-key" type="password" placeholder="Admin key" style="flex:1" />
-  <button id="refresh-btn">Refresh</button>
+  <input id="admin-key" type="password" placeholder="Admin Key (FIREWING_ADMIN_KEY)" style="flex:1" />
+  <button id="refresh-btn">Refresh Now</button>
 </div>
-<div id="status-line"></div>
+<div id="status-line">Enter your admin key and click Refresh.</div>
 
-<h2>System</h2>
+<h2>Host System</h2>
 <div class="card grid" id="system-grid">
-  <div><div class="stat" id="stat-gpu">—</div><div class="stat-label">GPU</div></div>
-  <div><div class="stat" id="stat-ram">—</div><div class="stat-label">RAM</div></div>
-  <div><div class="stat" id="stat-vram">—</div><div class="stat-label">VRAM free/total</div></div>
-  <div><div class="stat" id="stat-disk">—</div><div class="stat-label">Free disk</div></div>
+  <div><div class="stat" id="stat-gpu">—</div><div class="stat-label">GPU Acceleration</div></div>
+  <div><div class="stat" id="stat-ram">—</div><div class="stat-label">Total System RAM</div></div>
+  <div><div class="stat" id="stat-vram">—</div><div class="stat-label">VRAM Free / Total</div></div>
+  <div><div class="stat" id="stat-disk">—</div><div class="stat-label">Free Disk Space</div></div>
 </div>
 
-<h2>Request stats</h2>
+<h2>Performance & Request Stats</h2>
 <div class="card grid" id="stats-grid">
-  <div><div class="stat" id="stat-uptime">—</div><div class="stat-label">Uptime (s)</div></div>
-  <div><div class="stat" id="stat-requests">—</div><div class="stat-label">Requests (recent)</div></div>
-  <div><div class="stat" id="stat-errors">—</div><div class="stat-label">Errors</div></div>
-  <div><div class="stat" id="stat-latency">—</div><div class="stat-label">Avg latency (ms)</div></div>
+  <div><div class="stat" id="stat-uptime">—</div><div class="stat-label">Uptime (seconds)</div></div>
+  <div><div class="stat" id="stat-requests">—</div><div class="stat-label">Total Requests</div></div>
+  <div><div class="stat" id="stat-errors">—</div><div class="stat-label">Errors (Rate)</div></div>
+  <div><div class="stat" id="stat-latency">—</div><div class="stat-label">Avg Latency (ms)</div></div>
+  <div><div class="stat" id="stat-p50">—</div><div class="stat-label">p50 Latency (ms)</div></div>
+  <div><div class="stat" id="stat-p95">—</div><div class="stat-label">p95 Latency (ms)</div></div>
+  <div><div class="stat" id="stat-tokens">—</div><div class="stat-label">Tokens Generated</div></div>
 </div>
 
-<h2>API keys</h2>
+<h2>API Key Management</h2>
 <div class="card">
   <div class="row">
-    <input id="new-key-label" placeholder="Label (e.g. 'mobile app')" style="flex:1" />
-    <button id="create-key-btn">Create key</button>
+    <input id="new-key-label" placeholder="New key label (e.g. 'prod-agent', 'team-laptop')" style="flex:1" />
+    <button id="create-key-btn">Create API Key</button>
   </div>
   <div id="new-key-result"></div>
+
+  <div style="margin-top:16px;">
+    <input id="key-search" placeholder="Filter keys by label or ID..." style="width:100%;" />
+  </div>
+
   <table id="keys-table">
-    <thead><tr><th>Label</th><th>Key ID</th><th>Created</th><th>Status</th><th></th></tr></thead>
+    <thead>
+      <tr>
+        <th>Label</th>
+        <th>Key ID</th>
+        <th>Created</th>
+        <th>Requests</th>
+        <th>Status</th>
+        <th style="text-align:right;">Actions</th>
+      </tr>
+    </thead>
     <tbody></tbody>
   </table>
 </div>
@@ -80,9 +127,25 @@
   const baseUrlEl = document.getElementById("base-url");
   const adminKeyEl = document.getElementById("admin-key");
   const statusLine = document.getElementById("status-line");
+  const autoRefreshCb = document.getElementById("auto-refresh");
+  const keySearchEl = document.getElementById("key-search");
+
+  // Load saved credentials
+  const savedAdminKey = localStorage.getItem("firewing_admin_key");
+  if (savedAdminKey) adminKeyEl.value = savedAdminKey;
+  const savedBaseUrl = localStorage.getItem("firewing_base_url");
+  if (savedBaseUrl) baseUrlEl.value = savedBaseUrl;
+
+  adminKeyEl.addEventListener("change", () => localStorage.setItem("firewing_admin_key", adminKeyEl.value.trim()));
+  baseUrlEl.addEventListener("change", () => localStorage.setItem("firewing_base_url", baseUrlEl.value.trim()));
+
+  let allKeys = [];
 
   function headers() {
-    return { "Authorization": `Bearer ${adminKeyEl.value.trim()}`, "Content-Type": "application/json" };
+    return {
+      "Authorization": `Bearer ${adminKeyEl.value.trim()}`,
+      "Content-Type": "application/json"
+    };
   }
 
   async function apiGet(path) {
@@ -103,8 +166,74 @@
     return resp.json();
   }
 
+  function renderKeysTable() {
+    const filter = keySearchEl.value.toLowerCase().trim();
+    const tbody = document.querySelector("#keys-table tbody");
+    tbody.innerHTML = "";
+
+    const filtered = allKeys.filter(k =>
+      k.label.toLowerCase().includes(filter) || k.key_id.toLowerCase().includes(filter)
+    );
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:16px;">No keys found.</td></tr>';
+      return;
+    }
+
+    filtered.forEach(k => {
+      const tr = document.createElement("tr");
+      const created = new Date(k.created_at * 1000).toLocaleString();
+      const statusBadge = k.revoked
+        ? '<span class="badge revoked">Revoked</span>'
+        : '<span class="badge active">Active</span>';
+
+      tr.innerHTML = `
+        <td><strong>${escapeHtml(k.label)}</strong></td>
+        <td><code>${escapeHtml(k.key_id)}</code></td>
+        <td>${created}</td>
+        <td>${k.request_count || 0}</td>
+        <td>${statusBadge}</td>
+        <td class="actions-cell"></td>
+      `;
+
+      const actionsCell = tr.querySelector(".actions-cell");
+
+      if (!k.revoked) {
+        const revokeBtn = document.createElement("button");
+        revokeBtn.textContent = "Revoke";
+        revokeBtn.className = "danger";
+        revokeBtn.onclick = async () => {
+          if (!confirm(`Revoke key '${k.label}'?`)) return;
+          await apiDelete(`/v1/admin/keys/${k.key_id}`);
+          refresh();
+        };
+        actionsCell.appendChild(revokeBtn);
+      }
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.textContent = "Delete";
+      deleteBtn.className = "danger";
+      deleteBtn.onclick = async () => {
+        if (!confirm(`Permanently delete key '${k.label}'?`)) return;
+        await apiDelete(`/v1/admin/keys/${k.key_id}?permanent=true`);
+        refresh();
+      };
+      actionsCell.appendChild(deleteBtn);
+
+      tbody.appendChild(tr);
+    });
+  }
+
+  keySearchEl.addEventListener("input", renderKeysTable);
+
+  function escapeHtml(str) {
+    return String(str || "").replace(/[&<>"']/g, (c) => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    })[c]);
+  }
+
   async function refresh() {
-    statusLine.textContent = "Loading...";
+    statusLine.textContent = "Updating...";
     try {
       const [system, stats, keys] = await Promise.all([
         apiGet("/v1/system"),
@@ -114,34 +243,22 @@
 
       document.getElementById("stat-gpu").textContent = system.gpu?.available ? system.gpu.name : "None (CPU)";
       document.getElementById("stat-ram").textContent = system.total_ram_mb ? `${(system.total_ram_mb / 1024).toFixed(1)} GB` : "—";
-      document.getElementById("stat-vram").textContent = system.gpu?.available ? `${system.gpu.free_vram_mb}/${system.gpu.total_vram_mb} MB` : "—";
+      document.getElementById("stat-vram").textContent = system.gpu?.available && system.gpu.total_vram_mb
+        ? `${system.gpu.free_vram_mb}/${system.gpu.total_vram_mb} MB` : "—";
       document.getElementById("stat-disk").textContent = system.free_disk_mb ? `${(system.free_disk_mb / 1024).toFixed(1)} GB` : "—";
 
       document.getElementById("stat-uptime").textContent = stats.uptime_seconds;
       document.getElementById("stat-requests").textContent = stats.requests_recorded;
-      document.getElementById("stat-errors").textContent = stats.errors_recorded;
+      document.getElementById("stat-errors").textContent = `${stats.errors_recorded} (${stats.error_rate_pct || 0}%)`;
       document.getElementById("stat-latency").textContent = stats.avg_latency_ms;
+      document.getElementById("stat-p50").textContent = stats.p50_latency_ms || "—";
+      document.getElementById("stat-p95").textContent = stats.p95_latency_ms || "—";
+      document.getElementById("stat-tokens").textContent = stats.tokens_generated || 0;
 
-      const tbody = document.querySelector("#keys-table tbody");
-      tbody.innerHTML = "";
-      for (const k of keys.keys) {
-        const tr = document.createElement("tr");
-        const created = new Date(k.created_at * 1000).toLocaleString();
-        tr.innerHTML = `<td>${k.label}</td><td>${k.key_id}</td><td>${created}</td><td>${k.revoked ? "revoked" : "active"}</td><td></td>`;
-        if (!k.revoked) {
-          const btn = document.createElement("button");
-          btn.textContent = "Revoke";
-          btn.className = "danger";
-          btn.onclick = async () => {
-            await apiDelete(`/v1/admin/keys/${k.key_id}`);
-            refresh();
-          };
-          tr.lastElementChild.appendChild(btn);
-        }
-        tbody.appendChild(tr);
-      }
+      allKeys = keys.keys || [];
+      renderKeysTable();
 
-      statusLine.textContent = `Updated ${new Date().toLocaleTimeString()}`;
+      statusLine.textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
     } catch (err) {
       statusLine.textContent = `Error: ${err.message}`;
     }
@@ -156,13 +273,24 @@
       const result = await apiPost("/v1/admin/keys", { label });
       const box = document.getElementById("new-key-result");
       box.style.display = "block";
-      box.textContent = `New key (shown once): ${result.api_key}`;
+      box.innerHTML = `<strong>New API Key (copy now, shown once):</strong><br><code style="color:var(--accent); font-weight:bold;">${result.api_key}</code>`;
       document.getElementById("new-key-label").value = "";
       refresh();
     } catch (err) {
       statusLine.textContent = `Error: ${err.message}`;
     }
   });
+
+  // Auto-refresh interval
+  setInterval(() => {
+    if (autoRefreshCb.checked && adminKeyEl.value.trim()) {
+      refresh();
+    }
+  }, 5000);
+
+  if (adminKeyEl.value.trim()) {
+    refresh();
+  }
 })();
 </script>
 

@@ -8,9 +8,10 @@ going to production at scale — see docs/troubleshooting.md.
 
 from __future__ import annotations
 
+import math
 import time
 from collections import defaultdict
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from threading import Lock
 
 from fastapi import HTTPException, status
@@ -27,7 +28,7 @@ class RateLimiter:
         self.capacity = max(requests_per_minute, 1)
         self.refill_rate_per_sec = self.capacity / 60.0
         self._buckets: dict[str, _Bucket] = defaultdict(
-            lambda: _Bucket(tokens=self.capacity, last_refill=time.monotonic())
+            lambda: _Bucket(tokens=float(self.capacity), last_refill=time.monotonic())
         )
         self._lock = Lock()
 
@@ -36,12 +37,14 @@ class RateLimiter:
             bucket = self._buckets[key]
             now = time.monotonic()
             elapsed = now - bucket.last_refill
-            bucket.tokens = min(self.capacity, bucket.tokens + elapsed * self.refill_rate_per_sec)
+            bucket.tokens = min(float(self.capacity), bucket.tokens + elapsed * self.refill_rate_per_sec)
             bucket.last_refill = now
 
-            if bucket.tokens < 1:
+            if bucket.tokens < 1.0:
+                retry_after = max(1, math.ceil((1.0 - bucket.tokens) / self.refill_rate_per_sec))
                 raise HTTPException(
                     status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                     detail="Rate limit exceeded",
+                    headers={"Retry-After": str(retry_after)},
                 )
-            bucket.tokens -= 1
+            bucket.tokens -= 1.0

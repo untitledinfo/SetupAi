@@ -13,6 +13,7 @@ store file doesn't hand out live credentials.
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
 import secrets
 import time
@@ -32,6 +33,8 @@ class ApiKeyRecord:
     key_hash: str
     created_at: float
     revoked: bool = False
+    last_used_at: float | None = None
+    request_count: int = 0
 
     def to_public_dict(self) -> dict:
         """Never include key_hash in anything returned to a client."""
@@ -40,6 +43,8 @@ class ApiKeyRecord:
             "label": self.label,
             "created_at": self.created_at,
             "revoked": self.revoked,
+            "last_used_at": self.last_used_at,
+            "request_count": self.request_count,
         }
 
 
@@ -53,9 +58,22 @@ class KeyStore:
     def _load(self) -> None:
         if not self.path.exists():
             return
-        raw = json.loads(self.path.read_text(encoding="utf-8") or "[]")
+        try:
+            raw = json.loads(self.path.read_text(encoding="utf-8") or "[]")
+        except (json.JSONDecodeError, OSError):
+            raw = []
         for item in raw:
-            rec = ApiKeyRecord(**item)
+            if not isinstance(item, dict):
+                continue
+            rec = ApiKeyRecord(
+                key_id=item["key_id"],
+                label=item.get("label", ""),
+                key_hash=item["key_hash"],
+                created_at=item.get("created_at", time.time()),
+                revoked=item.get("revoked", False),
+                last_used_at=item.get("last_used_at"),
+                request_count=item.get("request_count", 0),
+            )
             self._records[rec.key_id] = rec
 
     def _save(self) -> None:
@@ -67,7 +85,7 @@ class KeyStore:
         """Returns (plaintext_key, record). The plaintext key is shown
         exactly once — the store only ever keeps the hash.
         """
-        plaintext = secrets.token_urlsafe(32)
+        plaintext = f"fw-{secrets.token_urlsafe(32)}"
         key_id = secrets.token_hex(8)
         record = ApiKeyRecord(
             key_id=key_id,
@@ -89,11 +107,46 @@ class KeyStore:
             self._save()
             return True
 
+    def delete_key(self, key_id: str) -> bool:
+        with self._lock:
+            if key_id not in self._records:
+                return False
+            del self._records[key_id]
+            self._save()
+            return True
+
+    def update_key(self, key_id: str, label: str) -> bool:
+        with self._lock:
+            record = self._records.get(key_id)
+            if not record:
+                return False
+            record.label = label
+            self._save()
+            return True
+
+    def get_key(self, key_id: str) -> ApiKeyRecord | None:
+        with self._lock:
+            return self._records.get(key_id)
+
     def list_keys(self) -> list[ApiKeyRecord]:
-        return list(self._records.values())
+        with self._lock:
+            return list(self._records.values())
 
     def is_valid(self, plaintext_key: str) -> bool:
         key_hash = _hash_key(plaintext_key)
-        return any(
-            r.key_hash == key_hash and not r.revoked for r in self._records.values()
-        )
+        with self._lock:
+            return any(
+                hmac.compare_digest(r.key_hash, key_hash) and not r.revoked
+                for r in self._records.values()
+            )
+
+    def record_usage(self, plaintext_key: str) -> ApiKeyRecord | None:
+        key_hash = _hash_key(plaintext_key)
+        with self._lock:
+            for r in self._records.values():
+                if hmac.compare_digest(r.key_hash, key_hash) and not r.revoked:
+                    r.last_used_at = time.time()
+                    r.request_count += 1
+                    self._save()
+                    return r
+        return None
