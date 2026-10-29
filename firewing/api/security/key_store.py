@@ -53,15 +53,28 @@ class KeyStore:
         self.path = Path(path)
         self._lock = Lock()
         self._records: dict[str, ApiKeyRecord] = {}
+        self._last_mtime: float = 0.0
         self._load()
+
+    def _maybe_reload(self) -> None:
+        if not self.path.exists():
+            return
+        try:
+            mtime = self.path.stat().st_mtime
+            if mtime > self._last_mtime:
+                self._load()
+        except OSError:
+            pass
 
     def _load(self) -> None:
         if not self.path.exists():
             return
         try:
             raw = json.loads(self.path.read_text(encoding="utf-8") or "[]")
+            self._last_mtime = self.path.stat().st_mtime
         except (json.JSONDecodeError, OSError):
             raw = []
+        new_records = {}
         for item in raw:
             if not isinstance(item, dict):
                 continue
@@ -74,12 +87,17 @@ class KeyStore:
                 last_used_at=item.get("last_used_at"),
                 request_count=item.get("request_count", 0),
             )
-            self._records[rec.key_id] = rec
+            new_records[rec.key_id] = rec
+        self._records = new_records
 
     def _save(self) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         payload = [asdict(r) for r in self._records.values()]
         self.path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        try:
+            self._last_mtime = self.path.stat().st_mtime
+        except OSError:
+            pass
 
     def create_key(self, label: str) -> tuple[str, ApiKeyRecord]:
         """Returns (plaintext_key, record). The plaintext key is shown
@@ -94,12 +112,14 @@ class KeyStore:
             created_at=time.time(),
         )
         with self._lock:
+            self._maybe_reload()
             self._records[key_id] = record
             self._save()
         return plaintext, record
 
     def revoke_key(self, key_id: str) -> bool:
         with self._lock:
+            self._maybe_reload()
             record = self._records.get(key_id)
             if not record:
                 return False
@@ -109,6 +129,7 @@ class KeyStore:
 
     def delete_key(self, key_id: str) -> bool:
         with self._lock:
+            self._maybe_reload()
             if key_id not in self._records:
                 return False
             del self._records[key_id]
@@ -117,6 +138,7 @@ class KeyStore:
 
     def update_key(self, key_id: str, label: str) -> bool:
         with self._lock:
+            self._maybe_reload()
             record = self._records.get(key_id)
             if not record:
                 return False
@@ -126,15 +148,18 @@ class KeyStore:
 
     def get_key(self, key_id: str) -> ApiKeyRecord | None:
         with self._lock:
+            self._maybe_reload()
             return self._records.get(key_id)
 
     def list_keys(self) -> list[ApiKeyRecord]:
         with self._lock:
+            self._maybe_reload()
             return list(self._records.values())
 
     def is_valid(self, plaintext_key: str) -> bool:
         key_hash = _hash_key(plaintext_key)
         with self._lock:
+            self._maybe_reload()
             return any(
                 hmac.compare_digest(r.key_hash, key_hash) and not r.revoked
                 for r in self._records.values()
@@ -143,6 +168,7 @@ class KeyStore:
     def record_usage(self, plaintext_key: str) -> ApiKeyRecord | None:
         key_hash = _hash_key(plaintext_key)
         with self._lock:
+            self._maybe_reload()
             for r in self._records.values():
                 if hmac.compare_digest(r.key_hash, key_hash) and not r.revoked:
                     r.last_used_at = time.time()

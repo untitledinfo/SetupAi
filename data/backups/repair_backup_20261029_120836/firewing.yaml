@@ -1,0 +1,23 @@
+model:
+  model_path: Qwen/Qwen3-Omni-30B-A3B-Instruct
+  device: cpu
+  dtype: float32
+  quantization: int4
+  max_context_tokens: 8192
+  context_strategy: truncate_oldest
+  enable_multimodal: true
+  enable_tool_calling: true
+  trust_remote_code: false
+  adapter_path: null
+api:
+  host: 0.0.0.0
+  port: 8000
+  workers: 1
+  require_api_key: true
+  rate_limit_rpm: 60
+  cors_origins:
+  - '*'
+paths:
+  data_dir: data
+  cache_dir: cache
+  logs_dir: logs

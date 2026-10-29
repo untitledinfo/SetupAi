@@ -23,6 +23,11 @@ class UpdateKeyRequest(BaseModel):
     label: str
 
 
+class RepairRequest(BaseModel):
+    match_device: bool = True
+    reinstall_packages: bool = False
+
+
 @router.post("/keys")
 def create_key(
     body: CreateKeyRequest, request: Request, _: str = Depends(require_admin_key)
@@ -77,3 +82,40 @@ def revoke_or_delete_key(
 def request_stats(request: Request, _: str = Depends(require_admin_key)):
     tracker = request.app.state.stats_tracker
     return tracker.snapshot()
+
+
+@router.get("/diagnostics")
+def system_diagnostics(request: Request, _: str = Depends(require_admin_key)):
+    from setup_ai.system.repair import IssueDetector
+
+    settings = getattr(request.app.state, "settings", None)
+    config_path = "configs/firewing.yaml"
+    data_dir = getattr(settings, "data_dir", "data") if settings else "data"
+    detector = IssueDetector(config_path=config_path, data_dir=data_dir)
+    return detector.diagnose().to_dict()
+
+
+@router.post("/repair")
+def system_repair(
+    body: RepairRequest,
+    request: Request,
+    _: str = Depends(require_admin_key),
+):
+    from setup_ai.system.repair import IssueRepairer
+
+    settings = getattr(request.app.state, "settings", None)
+    config_path = "configs/firewing.yaml"
+    data_dir = getattr(settings, "data_dir", "data") if settings else "data"
+    repairer = IssueRepairer(config_path=config_path, data_dir=data_dir)
+    rep = repairer.repair(
+        match_device=body.match_device,
+        reinstall_packages=body.reinstall_packages,
+    )
+    return rep.to_dict()
+
+
+@router.get("/device")
+def device_info(_: Request, __: str = Depends(require_admin_key)):
+    from firewing.utils.system_info import match_device_settings
+
+    return match_device_settings().to_dict()

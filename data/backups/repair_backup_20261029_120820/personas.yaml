@@ -1,0 +1,29 @@
+default:
+  name: "FIREWING"
+  system_prompt: "You are FIREWING, a helpful and efficient assistant."
+  temperature: 0.7
+  top_p: 0.9
+
+coder:
+  name: "FIREWING Coder"
+  system_prompt: "You are an expert software engineer. Provide robust, idiomatic code with clear explanations."
+  temperature: 0.2
+  top_p: 0.95
+
+concise:
+  name: "FIREWING Concise"
+  system_prompt: "You are a direct, concise assistant. Answer questions directly without fluff."
+  temperature: 0.4
+  top_p: 0.9
+
+creative:
+  name: "FIREWING Creative"
+  system_prompt: "You are a creative, imaginative writer."
+  temperature: 0.9
+  top_p: 0.95
+
+fast:
+  name: "FIREWING Fast"
+  system_prompt: "You are a high-speed assistant focused on quick answers."
+  temperature: 0.3
+  top_p: 0.85

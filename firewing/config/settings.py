@@ -93,12 +93,22 @@ def load_settings(config_path: str | Path | None = None) -> Settings:
     if path.exists():
         with open(path, "r", encoding="utf-8") as fh:
             raw = yaml.safe_load(fh) or {}
-        if "model" in raw:
-            settings.model = ModelConfig(**{**settings.model.__dict__, **raw["model"]})
-        if "api" in raw:
-            settings.api = ApiConfig(**{**settings.api.__dict__, **raw["api"]})
-        if "logging" in raw:
-            settings.logging = LoggingConfig(**{**settings.logging.__dict__, **raw["logging"]})
+        if "model" in raw and isinstance(raw["model"], dict):
+            valid = {f.name for f in fields(ModelConfig)}
+            filtered = {k: v for k, v in raw["model"].items() if k in valid}
+            settings.model = ModelConfig(**{**settings.model.__dict__, **filtered})
+        if "api" in raw and isinstance(raw["api"], dict):
+            valid = {f.name for f in fields(ApiConfig)}
+            if "cors_origins" in raw["api"] and "cors_allowed_origins" not in raw["api"]:
+                raw["api"]["cors_allowed_origins"] = raw["api"]["cors_origins"]
+            if "rate_limit_rpm" in raw["api"] and "rate_limit_requests_per_minute" not in raw["api"]:
+                raw["api"]["rate_limit_requests_per_minute"] = raw["api"]["rate_limit_rpm"]
+            filtered = {k: v for k, v in raw["api"].items() if k in valid}
+            settings.api = ApiConfig(**{**settings.api.__dict__, **filtered})
+        if "logging" in raw and isinstance(raw["logging"], dict):
+            valid = {f.name for f in fields(LoggingConfig)}
+            filtered = {k: v for k, v in raw["logging"].items() if k in valid}
+            settings.logging = LoggingConfig(**{**settings.logging.__dict__, **filtered})
         if "data_dir" in raw:
             settings.data_dir = raw["data_dir"]
 

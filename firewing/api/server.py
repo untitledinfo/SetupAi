@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import uuid
 from contextlib import asynccontextmanager
 
@@ -21,7 +22,10 @@ from firewing.utils.stats import StatsTracker
 logger = get_logger("api.server")
 
 
-def create_app(config_path: str | None = None, lazy_load_model: bool = False) -> FastAPI:
+def create_app(config_path: str | None = None, lazy_load_model: bool | None = None) -> FastAPI:
+    if lazy_load_model is None:
+        lazy_load_model = os.environ.get("FIREWING_LAZY_LOAD_MODEL", "").lower() in ("1", "true", "yes", "on")
+
     settings = load_settings(config_path)
     configure_logging(
         level=settings.logging.level,

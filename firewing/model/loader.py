@@ -37,14 +37,27 @@ class LoadedModel:
 
 
 def _resolve_device(requested: str) -> str:
+    if requested == "rocm":
+        # PyTorch uses 'cuda' identifier for ROCm HIP devices
+        return "cuda"
     if requested != "auto":
         return requested
     try:
         import torch
 
-        if torch.cuda.is_available():
+        cuda = getattr(torch, "cuda", None)
+        if cuda and hasattr(cuda, "is_available") and cuda.is_available():
             return "cuda"
-    except ImportError:
+
+        backends = getattr(torch, "backends", None)
+        mps = getattr(backends, "mps", None)
+        if mps and hasattr(mps, "is_available") and mps.is_available():
+            return "mps"
+
+        xpu = getattr(torch, "xpu", None)
+        if xpu and hasattr(xpu, "is_available") and xpu.is_available():
+            return "xpu"
+    except (ImportError, AttributeError):
         pass
     return "cpu"
 
@@ -52,7 +65,22 @@ def _resolve_device(requested: str) -> str:
 def _resolve_dtype(requested: str, device: str) -> str:
     if requested != "auto":
         return requested
-    return "bfloat16" if device.startswith("cuda") else "float32"
+    if device.startswith("cuda"):
+        try:
+            import torch
+
+            cuda = getattr(torch, "cuda", None)
+            if cuda and hasattr(cuda, "is_available") and cuda.is_available():
+                if hasattr(cuda, "is_bf16_supported") and cuda.is_bf16_supported():
+                    return "bfloat16"
+        except Exception:
+            pass
+        return "float16"
+    if device == "mps":
+        return "float16"
+    if device == "xpu":
+        return "bfloat16"
+    return "float32"
 
 
 def _candidate_model_classes(model_path: str, trust_remote_code: bool) -> tuple[list[tuple[Any, str]], Any]:

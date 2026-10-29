@@ -7,6 +7,7 @@ setup-ai restart    # systemctl restart firewing
 setup-ai status     # checks systemctl service or queries local API /health
 setup-ai logs       # journalctl -u firewing -f
 setup-ai update     # git pull + reinstall dependencies + restart
+setup-ai update --fix # update repository + 1-click auto-repair configs & hardware
 setup-ai config     # print resolved configuration
 setup-ai doctor     # hardware/environment check (OS, CPU, RAM, GPU, CUDA, disk, Docker)
 setup-ai chat       # interactive REPL against the local model
@@ -16,6 +17,18 @@ setup-ai bench      # run performance and latency benchmarks directly
 setup-ai serve      # launch local Uvicorn API server (--host, --port, --reload, --workers)
 setup-ai --version
 setup-ai --config <path>   # use a specific config file for any subcommand
+
+# Hardware Matching & Device Inspection
+setup-ai device                              # inspect AMD ROCm / NVIDIA CUDA / Apple MPS / Intel XPU / CPU
+setup-ai device --apply                      # auto-tune and apply recommended settings to firewing.yaml
+setup-ai device --json                       # output machine-readable hardware match JSON
+
+# System Diagnostics & 1-Click Auto-Repair (STRICT DATA PRESERVATION)
+setup-ai fix                                 # 1-click auto-fix configs, DB schema, API keys, hardware match
+setup-ai fix --check-only                    # diagnose issues without modifying anything
+setup-ai fix --no-match-device               # repair configs/DB without altering hardware settings
+setup-ai fix --reinstall                     # reinstall core package dependencies (keeps all models & data)
+setup-ai fix --json                          # output diagnostic or repair report as JSON
 
 # Model Management
 setup-ai model info                          # base model + license + configured path
@@ -44,31 +57,26 @@ setup-ai conv delete <conv_id>               # delete a conversation
 the running HTTP API server, and `setup-ai serve` can be used to run the API
 server directly.
 
-## `model set` / `model upgrade`
+## `setup-ai device`
 
-These edit `model_path` / `adapter_path` in your config YAML — they
-don't download or validate anything themselves; the actual weights are
-fetched by `transformers` the next time the service loads the model.
-"Upgrading" the model means pointing at a newer upstream revision, a
-different base checkpoint, or (for something that's genuinely yours)
-your own LoRA adapter from [Fine-Tuning](training.md). FIREWING does
-not — and cannot honestly claim to — turn the upstream Qwen3-Omni
-weights themselves into an independently trained model; see the
-[Model Card](model-card.md).
+Inspects physical GPU hardware across AMD (Radeon / Instinct), NVIDIA (GeForce / RTX / Tesla), Apple Silicon (M-series), Intel (Arc), and CPU. Detects whether PyTorch has matching acceleration active:
+- Physical AMD GPU present with CPU PyTorch -> warns with exact ROCm/HIP install command.
+- Physical NVIDIA GPU present with CPU PyTorch -> warns with exact CUDA install command.
+- Auto-recommends optimal `device`, `dtype`, and `quantization` based on available VRAM.
 
-```bash
-setup-ai model set --path Qwen/Qwen3-Omni-30B-A3B-Instruct
-setup-ai model set --adapter /opt/firewing/adapters/my-finetune
-sudo systemctl restart firewing   # apply the change
-```
+## `setup-ai fix`
+
+Non-destructively diagnoses and repairs system issues while **strictly preserving all user data**:
+1. Creates a safety snapshot in `data/backups/repair_backup_<timestamp>/`.
+2. Migrates database schemas non-destructively (`ALTER TABLE conversations ADD COLUMN ...`).
+3. Rescues corrupted API key JSON stores via regex record salvage.
+4. Generates missing configuration templates without clobbering existing settings.
+5. Re-tunes device acceleration settings in `configs/firewing.yaml`.
 
 ## Interactive menu (`menu.sh`)
 
 For anyone who'd rather click through numbered options than remember
-subcommands, the repo root also ships `menu.sh`, a single entry point
-covering install, model management, uninstall, domain/DNS + SSL setup,
-local chat, API key management, the database, and a one-shot chat
-self-test:
+subcommands, the repo root also ships `menu.sh`, a single entry point:
 
 ```bash
 git clone https://github.com/untitledinfo/SetupAi.git
@@ -86,5 +94,6 @@ sudo bash menu.sh
 6) API
 7) Database
 8) Chat with Terminal AI (hi -> thinking -> reply, fully working test)
-9) Exit
+9) 1-Click Auto-Fix & Repair (Match Hardware AMD/NVIDIA, Fix Bugs, Keep Data)
+10) Exit
 ```

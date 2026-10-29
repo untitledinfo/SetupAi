@@ -351,6 +351,36 @@ action_chat_test() {
 }
 
 # ---------------------------------------------------------------------------
+# 9. 1-Click Auto-Fix & Repair (Keep Data, Match Hardware AMD/NVIDIA, Fix Bugs)
+# ---------------------------------------------------------------------------
+action_repair() {
+    local py
+    py="$(venv_python)"
+    log "Running 1-Click Auto-Fix & Repair System..."
+    echo "  1) Full 1-Click Auto-Fix (Fix configs, migrate DB, match hardware AMD/NVIDIA, keep data)"
+    echo "  2) Diagnose issues only (check without modifying)"
+    echo "  3) Hardware & GPU acceleration inspection (AMD ROCm / NVIDIA CUDA / MPS)"
+    echo "  4) Reinstall core packages / same mods (keep all user data and models)"
+    read -r -p "Choose [1-4]: " fix_opt
+
+    case "$fix_opt" in
+        1)
+            (cd "${APP_DIR}" && "$py" -m setup_ai.cli.main --config "${CONFIG_FILE}" fix)
+            ;;
+        2)
+            (cd "${APP_DIR}" && "$py" -m setup_ai.cli.main --config "${CONFIG_FILE}" fix --check-only)
+            ;;
+        3)
+            (cd "${APP_DIR}" && "$py" -m setup_ai.cli.main --config "${CONFIG_FILE}" device)
+            ;;
+        4)
+            (cd "${APP_DIR}" && "$py" -m setup_ai.cli.main --config "${CONFIG_FILE}" fix --reinstall)
+            ;;
+        *) err "Invalid choice." ;;
+    esac
+}
+
+# ---------------------------------------------------------------------------
 main_menu() {
     while true; do
         cat <<'EOF'
@@ -367,9 +397,10 @@ main_menu() {
   6) API
   7) Database
   8) Chat with Terminal AI (hi -> thinking -> reply, fully working test)
-  9) Exit
+  9) 1-Click Auto-Fix & Repair (Match Hardware AMD/NVIDIA, Fix Bugs, Keep Data)
+ 10) Exit
 EOF
-        read -r -p "Choose an option [0-9]: " opt
+        read -r -p "Choose an option [0-10]: " opt
         case "$opt" in
             0) action_install ;;
             1) action_models ;;
@@ -380,7 +411,8 @@ EOF
             6) action_api ;;
             7) action_database ;;
             8) action_chat_test ;;
-            9) exit 0 ;;
+            9) action_repair ;;
+            10) exit 0 ;;
             *) err "Invalid option." ;;
         esac
         pause

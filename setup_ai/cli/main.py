@@ -47,16 +47,18 @@ _EXTRA_DEPS = {
     "model": [],
     "keys": [],
     "conv": [],
+    "fix": [],
+    "device": [],
 }
 
 
 def _missing_deps_for(command: str) -> list[str]:
+    import importlib.util
+
     needed = ["yaml"] + _EXTRA_DEPS.get(command, [])
     missing = []
     for mod in needed:
-        try:
-            __import__(mod)
-        except ImportError:
+        if importlib.util.find_spec(mod) is None:
             missing.append(mod)
     return missing
 
@@ -533,8 +535,12 @@ def cmd_bench(args: argparse.Namespace) -> int:
 
 
 def cmd_serve(args: argparse.Namespace) -> int:
+    import os
     import uvicorn
     from firewing.config.settings import load_settings
+
+    if getattr(args, "lazy_load", False):
+        os.environ["FIREWING_LAZY_LOAD_MODEL"] = "1"
 
     settings = load_settings(args.config)
     host = getattr(args, "host", None) or settings.api.host
@@ -620,11 +626,144 @@ def cmd_logs(_args: argparse.Namespace) -> int:
         return 1
 
 
-def cmd_update(_args: argparse.Namespace) -> int:
+def cmd_fix(args: argparse.Namespace) -> int:
+    from setup_ai.system.repair import IssueDetector, IssueRepairer
+
+    config_path = getattr(args, "config", None) or "configs/firewing.yaml"
+    data_dir = getattr(args, "data_dir", None) or "data"
+    check_only = getattr(args, "check_only", False)
+    match_device = not getattr(args, "no_match_device", False)
+    reinstall = getattr(args, "reinstall", False)
+    json_output = getattr(args, "json", False)
+
+    detector = IssueDetector(config_path=config_path, data_dir=data_dir)
+    diag = detector.diagnose()
+
+    if json_output and check_only:
+        import json
+        print(json.dumps(diag.to_dict(), indent=2))
+        return 0 if diag.healthy else 1
+
+    print("\n" + "=" * 55)
+    print("       SETUP AI — SYSTEM DIAGNOSTICS & FIXER")
+    print("=" * 55)
+    print(f"Status:       {'[OK] System is healthy' if diag.healthy else '[ISSUES DETECTED]'}")
+    print(f"Total issues: {diag.total_issues} ({diag.critical_count} critical, {diag.warning_count} warnings)")
+    print(f"Hardware:     {diag.device_match.get('primary_accelerator', {}).get('name', 'Unknown')}")
+    print(f"Acceleration: {diag.device_match.get('status', 'unknown').upper()}")
+    print("-" * 55)
+
+    if diag.issues:
+        for idx, item in enumerate(diag.issues, start=1):
+            badge = f"[{item.severity.upper()}]"
+            print(f" {idx}. {badge:<10} {item.title}")
+            print(f"    Details:  {item.description}")
+            print(f"    Fix:      {item.fix_action}")
+            print()
+    else:
+        print("No system issues found.\n")
+
+    if check_only:
+        print("Check completed (run without --check-only to auto-repair).")
+        return 0 if diag.healthy else 1
+
+    print("Running non-destructive 1-Click Auto-Repair (STRICT DATA PRESERVATION)...")
+    repairer = IssueRepairer(config_path=config_path, data_dir=data_dir)
+    rep = repairer.repair(match_device=match_device, reinstall_packages=reinstall)
+
+    if json_output:
+        import json
+        print(json.dumps(rep.to_dict(), indent=2))
+        return 0 if rep.success else 1
+
+    print("\n" + "=" * 55)
+    print("                   REPAIR REPORT")
+    print("=" * 55)
+    print(f"Success:        {rep.success}")
+    print(f"User Data:      PRESERVED (conversations.db, keys, configs intact)")
+    if rep.backup_path:
+        print(f"Backup Created: {rep.backup_path}")
+    print(f"\nActions Executed ({len(rep.actions_taken)}):")
+    for action in rep.actions_taken:
+        print(f"  [v] {action}")
+    if rep.warnings:
+        print("\nWarnings:")
+        for w in rep.warnings:
+            print(f"  [!] {w}")
+
+    print("\n" + rep.summary)
+    return 0 if rep.success else 1
+
+
+def cmd_device(args: argparse.Namespace) -> int:
+    from firewing.utils.system_info import match_device_settings
+
+    config_path = getattr(args, "config", None) or "configs/firewing.yaml"
+    apply_settings = getattr(args, "apply", False)
+    json_output = getattr(args, "json", False)
+
+    match = match_device_settings()
+
+    if json_output:
+        import json
+        print(json.dumps(match.to_dict(), indent=2))
+        return 0
+
+    print("\n" + "=" * 55)
+    print("      SETUP AI — HARDWARE & ACCELERATION MATCHER")
+    print("=" * 55)
+    pri = match.primary_accelerator
+    print(f"Primary Hardware:     {pri.name}")
+    print(f"Vendor:               {pri.vendor.upper()}")
+    print(f"Backend Target:       {pri.backend.upper()}")
+    print(f"Backend Active:       {'YES (GPU acceleration ready)' if pri.backend_active else 'NO (CPU Fallback)'}")
+    if pri.total_vram_mb:
+        print(f"Total VRAM / Memory:  {pri.total_vram_mb} MB (~{pri.total_vram_mb // 1024} GB)")
+    if pri.free_vram_mb:
+        print(f"Free VRAM:            {pri.free_vram_mb} MB")
+    if pri.driver_version:
+        print(f"Driver Version:       {pri.driver_version}")
+    if pri.compute_version:
+        print(f"Compute Runtime:      {pri.compute_version}")
+
+    print("-" * 55)
+    print(f"Hardware Match:       {match.status.upper()}")
+    print(f"Recommended Device:   {match.recommended_device}")
+    print(f"Recommended Dtype:    {match.recommended_dtype}")
+    print(f"Recommended Quant:    {match.recommended_quantization or 'None (Full Precision)'}")
+    print("-" * 55)
+
+    if match.mismatch_warning:
+        print(f"\n[WARNING] {match.mismatch_warning}")
+    if match.install_hint:
+        print(f"\n[INSTALL FIX]\n  {match.install_hint}\n")
+
+    if apply_settings:
+        from setup_ai.system.repair import IssueRepairer
+
+        repairer = IssueRepairer(config_path=config_path)
+        repairer._match_and_update_device([])
+        print(f"Applied recommended hardware settings to '{config_path}'.")
+
+    return 0
+
+
+def cmd_update(args: argparse.Namespace) -> int:
+    fix = getattr(args, "fix", False)
     print("Checking repository for updates...")
     try:
         subprocess.run(["git", "pull"], check=False)
         subprocess.run([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"], check=False)
+
+        if fix:
+            print("\nRunning 1-Click Update & Fix (matching hardware, repairing DB and configs, keeping data)...")
+            from setup_ai.system.repair import IssueRepairer
+
+            config_path = getattr(args, "config", None) or "configs/firewing.yaml"
+            repairer = IssueRepairer(config_path=config_path)
+            rep = repairer.repair(match_device=True, reinstall_packages=False)
+            print(f"Repairs applied: {len(rep.actions_taken)} item(s) fixed. All user data preserved.")
+
         _systemctl("restart")
         print("Update complete.")
         return 0
@@ -651,7 +790,24 @@ def build_parser() -> argparse.ArgumentParser:
         ("bench", cmd_bench),
     ]:
         p = sub.add_parser(name)
+        if name == "update":
+            p.add_argument("--fix", action="store_true", help="Run 1-Click Auto-Fix & Repair after updating, matching hardware and keeping data")
         p.set_defaults(func=func)
+
+    # `fix` command
+    fix_parser = sub.add_parser("fix", help="Diagnose and auto-repair system issues, configs, DB, and match hardware while keeping data")
+    fix_parser.add_argument("--check-only", action="store_true", help="Only check for issues without applying fixes")
+    fix_parser.add_argument("--no-match-device", action="store_true", help="Do not auto-match hardware settings in config")
+    fix_parser.add_argument("--reinstall", action="store_true", help="Reinstall and verify core package dependencies (keeps data)")
+    fix_parser.add_argument("--data-dir", default=None, help="Custom data directory (default: data)")
+    fix_parser.add_argument("--json", action="store_true", help="Output diagnostic or repair result as JSON")
+    fix_parser.set_defaults(func=cmd_fix)
+
+    # `device` command
+    device_parser = sub.add_parser("device", help="Inspect and match hardware acceleration (AMD ROCm / NVIDIA CUDA / Apple MPS / Intel XPU / CPU)")
+    device_parser.add_argument("--apply", action="store_true", help="Apply recommended hardware settings to config YAML")
+    device_parser.add_argument("--json", action="store_true", help="Output hardware detection and match result as JSON")
+    device_parser.set_defaults(func=cmd_device)
 
     # `serve` command
     serve_parser = sub.add_parser("serve", help="Run the FIREWING API server locally")
@@ -659,6 +815,9 @@ def build_parser() -> argparse.ArgumentParser:
     serve_parser.add_argument("--port", type=int, default=None, help="Bind port (default: from config)")
     serve_parser.add_argument("--reload", action="store_true", help="Enable auto-reload on code change")
     serve_parser.add_argument("--workers", type=int, default=1, help="Number of worker processes")
+    serve_parser.add_argument(
+        "--lazy-load", action="store_true", help="Start the API server immediately without waiting to load base model weights"
+    )
     serve_parser.set_defaults(func=cmd_serve)
 
     chat_parser = sub.add_parser("chat", help="Interactive REPL against the local model")

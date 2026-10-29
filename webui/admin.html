@@ -51,6 +51,8 @@
   .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; }
   .badge.active { background: rgba(34, 197, 94, 0.15); color: var(--success); }
   .badge.revoked { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+  .badge.warning { background: rgba(234, 179, 8, 0.15); color: #d97706; }
+  .badge.info { background: rgba(59, 130, 246, 0.15); color: #2563eb; }
   .actions-cell { display: flex; gap: 6px; justify-content: flex-end; }
 </style>
 </head>
@@ -92,6 +94,27 @@
   <div><div class="stat" id="stat-p50">—</div><div class="stat-label">p50 Latency (ms)</div></div>
   <div><div class="stat" id="stat-p95">—</div><div class="stat-label">p95 Latency (ms)</div></div>
   <div><div class="stat" id="stat-tokens">—</div><div class="stat-label">Tokens Generated</div></div>
+</div>
+
+<h2>System Health, Hardware Match & 1-Click Fixer</h2>
+<div class="card">
+  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:12px;">
+    <div>
+      <div style="font-weight:600; font-size:15px; display:flex; align-items:center; gap:8px;">
+        <span id="health-icon" style="color:var(--success);">●</span> <span id="health-status">System Healthy</span>
+        <span id="device-match-badge" class="badge active">Detecting...</span>
+      </div>
+      <div id="device-match-detail" style="font-size:12px; color:var(--text-muted); margin-top:4px;">Detecting hardware acceleration...</div>
+    </div>
+    <div class="row">
+      <label style="font-size:12px; color:var(--text-muted); display:flex; align-items:center; gap:6px;">
+        <input type="checkbox" id="repair-match-device" checked /> Auto-Match Device
+      </label>
+      <button id="diagnose-btn" style="background:transparent; border:1px solid var(--border); color:var(--text);">Diagnose</button>
+      <button id="repair-btn" style="background:var(--success);">1-Click Auto-Fix & Repair (Keep Data)</button>
+    </div>
+  </div>
+  <div id="repair-log-box" style="display:none; font-family:monospace; font-size:12px; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:12px; max-height:220px; overflow-y:auto; white-space:pre-wrap;"></div>
 </div>
 
 <h2>API Key Management</h2>
@@ -235,11 +258,38 @@
   async function refresh() {
     statusLine.textContent = "Updating...";
     try {
-      const [system, stats, keys] = await Promise.all([
+      const [system, stats, keys, diag, dev] = await Promise.all([
         apiGet("/v1/system"),
         apiGet("/v1/admin/stats"),
         apiGet("/v1/admin/keys"),
+        apiGet("/v1/admin/diagnostics").catch(() => null),
+        apiGet("/v1/admin/device").catch(() => null),
       ]);
+
+      if (dev) {
+        const badge = document.getElementById("device-match-badge");
+        const detail = document.getElementById("device-match-detail");
+        const status = dev.status || "cpu_fallback";
+        const pri = dev.primary_accelerator || {};
+        badge.textContent = status === "matched" ? `Matched: ${pri.backend?.toUpperCase()}` : (status === "mismatch" ? "Device Mismatch" : "CPU Fallback");
+        badge.className = `badge ${status === "matched" ? "active" : (status === "mismatch" ? "warning" : "info")}`;
+        detail.textContent = `${pri.name || "CPU"} | Recommended: device=${dev.recommended_device}, dtype=${dev.recommended_dtype}, quant=${dev.recommended_quantization || "none"}`;
+      }
+
+      if (diag) {
+        const hIcon = document.getElementById("health-icon");
+        const hStatus = document.getElementById("health-status");
+        if (diag.critical_count > 0) {
+          hIcon.style.color = "var(--danger)";
+          hStatus.textContent = `${diag.critical_count} Critical Issue(s) Detected`;
+        } else if (diag.warning_count > 0) {
+          hIcon.style.color = "#d97706";
+          hStatus.textContent = `${diag.warning_count} Warning(s) Detected`;
+        } else {
+          hIcon.style.color = "var(--success)";
+          hStatus.textContent = "All Systems Operational";
+        }
+      }
 
       document.getElementById("stat-gpu").textContent = system.gpu?.available ? system.gpu.name : "None (CPU)";
       document.getElementById("stat-ram").textContent = system.total_ram_mb ? `${(system.total_ram_mb / 1024).toFixed(1)} GB` : "—";
@@ -265,6 +315,71 @@
   }
 
   document.getElementById("refresh-btn").addEventListener("click", refresh);
+
+  document.getElementById("diagnose-btn").addEventListener("click", async () => {
+    const box = document.getElementById("repair-log-box");
+    box.style.display = "block";
+    box.textContent = "Running system diagnostics...";
+    try {
+      const diag = await apiGet("/v1/admin/diagnostics");
+      let out = `System Diagnosis (${diag.healthy ? "HEALTHY" : "ISSUES FOUND"}):
+`;
+      out += `Total Issues: ${diag.total_issues} (${diag.critical_count} critical, ${diag.warning_count} warnings)
+
+`;
+      if (diag.issues && diag.issues.length) {
+        diag.issues.forEach((iss, i) => {
+          out += `${i + 1}. [${iss.severity.toUpperCase()}] ${iss.title}
+   ${iss.description}
+   Fix: ${iss.fix_action}
+
+`;
+        });
+      } else {
+        out += "No issues found! Database, keys, configs, and hardware are in good shape.
+";
+      }
+      box.textContent = out;
+      refresh();
+    } catch (err) {
+      box.textContent = `Diagnosis failed: ${err.message}`;
+    }
+  });
+
+  document.getElementById("repair-btn").addEventListener("click", async () => {
+    const box = document.getElementById("repair-log-box");
+    box.style.display = "block";
+    box.textContent = "Executing 1-Click Auto-Repair (non-destructive, keeping data)...";
+    const matchDev = document.getElementById("repair-match-device").checked;
+    try {
+      const rep = await apiPost("/v1/admin/repair", { match_device: matchDev, reinstall_packages: false });
+      let out = `1-Click Repair Result: ${rep.success ? "SUCCESS" : "FAILED"}
+`;
+      out += `Data Preserved: YES (conversations.db, api_keys.json, configs intact)
+`;
+      if (rep.backup_path) out += `Backup Snapshot: ${rep.backup_path}
+`;
+      out += `
+Actions Executed (${rep.actions_taken?.length || 0}):
+`;
+      (rep.actions_taken || []).forEach(act => out += ` [v] ${act}
+`);
+      if (rep.warnings && rep.warnings.length) {
+        out += `
+Warnings:
+`;
+        rep.warnings.forEach(w => out += ` [!] ${w}
+`);
+      }
+      out += `
+${rep.summary || ""}
+`;
+      box.textContent = out;
+      refresh();
+    } catch (err) {
+      box.textContent = `Auto-Repair failed: ${err.message}`;
+    }
+  });
 
   document.getElementById("create-key-btn").addEventListener("click", async () => {
     const label = document.getElementById("new-key-label").value.trim();

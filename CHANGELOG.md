@@ -136,3 +136,32 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 - Fixed multimodal image handling with 25MB maximum download size protection and support for local `file://` URIs and paths.
 - Fixed CORS middleware to allow `PATCH` and `OPTIONS` HTTP methods.
 - Fixed installer wizard uninstall action to invoke `uninstall.sh`.
+
+## [1.0.0-beta.3] — Hardware Matching, Issue Fixer & 1-Click Repair
+
+### Added
+- **Hardware & Device Matcher (AMD / NVIDIA / Apple Silicon / Intel XPU / CPU)**:
+  - Added physical GPU detection across Windows (pure Python `winreg` and CIM), Linux (`sysfs` / `/sys/class/drm` and `lspci`), and macOS.
+  - Added AMD GPU and ROCm/HIP detection (`torch.version.hip`, `rocm-smi`).
+  - Added hardware matching engine (`match_device_settings`) that detects driver/runtime mismatches (e.g. physical AMD or NVIDIA GPU present with CPU-only PyTorch build) and provides exact installation commands (`pip install torch ...`).
+  - Recommends optimal device, dtype (`bfloat16`/`float16`/`float32`), and quantization (`int4`/`int8`/`None`) based on detected VRAM.
+  - Added `setup-ai device` CLI command with `--apply` and `--json` support to inspect and auto-tune hardware settings.
+- **Issue Fixer & System Auto-Repair Engine (`setup_ai/system/repair.py`)**:
+  - Deep diagnostics (`IssueDetector`) across configs, database schemas, API keys, filesystem permissions, hardware match, and package dependencies.
+  - Safe, non-destructive auto-repair (`IssueRepairer`) with **STRICT DATA PRESERVATION**:
+    - Creates timestamped safety backups in `data/backups/repair_backup_<timestamp>/`.
+    - Automatically performs non-destructive SQLite database migrations (`ALTER TABLE conversations ADD COLUMN ...`) preserving all user conversation history.
+    - Salvages damaged API key stores from malformed JSON via regex extraction without data loss.
+    - Generates missing `.env`, `configs/personas.yaml`, and `configs/firewing.yaml` without overwriting existing settings.
+    - Reinstalls and repairs core dependencies (`--reinstall`) while keeping all models, adapters, and databases untouched.
+- **1-Click Update & Fix All**:
+  - CLI: `setup-ai fix` (with `--check-only`, `--no-match-device`, `--reinstall`, `--json`).
+  - CLI: `setup-ai update --fix` for seamless single-command repository update, dependency verification, and system repair.
+  - Web UI: 1-Click Auto-Fix & Repair button, hardware device match badge, and live diagnostics modal in `webui/admin.html`.
+  - Admin API: Added `GET /v1/admin/diagnostics`, `POST /v1/admin/repair`, and `GET /v1/admin/device`.
+  - `menu.sh`: Added option `9) 1-Click Auto-Fix & Repair (Match Hardware AMD/NVIDIA, Fix Bugs, Keep Data)`.
+
+### Fixed
+- `firewing/config/settings.py`: Fixed `TypeError` on unexpected keyword arguments when loading YAML configs by filtering to known dataclass fields and aliasing `cors_origins` and `rate_limit_rpm`.
+- `firewing/model/loader.py`: Added safe attribute checking for mock `torch` objects in unit tests and added device resolution for `"rocm"`, `"mps"`, and `"xpu"`.
+- `setup_ai/cli/main.py`: Optimized dependency verification using `importlib.util.find_spec` for near-instant CLI command startup.

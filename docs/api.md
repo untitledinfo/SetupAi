@@ -133,6 +133,15 @@ Revoke a key (or permanently delete with `?permanent=true`).
 ### `GET /v1/admin/stats`
 Aggregate request stats: uptime, total requests, error rate, tokens generated, avg latency, plus p50/p90/p95 latency percentiles.
 
+### `GET /v1/admin/diagnostics`
+Run deep system diagnostics across configs, database integrity, API key store, filesystem, hardware acceleration, and package dependencies.
+
+### `POST /v1/admin/repair`
+Execute non-destructive 1-Click Auto-Repair. Request body: `{"match_device": true, "reinstall_packages": false}`. Creates a safety backup snapshot, applies schema migrations, and repairs configs while strictly preserving all user data.
+
+### `GET /v1/admin/device`
+Retrieve detected physical accelerators (AMD / NVIDIA / Apple / Intel / CPU), PyTorch runtime acceleration status, and recommended device/dtype/quantization.
+
 A dashboard for these is in `webui/admin.html`.
 
 ## Errors
